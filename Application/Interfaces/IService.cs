@@ -1,7 +1,5 @@
 using Domain.Models;
 
-using Infrastructure.Interfaces;
-
 namespace Application.Interfaces;
 
 public interface IService<T> where T : EntityBase

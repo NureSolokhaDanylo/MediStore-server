@@ -1,10 +1,12 @@
 using Application.Interfaces;
+
 using Domain.Models;
+
 using Infrastructure.Interfaces;
 
 namespace Application.Services;
 
 public class SensorService : ServiceBase<Sensor>, ISensorService
 {
- public SensorService(ISensorRepository repository) : base(repository) { }
+    public SensorService(ISensorRepository repository) : base(repository) { }
 }
