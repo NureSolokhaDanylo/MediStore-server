@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers;
 
-public abstract class CrudController<TEntity, TDto, TService> : ControllerBase
+public abstract class CrudController<TEntity, TDto, TService> : MyController
  where TEntity : EntityBase
  where TService : IService<TEntity>
 {
