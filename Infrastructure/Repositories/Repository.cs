@@ -17,36 +17,23 @@ namespace Infrastructure.Repositories
             _set = _context.Set<T>();
         }
 
-        public async Task<T> Add(T t)
-        {
-            await _set.AddAsync(t);
-            await _context.SaveChangesAsync();
-            return t;
-        }
+        public Task<T?> GetAsync(int id)
+            => _set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
 
-        public async Task Delete(int id)
+        public async Task<IEnumerable<T>> GetAllAsync()
+            => _set.AsNoTracking().AsEnumerable();
+
+        public Task AddAsync(T entity)
+            => _set.AddAsync(entity).AsTask();
+
+        public void Update(T entity)
+            => _set.Update(entity);
+
+        public async Task DeleteAsync(int id)
         {
             var entity = await _set.FindAsync(id);
-            if (entity is null) return;
-            _set.Remove(entity);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<T?> Get(int id)
-        {
-            return await _set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-        }
-
-        public async Task<IEnumerable<T>> GetAll()
-        {
-            return await _set.AsNoTracking().ToListAsync();
-        }
-
-        public async Task<T> Update(T t)
-        {
-            _context.Entry(t).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return t;
+            if (entity != null)
+                _set.Remove(entity);
         }
     }
 }

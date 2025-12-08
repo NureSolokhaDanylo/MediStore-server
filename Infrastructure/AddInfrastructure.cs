@@ -1,5 +1,6 @@
 ﻿using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
+using Infrastructure.UOW;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,13 +16,15 @@ namespace Infrastructure
             services.AddDbContext<AppDbContext>(o => o.UseSqlServer(options.ConnectionString));
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
+            //services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IZoneRepository, ZoneRepository>();
             services.AddScoped<IBatchRepository, BatchRepository>();
             services.AddScoped<IMedicineRepository, MedicineRepository>();
             services.AddScoped<IAlertRepository, AlertRepository>();
             services.AddScoped<ISensorRepository, SensorRepository>();
             services.AddScoped<IReadingRepository, ReadingRepository>();
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
