@@ -12,9 +12,9 @@ namespace Domain.Models
 
         //relationships
         public int? ZoneId { get; set; }
-        public Zone? Zone { get; set; }
+        public virtual Zone? Zone { get; set; }
 
-        public ICollection<Reading> Readings { get; set; } = new List<Reading>();
-        public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
+        public virtual ICollection<Reading> Readings { get; set; } = new List<Reading>();
+        public virtual ICollection<Alert> Alerts { get; set; } = new List<Alert>();
     }
 }

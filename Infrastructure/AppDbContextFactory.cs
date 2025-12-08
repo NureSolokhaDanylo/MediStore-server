@@ -16,7 +16,7 @@ namespace Infrastructure
 
             var contextOptionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-            contextOptionsBuilder.UseSqlServer(options.ConnectionString);
+            contextOptionsBuilder.UseLazyLoadingProxies().UseSqlServer(options.ConnectionString);
 
             return new AppDbContext(contextOptionsBuilder.Options);
         }

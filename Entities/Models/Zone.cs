@@ -10,7 +10,7 @@
         public double HumidMin { get; set; }
 
         //relationships
-        public ICollection<Sensor> Sensors { get; set; } = new List<Sensor>();
-        public ICollection<Batch> Batches { get; set; } = new List<Batch>();
+        public virtual ICollection<Sensor> Sensors { get; set; } = new List<Sensor>();
+        public virtual ICollection<Batch> Batches { get; set; } = new List<Batch>();
     }
 }

@@ -4,6 +4,7 @@ using Infrastructure.UOW;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using SharedConfiguration.Options;
 
@@ -11,9 +12,13 @@ namespace Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, InfrastructureOptions options)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            services.AddDbContext<AppDbContext>(o => o.UseSqlServer(options.ConnectionString));
+            services.AddDbContext<AppDbContext>((p, o) =>
+            {
+                var options = p.GetRequiredService<IOptions<InfrastructureOptions>>().Value;
+                o.UseLazyLoadingProxies().UseSqlServer(options.ConnectionString);
+            });
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             //services.AddScoped<IUserRepository, UserRepository>();

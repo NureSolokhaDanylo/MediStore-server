@@ -10,6 +10,6 @@
         public double HumidMin { get; set; }
 
         //relationships
-        public ICollection<Batch> Batches { get; set; } = new List<Batch>();
+        public virtual ICollection<Batch> Batches { get; set; } = new List<Batch>();
     }
 }

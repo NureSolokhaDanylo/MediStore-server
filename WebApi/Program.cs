@@ -5,6 +5,9 @@ using Infrastructure;
 using SharedConfiguration;
 using SharedConfiguration.Options;
 
+using WebApi.Extensions;
+using WebApi.Hosted;
+
 namespace WebApi
 {
     public class Program
@@ -18,15 +21,15 @@ namespace WebApi
 
             #region Building
 
-            services.AddAppConfiguration(config);
-
-            services.AddControllers();
-            services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
-
-            services.AddInfrastructure(config.GetSection("InfrastructureOptions").Get<InfrastructureOptions>());
-            services.AddApplication();
-            services.AddAppIdentity();
+            services
+                .AddAppConfiguration(config)
+                .AddInfrastructure()
+                .AddAppIdentity()
+                .AddApplication()
+                .AddAppSeeders()
+                .AddAuth()
+                .AddAppControllersAndSwagger()
+                .AddHostedService<SeederHostedService>();
 
             #endregion
 
@@ -34,19 +37,9 @@ namespace WebApi
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-
-            app.MapControllers();
+            app.UseDeveloperFeatures();
+            //no cors for now
+            app.UseAppRequestPipeline(string.Empty);
 
             #endregion
 

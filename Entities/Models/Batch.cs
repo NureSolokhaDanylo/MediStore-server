@@ -9,10 +9,10 @@
 
         //relationships
         public int MedicineId { get; set; }
-        public Medicine Medicine { get; set; } = null!;
+        public virtual Medicine Medicine { get; set; } = null!;
         public int ZoneId { get; set; }
-        public Zone Zone { get; set; } = null!;
+        public virtual Zone Zone { get; set; } = null!;
 
-        public ICollection<Alert> Alerts { get; set; } = new List<Alert>();
+        public virtual ICollection<Alert> Alerts { get; set; } = new List<Alert>();
     }
 }

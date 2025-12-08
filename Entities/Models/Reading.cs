@@ -7,6 +7,6 @@
 
         //relationships
         public int SensorId { get; set; }
-        public Sensor Sensor { get; set; } = null!;
+        public virtual Sensor Sensor { get; set; } = null!;
     }
 }

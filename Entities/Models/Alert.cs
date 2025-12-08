@@ -14,10 +14,10 @@ namespace Domain.Models
 
         //relationships
         public int? SensorId { get; set; }
-        public Sensor? Sensor { get; set; }
+        public virtual Sensor? Sensor { get; set; }
         public int? BatchId { get; set; }
-        public Batch? Batch { get; set; }
+        public virtual Batch? Batch { get; set; }
         public int? ZoneId { get; set; }
-        public Zone? Zone { get; set; }
+        public virtual Zone? Zone { get; set; }
     }
 }

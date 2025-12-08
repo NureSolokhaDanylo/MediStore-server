@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
             => _set.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
 
         public async Task<IEnumerable<T>> GetAllAsync()
-            => _set.AsNoTracking().AsEnumerable();
+            => await _set.AsNoTracking().ToListAsync();
 
         public Task AddAsync(T entity)
             => _set.AddAsync(entity).AsTask();
