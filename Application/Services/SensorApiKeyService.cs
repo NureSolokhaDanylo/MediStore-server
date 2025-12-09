@@ -87,11 +87,5 @@ namespace Application.Services
 
             return Result<string>.Success(plainKey);
         }
-
-        public async Task<bool> ValidateAsync(string key)
-        {
-            var res = await AuthenticationAsync(key);
-            return res.IsSucceed;
-        }
     }
 }

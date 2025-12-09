@@ -163,10 +163,26 @@ public static class DtoMappers
         SensorId = dto.SensorId
     };
 
+    // Alert
+    public static AlertDto ToDto(this Alert a) => new()
+    {
+        Id = a.Id,
+        Message = a.Message,
+        IsSolved = a.IsSolved,
+        CreationTime = a.CreationTime,
+        SolveTime = a.SolveTime,
+        Signature = a.Signature,
+        AlertType = a.AlertType,
+        SensorId = a.SensorId,
+        BatchId = a.BatchId,
+        ZoneId = a.ZoneId
+    };
+
     // Collections
     public static IEnumerable<MedicineDto> ToDto(this IEnumerable<Medicine> list) => list.Select(x => x.ToDto());
     public static IEnumerable<BatchDto> ToDto(this IEnumerable<Batch> list) => list.Select(x => x.ToDto());
     public static IEnumerable<SensorDto> ToDto(this IEnumerable<Sensor> list) => list.Select(x => x.ToDto());
     public static IEnumerable<ZoneDto> ToDto(this IEnumerable<Zone> list) => list.Select(x => x.ToDto());
     public static IEnumerable<ReadingDto> ToDto(this IEnumerable<Reading> list) => list.Select(x => x.ToDto());
+    public static IEnumerable<AlertDto> ToDto(this IEnumerable<Alert> list) => list.Select(x => x.ToDto());
 }

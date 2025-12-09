@@ -60,6 +60,15 @@ namespace Infrastructure
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
+            // Sensor
+            modelBuilder.Entity<SensorApiKey>(e =>
+            {
+                e.HasOne(s => s.Sensor)
+                    .WithMany(z => z.SensorApiKeys)
+                    .HasForeignKey(s => s.SensorId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
             // Reading
             modelBuilder.Entity<Reading>(e =>
             {

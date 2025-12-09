@@ -14,7 +14,6 @@ namespace Application.Interfaces
     {
         Task<Result<int>> AuthenticationAsync(string key);
         Task<Result<string>> CreateNewApiKey(int sensorId);
-        Task<bool> ValidateAsync(string key);
     }
 
 }

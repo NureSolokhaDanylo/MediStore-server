@@ -1,6 +1,10 @@
+using Application.Attributes;
 using Application.Interfaces;
+
 using Domain.Models;
+
 using Microsoft.AspNetCore.Mvc;
+
 using WebApi.DTOs;
 using WebApi.Mappers;
 
@@ -8,32 +12,44 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/readings")]
-public class ReadingsController : CrudController<Reading, ReadingDto, ReadingCreateDto, IReadingService>
+public class ReadingsController : ReadController<Reading, ReadingDto, IReadingService>
 {
-    public ReadingsController(IReadingService service) : base(service) {}
+    private readonly ISensorService _sensorService;
+
+    public ReadingsController(IReadingService service, ISensorService sensorService) : base(service) { _sensorService = sensorService; }
 
     protected override ReadingDto ToDto(Reading entity) => entity.ToDto();
-    protected override Reading ToEntity(ReadingDto dto) => dto.ToEntity();
-    protected override Reading ToEntity(ReadingCreateDto dto) => dto.ToEntity();
     protected override int GetId(ReadingDto dto) => dto.Id;
 
-    [NonAction]
-    // понадобится всем
-    public override Task<ActionResult<IEnumerable<ReadingDto>>> GetAll() => base.GetAll();
+    [HttpPost]
+    [RequireSensorApiKey]
+    public async Task<IActionResult> CreateForSensor([FromBody] ReadingCreateDto dto)
+    {
+        // sensorId comes from MyController (set by middleware)
+        var sid = sensorId;
+        if (!sid.HasValue) return Unauthorized();
 
-    [NonAction]
-    // понадобится всем
-    public override Task<ActionResult<ReadingDto>> Get(int id) => base.Get(id);
+        // check sensor
+        var sensorRes = await _sensorService.Get(sid.Value);
+        if (!sensorRes.IsSucceed) return BadRequest(sensorRes.ErrorMessage);
+        var sensor = sensorRes.Value!;
+        if (!sensor.IsOn) return NoContent(); // do nothing if sensor is off
 
-    [NonAction]
-    // понадобится только сенсорам
-    public override Task<IActionResult> Create([FromBody] ReadingCreateDto dto) => base.Create(dto);
+        // prepare reading
+        var reading = dto.ToEntity();
+        reading.SensorId = sid.Value;
 
-    [NonAction]
-    //не понадобится никогда
-    public override Task<ActionResult<ReadingDto>> Update([FromBody] ReadingDto dto) => base.Update(dto);
+        var addRes = await _service.Add(reading);
+        if (!addRes.IsSucceed) return BadRequest(addRes.ErrorMessage);
+        var created = addRes.Value!;
 
-    [NonAction]
-    // скорее всего не понадобится никогда
-    public override Task<IActionResult> Delete(int id) => base.Delete(id);
+        // update sensor last value and last update
+        sensor.LastValue = created.Value;
+        sensor.LastUpdate = DateTime.UtcNow;
+        var updateSensorRes = await _sensorService.Update(sensor);
+        if (!updateSensorRes.IsSucceed) return BadRequest(updateSensorRes.ErrorMessage);
+
+        var createdDto = created.ToDto();
+        return CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
+    }
 }
