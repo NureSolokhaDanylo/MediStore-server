@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Results.Base;
 
 using Domain.Models;
 
@@ -9,5 +10,28 @@ namespace Application.Services;
 
 public class ReadingService : ServiceBase<Reading>, IReadingService
 {
-    public ReadingService(IReadingRepository repository, IUnitOfWork uow) : base(repository, uow) { }
+    public ReadingService(IReadingRepository repository, IUnitOfWork uow) : base(repository, uow) {}
+
+    public async Task<Result<Reading>> CreateForSensorAsync(int sensorId, Reading reading)
+    {
+        // ensure sensor exists and is on
+        var sensorRes = await _uow.Sensors.GetAsync(sensorId);
+        if (sensorRes is null) return Result<Reading>.Failure("Sensor not found");
+
+        if (!sensorRes.IsOn) return Result<Reading>.Failure("Sensor is off");
+
+        // set sensor id
+        reading.SensorId = sensorId;
+
+        await _uow.Readings.AddAsync(reading);
+        await _uow.SaveChangesAsync();
+
+        // update sensor last value and update time
+        sensorRes.LastValue = reading.Value;
+        sensorRes.LastUpdate = DateTime.UtcNow;
+        _uow.Sensors.Update(sensorRes);
+        await _uow.SaveChangesAsync();
+
+        return Result<Reading>.Success(reading);
+    }
 }
