@@ -2,9 +2,8 @@ using Domain.Enums;
 
 namespace WebApi.DTOs;
 
-public class SensorDto
+public class SensorCreateDto
 {
-    public required int Id { get; set; }
     public required string SerialNumber { get; set; } = null!;
     public double? LastValue { get; set; }
     public DateTime? LastUpdate { get; set; }

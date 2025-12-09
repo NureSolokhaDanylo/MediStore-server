@@ -1,8 +1,7 @@
 namespace WebApi.DTOs;
 
-public class BatchDto
+public class BatchCreateDto
 {
-    public required int Id { get; set; }
     public required string BatchNumber { get; set; } = null!;
     public required int Quantity { get; set; }
     public required DateTime ExpireDate { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace WebApi.Extensions
+﻿using Application.Middleware;
+
+namespace WebApi.Extensions
 {
     public static class MiddleWareExtensions
     {
@@ -18,6 +20,7 @@
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseCors(corsPolicy);
+            app.UseMiddleware<ApiKeyMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();

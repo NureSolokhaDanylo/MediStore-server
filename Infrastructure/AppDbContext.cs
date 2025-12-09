@@ -17,6 +17,7 @@ namespace Infrastructure
         public DbSet<Reading> Readings { get; set; } = null!;
         public DbSet<Sensor> Sensors { get; set; } = null!;
         public DbSet<Zone> Zones { get; set; } = null!;
+        public DbSet<SensorApiKey> SensorApiKeys { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

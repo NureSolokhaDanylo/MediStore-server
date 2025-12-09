@@ -6,36 +6,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers;
 
-public abstract class CrudController<TEntity, TDto, TService> : MyController
- where TEntity : EntityBase
- where TService : IService<TEntity>
+// Full CRUD controller: inherits read operations and adds create/update/delete
+public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : ReadController<TEntity, TDto, TService>
+    where TEntity : EntityBase
+    where TService : IService<TEntity>
 {
-    protected readonly TService _service;
-    protected CrudController(TService service) => _service = service;
-
-    [HttpGet]
-    public virtual async Task<ActionResult<IEnumerable<TDto>>> GetAll()
-    => Ok((await _service.GetAll()).Select(ToDto));
-
-    [HttpGet("{id:int}")]
-    public virtual async Task<ActionResult<TDto>> Get(int id)
-    {
-        var entity = await _service.Get(id);
-        return entity is null ? NotFound() : Ok(ToDto(entity));
-    }
+    protected CrudController(TService service) : base(service) { }
 
     [HttpPost]
-    public virtual async Task<IActionResult> Create([FromBody] TDto dto)
+    public virtual async Task<IActionResult> Create([FromBody] TCreateDto dto)
     {
         var created = await _service.Add(ToEntity(dto));
         var createdDto = ToDto(created);
         return CreatedAtAction(nameof(Get), new { id = GetId(createdDto) }, createdDto);
     }
 
-    [HttpPut("{id:int}")]
-    public virtual async Task<ActionResult<TDto>> Update(int id, [FromBody] TDto dto)
+    [HttpPut]
+    public virtual async Task<ActionResult<TDto>> Update([FromBody] TDto dto)
     {
-        if (id != GetId(dto)) return BadRequest();
         var updated = await _service.Update(ToEntity(dto));
         return Ok(ToDto(updated));
     }
@@ -47,7 +35,6 @@ public abstract class CrudController<TEntity, TDto, TService> : MyController
         return NoContent();
     }
 
-    protected abstract TDto ToDto(TEntity entity);
     protected abstract TEntity ToEntity(TDto dto);
-    protected abstract int GetId(TDto dto);
+    protected abstract TEntity ToEntity(TCreateDto dto);
 }

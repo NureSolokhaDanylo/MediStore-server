@@ -2,11 +2,11 @@ namespace WebApi.DTOs;
 
 public class MedicineDto
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = null!;
+    public required int Id { get; set; }
+    public required string Name { get; set; } = null!;
     public string? Description { get; set; }
-    public double TempMax { get; set; }
-    public double TempMin { get; set; }
-    public double HumidMax { get; set; }
-    public double HumidMin { get; set; }
+    public required double TempMax { get; set; }
+    public required double TempMin { get; set; }
+    public required double HumidMax { get; set; }
+    public required double HumidMin { get; set; }
 }

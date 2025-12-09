@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 
 namespace WebApi.Controllers
 {
@@ -15,5 +16,7 @@ namespace WebApi.Controllers
                 .Select(c => c.Value)
                 .ToList();
         }
+
+        public int? sensorId { get => HttpContext.Items["SensorId"] as int?; }
     }
 }

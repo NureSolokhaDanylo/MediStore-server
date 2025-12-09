@@ -29,6 +29,17 @@ public static class DtoMappers
         HumidMin = dto.HumidMin
     };
 
+    // Create DTO -> Entity
+    public static Medicine ToEntity(this MedicineCreateDto dto) => new()
+    {
+        Name = dto.Name,
+        Description = dto.Description,
+        TempMax = dto.TempMax,
+        TempMin = dto.TempMin,
+        HumidMax = dto.HumidMax,
+        HumidMin = dto.HumidMin
+    };
+
     // Batch
     public static BatchDto ToDto(this Batch b) => new()
     {
@@ -44,6 +55,16 @@ public static class DtoMappers
     public static Batch ToEntity(this BatchDto dto) => new()
     {
         Id = dto.Id,
+        BatchNumber = dto.BatchNumber,
+        Quantity = dto.Quantity,
+        ExpireDate = dto.ExpireDate,
+        DateAdded = dto.DateAdded,
+        MedicineId = dto.MedicineId,
+        ZoneId = dto.ZoneId
+    };
+
+    public static Batch ToEntity(this BatchCreateDto dto) => new()
+    {
         BatchNumber = dto.BatchNumber,
         Quantity = dto.Quantity,
         ExpireDate = dto.ExpireDate,
@@ -75,6 +96,16 @@ public static class DtoMappers
         ZoneId = dto.ZoneId
     };
 
+    public static Sensor ToEntity(this SensorCreateDto dto) => new()
+    {
+        SerialNumber = dto.SerialNumber,
+        LastValue = dto.LastValue,
+        LastUpdate = dto.LastUpdate,
+        IsOn = dto.IsOn,
+        SensorType = dto.SensorType,
+        ZoneId = dto.ZoneId
+    };
+
     // Zone
     public static ZoneDto ToDto(this Zone z) => new()
     {
@@ -98,6 +129,16 @@ public static class DtoMappers
         HumidMin = dto.HumidMin
     };
 
+    public static Zone ToEntity(this ZoneCreateDto dto) => new()
+    {
+        Name = dto.Name,
+        Description = dto.Description,
+        TempMax = dto.TempMax,
+        TempMin = dto.TempMin,
+        HumidMax = dto.HumidMax,
+        HumidMin = dto.HumidMin
+    };
+
     // Reading
     public static ReadingDto ToDto(this Reading r) => new()
     {
@@ -110,6 +151,13 @@ public static class DtoMappers
     public static Reading ToEntity(this ReadingDto dto) => new()
     {
         Id = dto.Id,
+        TimeStamp = dto.TimeStamp,
+        Value = dto.Value,
+        SensorId = dto.SensorId
+    };
+
+    public static Reading ToEntity(this ReadingCreateDto dto) => new()
+    {
         TimeStamp = dto.TimeStamp,
         Value = dto.Value,
         SensorId = dto.SensorId

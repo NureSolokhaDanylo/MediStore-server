@@ -2,7 +2,7 @@
 {
     public class LoginRequestDto
     {
-        public string Login { get; set; }
-        public string Password { get; set; }
+        public required string Login { get; set; } = null!;
+        public required string Password { get; set; } = null!;
     }
 }

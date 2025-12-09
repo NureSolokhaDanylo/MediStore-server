@@ -19,6 +19,7 @@ namespace Infrastructure.UOW
         public IReadingRepository Readings { get; }
         public IZoneRepository Zones { get; }
         public IAlertRepository Alerts { get; }
+        public ISensorApiKeyRepository SensorApiKeys { get; }
 
         private readonly AppDbContext _context;
 
@@ -30,7 +31,8 @@ namespace Infrastructure.UOW
             IBatchRepository batches,
             IReadingRepository readings,
             IZoneRepository zones,
-            IAlertRepository alerts)
+            IAlertRepository alerts,
+            ISensorApiKeyRepository sensorApiKeys)
         {
             _context = context;
 
@@ -41,6 +43,7 @@ namespace Infrastructure.UOW
             Readings = readings;
             Zones = zones;
             Alerts = alerts;
+            SensorApiKeys = sensorApiKeys;
         }
 
         public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();

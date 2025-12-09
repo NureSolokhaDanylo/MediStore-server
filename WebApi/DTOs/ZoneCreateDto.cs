@@ -1,10 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace WebApi.DTOs;
 
-public class ZoneDto
+public class ZoneCreateDto
 {
-    public required int Id { get; set; }
     public required string Name { get; set; } = null!;
     public string? Description { get; set; }
     public required double TempMax { get; set; }

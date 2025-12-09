@@ -13,6 +13,7 @@ namespace Infrastructure.UOW
         IReadingRepository Readings { get; }
         IZoneRepository Zones { get; }
         IAlertRepository Alerts { get; }
+        ISensorApiKeyRepository SensorApiKeys { get; }
 
         Task<int> SaveChangesAsync();
     }

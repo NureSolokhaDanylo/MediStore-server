@@ -32,7 +32,7 @@ namespace Application.Seeders
             if (string.IsNullOrWhiteSpace(_options.AdminPassword) || string.IsNullOrWhiteSpace(_options.AdminLogin))
                 throw new ArgumentNullException("Seed data has null references");
 
-            string[] roles = { "Admin", "Sensor", "Operator", "Observer"};
+            string[] roles = { "Admin", "Operator", "Observer"};
             foreach (var role in roles)
                 if (!await _roleManager.RoleExistsAsync(role))
                     await _roleManager.CreateAsync(new IdentityRole(role));
@@ -48,7 +48,7 @@ namespace Application.Seeders
 
                 var result = await _userManager.CreateAsync(admin, _options.AdminPassword);
                 if (result.Succeeded)
-                    await _userManager.AddToRolesAsync(admin, roles);
+                    await _userManager.AddToRolesAsync(admin, ["Admin", "Observer"]);
             }
         }
     }

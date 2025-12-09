@@ -1,4 +1,6 @@
-﻿using Domain.Enums;
+﻿using System.Runtime.InteropServices;
+
+using Domain.Enums;
 
 namespace Domain.Models
 {
@@ -14,6 +16,7 @@ namespace Domain.Models
         public int? ZoneId { get; set; }
         public virtual Zone? Zone { get; set; }
 
+        public virtual ICollection<SensorApiKey> SensorApiKeys { get; set; } = new List<SensorApiKey>();
         public virtual ICollection<Reading> Readings { get; set; } = new List<Reading>();
         public virtual ICollection<Alert> Alerts { get; set; } = new List<Alert>();
     }

@@ -5,7 +5,7 @@
         public string BatchNumber { get; set; } = null!;
         public int Quantity { get; set; }
         public DateTime ExpireDate { get; set; }
-        public DateTime DateAdded { get; set; } = DateTime.Now;
+        public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 
         //relationships
         public int MedicineId { get; set; }
