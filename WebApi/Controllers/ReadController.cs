@@ -16,13 +16,21 @@ namespace WebApi.Controllers
 
         [HttpGet]
         public virtual async Task<ActionResult<IEnumerable<TDto>>> GetAll()
-            => Ok((await _service.GetAll()).Select(ToDto));
+        {
+            var res = await _service.GetAll();
+            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            var list = res.Value ?? Enumerable.Empty<TEntity>();
+            return Ok(list.Select(ToDto));
+        }
 
         [HttpGet("{id:int}")]
         public virtual async Task<ActionResult<TDto>> Get(int id)
         {
-            var entity = await _service.Get(id);
-            return entity is null ? NotFound() : Ok(ToDto(entity));
+            var res = await _service.Get(id);
+            if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+            var entity = res.Value;
+            if (entity is null) return NotFound();
+            return Ok(ToDto(entity));
         }
 
         protected abstract TDto ToDto(TEntity entity);
