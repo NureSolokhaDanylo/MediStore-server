@@ -15,65 +15,68 @@ namespace WebApi.Controllers
     [Route("api/v1/account")]
     public class AccountController : MyController
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IAccountService _accountService;
 
-        public AccountController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IJwtTokenGenerator jwtTokenGenerator)
+        public AccountController(IAccountService accountService)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _jwtTokenGenerator = jwtTokenGenerator;
-        }
-
-        // Returns current user id, username and roles (reads from DB via UserManager)
-        [HttpGet("me")]
-        [Authorize]
-        public async Task<IActionResult> Me()
-        {
-            return Ok(new
-            {
-                UserId = userId,
-                Username = login,
-                Roles = roles
-            });
-        }
-
-        // Alternative: read id/roles directly from the ClaimsPrincipal (no DB hit)
-        [HttpGet("claims")]
-        [Authorize]
-        public IActionResult Claims()
-        {
-            var idFromClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var rolesFromClaims = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
-
-            return Ok(new { IdFromClaim = idFromClaim, RolesFromClaims = rolesFromClaims });
+            _accountService = accountService;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
-            var user = await _userManager.FindByNameAsync(dto.Login);
-            if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-                return Unauthorized();
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            string token = _jwtTokenGenerator.GenerateToken(user, roles);
-
-            return Ok(new { token });
+            var res = await _accountService.LoginAsync(dto.Login, dto.Password);
+            if (!res.IsSucceed) return Unauthorized(res.ErrorMessage);
+            return Ok(new { token = res.Value });
         }
 
-        [HttpGet("ping")]
-        [Authorize]
-        public IActionResult Ping()
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
         {
-            return Ok();
+            var requester = userId;
+            if (string.IsNullOrEmpty(requester)) return Unauthorized();
+
+            var res = await _accountService.CreateAccountAsync(requester, dto.UserName, dto.Password, dto.Roles);
+            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            return NoContent();
         }
 
-        //создать аккаунт (только админ может)
-        //изменить пароль (каждый может, но так же админ может для кого угодно)
-        //изменить роли (админ может выдать другим роли, но не админе)
-        //удалить пользователя (админ может удалить любого, кроме себя)
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            var requester = userId;
+            if (string.IsNullOrEmpty(requester)) return Unauthorized();
+
+            var target = string.IsNullOrEmpty(dto.TargetUserId) ? requester : dto.TargetUserId;
+            var res = await _accountService.ChangePasswordAsync(requester, target, dto.CurrentPassword, dto.NewPassword);
+            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            return NoContent();
+        }
+
+        [HttpPost("roles")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeRoles([FromBody] ChangeRolesDto dto)
+        {
+            var requester = userId;
+            if (string.IsNullOrEmpty(requester)) return Unauthorized();
+
+            var res = await _accountService.ChangeRolesAsync(requester, dto.TargetUserId, dto.Roles);
+            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var requester = userId;
+            if (string.IsNullOrEmpty(requester)) return Unauthorized();
+
+            var res = await _accountService.DeleteUserAsync(requester, id);
+            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            return NoContent();
+        }
     }
 }
