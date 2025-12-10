@@ -3,6 +3,7 @@ using Application.Interfaces;
 
 using Domain.Models;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using WebApi.DTOs;
@@ -20,6 +21,13 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
 
     protected override ReadingDto ToDto(Reading entity) => entity.ToDto();
     protected override int GetId(ReadingDto dto) => dto.Id;
+
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public override Task<ActionResult<IEnumerable<ReadingDto>>> GetAll() => base.GetAll();
+
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public override Task<ActionResult<ReadingDto>> Get(int id) => base.Get(id);
+
 
     [HttpPost]
     [RequireSensorApiKey]

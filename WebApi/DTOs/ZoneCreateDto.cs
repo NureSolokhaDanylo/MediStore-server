@@ -2,7 +2,7 @@ namespace WebApi.DTOs;
 
 public class ZoneCreateDto
 {
-    public required string Name { get; set; } = null!;
+    public required string Name { get; set; }
     public string? Description { get; set; }
     public required double TempMax { get; set; }
     public required double TempMin { get; set; }

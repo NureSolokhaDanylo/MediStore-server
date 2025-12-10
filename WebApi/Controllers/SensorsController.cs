@@ -12,7 +12,7 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/sensors")]
-public class SensorsController : CrudController<Sensor, SensorDto, SensorCreateDto, ISensorService>
+public class SensorsController : ReadController<Sensor, SensorDto, ISensorService>
 {
     private readonly ISensorApiKeyService _apiKeyService;
     private readonly ISensorService _sensorService;
@@ -20,8 +20,6 @@ public class SensorsController : CrudController<Sensor, SensorDto, SensorCreateD
     public SensorsController(ISensorService service, ISensorApiKeyService apiKeyService) : base(service) { _apiKeyService = apiKeyService; _sensorService = service; }
 
     protected override SensorDto ToDto(Sensor entity) => entity.ToDto();
-    protected override Sensor ToEntity(SensorDto dto) => dto.ToEntity();
-    protected override Sensor ToEntity(SensorCreateDto dto) => dto.ToEntity();
     protected override int GetId(SensorDto dto) => dto.Id;
 
     [Authorize(Roles = "Admin,Operator,Observer")]
@@ -30,13 +28,37 @@ public class SensorsController : CrudController<Sensor, SensorDto, SensorCreateD
     [Authorize(Roles = "Admin,Operator,Observer")]
     public override Task<ActionResult<SensorDto>> Get(int id) => base.Get(id);
 
-    [Authorize(Roles = "Admin")]
-    public override Task<IActionResult> Create([FromBody] SensorCreateDto dto) => base.Create(dto);
 
+    [HttpPost]
     [Authorize(Roles = "Admin")]
-    public override Task<IActionResult> Delete(int id) => base.Delete(id);
+    public async Task<IActionResult> Create([FromBody] SensorCreateDto dto)
+    {
+        var res = await _service.Add(dto.ToEntity());
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        var created = res.Value!;
+        var createdDto = ToDto(created);
+        return CreatedAtAction(nameof(Get), new { id = GetId(createdDto) }, createdDto);
+    }
 
-    // Endpoint to create a new API key for a sensor (returns plaintext key)
+    [HttpDelete]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var res = await _service.Delete(id);
+        if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+        return NoContent();
+    }
+
+    [HttpPut]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateAllowedFields([FromBody] SensorUpdateDto dto)
+    {
+        var res = await _sensorService.UpdateFromAdmin(dto.Id, dto.SerialNumber, dto.IsOn, dto.ZoneId);
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        return Ok(res.Value!.ToDto());
+    }
+
     [HttpPost("{id:int}/apikey")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateApiKey(int id)
@@ -45,20 +67,4 @@ public class SensorsController : CrudController<Sensor, SensorDto, SensorCreateD
         if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
         return Ok(new { apiKey = res.Value });
     }
-
-    [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateAllowedFields(int id, [FromBody] SensorUpdateDto dto)
-    {
-        if (id != dto.Id) return BadRequest();
-
-        var res = await _sensorService.UpdateFromDtoAsync(id, dto.SerialNumber, dto.IsOn, dto.ZoneId);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
-
-        return Ok(res.Value!.ToDto());
-    }
-    // Hide the base Update method, потому что не все поля можно обновлять для сенсора.
-    [NonAction]
-    public override Task<ActionResult<SensorDto>> Update([FromBody] SensorDto dto) => base.Update(dto);
-
 }

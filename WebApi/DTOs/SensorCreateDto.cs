@@ -4,7 +4,7 @@ namespace WebApi.DTOs;
 
 public class SensorCreateDto
 {
-    public required string SerialNumber { get; set; } = null!;
+    public required string SerialNumber { get; set; }
     public double? LastValue { get; set; }
     public DateTime? LastUpdate { get; set; }
     public required bool IsOn { get; set; }

@@ -10,10 +10,9 @@ using Domain.Models;
 
 namespace Application.Interfaces
 {
-    public interface ISensorApiKeyService
+    public interface IReadOnlyService<T> where T : EntityBase
     {
-        Task<Result<int>> AuthenticationAsync(string key);
-        Task<Result<string>> CreateNewApiKey(int sensorId);
+        Task<Result<T>> Get(int id);
+        Task<Result<IEnumerable<T>>> GetAll();
     }
-
 }

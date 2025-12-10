@@ -2,6 +2,6 @@ using Domain.Models;
 
 namespace Application.Interfaces;
 
-public interface IMedicineService : IService<Medicine>
+public interface IMedicineService : ICrudService<Medicine>
 {
 }

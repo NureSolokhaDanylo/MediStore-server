@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services
-            .AddScoped<IUserService, UserService>()
+            .AddScoped<IAccountService, AccountService>()
             .AddScoped<IZoneService, ZoneService>()
             .AddScoped<IBatchService, BatchService>()
             .AddScoped<IMedicineService, MedicineService>()
@@ -21,7 +21,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<ISensorService, SensorService>()
             .AddScoped<IReadingService, ReadingService>()
             .AddScoped<ISensorApiKeyService, SensorApiKeyService>()
-            .AddScoped<IPasswordHasher<SensorApiKey>, PasswordHasher<SensorApiKey>>();
+            .AddScoped<IPasswordHasher<SensorApiKey>, PasswordHasher<SensorApiKey>>()
+            .AddScoped<IAppSettingsService, AppSettingsService>();
 
         return services;
     }

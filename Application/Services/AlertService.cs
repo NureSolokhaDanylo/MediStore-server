@@ -7,7 +7,7 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class AlertService : ServiceBase<Alert>, IAlertService
+public class AlertService : CrudService<Alert>, IAlertService
 {
     public AlertService(IAlertRepository repository, IUnitOfWork uow) : base(repository, uow) { }
 }

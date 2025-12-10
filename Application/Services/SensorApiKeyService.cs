@@ -17,12 +17,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Application.Services
 {
-    public class SensorApiKeyService : ServiceBase<SensorApiKey>, ISensorApiKeyService
+    public class SensorApiKeyService : ISensorApiKeyService
     {
         private readonly IUnitOfWork _uow;
         private readonly IPasswordHasher<SensorApiKey> _hasher;
 
-        public SensorApiKeyService(IPasswordHasher<SensorApiKey> hasher, ISensorApiKeyRepository repository, IUnitOfWork uow) : base(repository, uow)
+        public SensorApiKeyService(IPasswordHasher<SensorApiKey> hasher, IUnitOfWork uow)
         {
             _hasher = hasher;
             _uow = uow;

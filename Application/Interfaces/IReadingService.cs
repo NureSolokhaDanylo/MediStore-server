@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces;
 
-public interface IReadingService : IService<Reading>
+public interface IReadingService : IReadOnlyService<Reading>
 {
     Task<Result<Reading>> CreateForSensorAsync(int sensorId, Reading reading);
 }

@@ -2,6 +2,6 @@ using Domain.Models;
 
 namespace Application.Interfaces;
 
-public interface IBatchService : IService<Batch>
+public interface IBatchService : ICrudService<Batch>
 {
 }

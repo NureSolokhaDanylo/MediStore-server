@@ -6,7 +6,6 @@ namespace Infrastructure.UOW
 {
     public interface IUnitOfWork
     {
-        //IUserRepository Users { get; }
         IMedicineRepository Medicines { get; }
         ISensorRepository Sensors { get; }
         IBatchRepository Batches { get; }
@@ -14,6 +13,7 @@ namespace Infrastructure.UOW
         IZoneRepository Zones { get; }
         IAlertRepository Alerts { get; }
         ISensorApiKeyRepository SensorApiKeys { get; }
+        IAppSettingsRepository AppSettings { get; }
 
         Task<int> SaveChangesAsync();
     }

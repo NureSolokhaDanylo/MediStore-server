@@ -4,12 +4,14 @@ using Domain.Models;
 
 using Microsoft.AspNetCore.Mvc;
 
+using System.IO;
+
 namespace WebApi.Controllers;
 
 // Full CRUD controller: inherits read operations and adds create/update/delete
 public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : ReadController<TEntity, TDto, TService>
     where TEntity : EntityBase
-    where TService : IService<TEntity>
+    where TService : ICrudService<TEntity>
 {
     protected CrudController(TService service) : base(service) { }
 

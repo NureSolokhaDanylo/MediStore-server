@@ -2,6 +2,6 @@ using Domain.Models;
 
 namespace Application.Interfaces;
 
-public interface IAlertService : IService<Alert>
+public interface IAlertService : ICrudService<Alert>
 {
 }

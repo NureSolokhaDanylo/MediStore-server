@@ -6,12 +6,29 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class SensorService : ServiceBase<Sensor>, ISensorService
+public class SensorService : ReadOnlyService<Sensor>, ISensorService
 {
     public SensorService(ISensorRepository repository, IUnitOfWork uow) : base(repository, uow) { }
 
-    //это единственный такой метод, который принимает пол€ вместо сущности. ¬ отличии от остальных тут можно обновить не все пол€
-    public async Task<Result<Sensor>> UpdateFromDtoAsync(int id, string? serialNumber, bool? isOn, int? zoneId)
+    public virtual async Task<Result<Sensor>> Add(Sensor entity)
+    {
+        await _repository.AddAsync(entity);
+        await _uow.SaveChangesAsync();   // <-- CRUD SaveChanges
+        return Result<Sensor>.Success(entity);
+    }
+
+    public async Task<Result> Delete(int id)
+    {
+        var entity = await _repository.GetAsync(id);
+        if (entity is null)
+            return Result.Failure("Not found");
+
+        await _repository.DeleteAsync(id);
+        await _uow.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result<Sensor>> UpdateFromAdmin(int id, string? serialNumber, bool? isOn, int? zoneId)
     {
         var existing = await _uow.Sensors.GetAsync(id);
         if (existing is null) return Result<Sensor>.Failure("Not found");

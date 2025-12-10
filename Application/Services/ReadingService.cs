@@ -8,7 +8,7 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class ReadingService : ServiceBase<Reading>, IReadingService
+public class ReadingService : ReadOnlyService<Reading>, IReadingService
 {
     public ReadingService(IReadingRepository repository, IUnitOfWork uow) : base(repository, uow) {}
 

@@ -8,7 +8,7 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class MedicineService : ServiceBase<Medicine>, IMedicineService
+public class MedicineService : CrudService<Medicine>, IMedicineService
 {
     public MedicineService(IMedicineRepository repository, IUnitOfWork uow) : base(repository, uow) { }
 

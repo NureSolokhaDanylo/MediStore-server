@@ -21,7 +21,6 @@ namespace Infrastructure
             });
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IZoneRepository, ZoneRepository>();
             services.AddScoped<IBatchRepository, BatchRepository>();
             services.AddScoped<IMedicineRepository, MedicineRepository>();
@@ -29,6 +28,7 @@ namespace Infrastructure
             services.AddScoped<ISensorRepository, SensorRepository>();
             services.AddScoped<IReadingRepository, ReadingRepository>();
             services.AddScoped<ISensorApiKeyRepository, SensorApiKeyRepository>();
+            services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

@@ -6,28 +6,10 @@ using Application.Results.Base;
 
 namespace Application.Services;
 
-public class ServiceBase<T> : IService<T> where T : EntityBase
+// Full CRUD service: inherits read operations and adds create/update/delete
+public class CrudService<T> : ReadOnlyService<T>, ICrudService<T> where T : EntityBase
 {
-    protected readonly IRepository<T> _repository;
-    protected readonly IUnitOfWork _uow;
-
-    public ServiceBase(IRepository<T> repository, IUnitOfWork uow)
-    {
-        _repository = repository;
-        _uow = uow;
-    }
-
-    public async Task<Result<T>> Get(int id)
-    {
-        var entity = await _repository.GetAsync(id);
-        return entity is null ? Result<T>.Failure("Not found") : Result<T>.Success(entity);
-    }
-
-    public async Task<Result<IEnumerable<T>>> GetAll()
-    {
-        var list = await _repository.GetAllAsync();
-        return Result<IEnumerable<T>>.Success(list);
-    }
+    public CrudService(IRepository<T> repository, IUnitOfWork uow) : base(repository, uow) { }
 
     public virtual async Task<Result<T>> Add(T entity)
     {

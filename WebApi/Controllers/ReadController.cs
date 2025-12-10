@@ -9,7 +9,7 @@ namespace WebApi.Controllers
     // Read-only controller: exposes GET and GET ALL
     public abstract class ReadController<TEntity, TDto, TService> : MyController
         where TEntity : EntityBase
-        where TService : IService<TEntity>
+        where TService : IReadOnlyService<TEntity>
     {
         protected readonly TService _service;
         protected ReadController(TService service) => _service = service;

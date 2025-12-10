@@ -18,11 +18,32 @@ namespace Infrastructure
         public DbSet<Sensor> Sensors { get; set; } = null!;
         public DbSet<Zone> Zones { get; set; } = null!;
         public DbSet<SensorApiKey> SensorApiKeys { get; set; } = null!;
+        public DbSet<AppSettings> AppSettings { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // === CONFIG SETTINGS SCHEMA ==
+
+            modelBuilder.Entity<AppSettings>(builder =>
+            {
+                builder.ToTable("Settings", "config", t => { t.HasCheckConstraint("CK_AppSettings_Singleton", "[Id] = 1"); });
+
+                builder.HasData(new AppSettings
+                {
+                    Id = 1,
+                    AlertEnabled = true,
+                    TempAlertDeviation = 2.0,
+                    HumidityAlertDeviation = 5.0
+                });
+            });
+
+            ConfigureDomain(modelBuilder);
+        }
+
+        private void ConfigureDomain(ModelBuilder modelBuilder)
+        {
             // Medicine
             modelBuilder.Entity<Medicine>(e =>
             {

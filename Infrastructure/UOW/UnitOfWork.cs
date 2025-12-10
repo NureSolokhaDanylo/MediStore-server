@@ -12,7 +12,6 @@ namespace Infrastructure.UOW
 {
     public class UnitOfWork : IUnitOfWork
     {
-        //public IUserRepository Users { get; }
         public IMedicineRepository Medicines { get; }
         public ISensorRepository Sensors { get; }
         public IBatchRepository Batches { get; }
@@ -20,23 +19,23 @@ namespace Infrastructure.UOW
         public IZoneRepository Zones { get; }
         public IAlertRepository Alerts { get; }
         public ISensorApiKeyRepository SensorApiKeys { get; }
+        public IAppSettingsRepository AppSettings { get; }
 
         private readonly AppDbContext _context;
 
         public UnitOfWork(
             AppDbContext context,
-            //IUserRepository users,
             IMedicineRepository medicines,
             ISensorRepository sensors,
             IBatchRepository batches,
             IReadingRepository readings,
             IZoneRepository zones,
             IAlertRepository alerts,
-            ISensorApiKeyRepository sensorApiKeys)
+            ISensorApiKeyRepository sensorApiKeys,
+            IAppSettingsRepository appSettings)
         {
             _context = context;
 
-            //Users = users;
             Medicines = medicines;
             Sensors = sensors;
             Batches = batches;
@@ -44,6 +43,7 @@ namespace Infrastructure.UOW
             Zones = zones;
             Alerts = alerts;
             SensorApiKeys = sensorApiKeys;
+            AppSettings = appSettings;
         }
 
         public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();

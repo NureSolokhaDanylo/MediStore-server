@@ -1,6 +1,10 @@
 using Application.Interfaces;
+
 using Domain.Models;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using WebApi.DTOs;
 using WebApi.Mappers;
 
@@ -14,4 +18,10 @@ public class AlertsController : ReadController<Alert, AlertDto, IAlertService>
 
     protected override AlertDto ToDto(Alert entity) => entity.ToDto();
     protected override int GetId(AlertDto dto) => dto.Id;
+
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public override Task<ActionResult<IEnumerable<AlertDto>>> GetAll() => base.GetAll();
+
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public override Task<ActionResult<AlertDto>> Get(int id) => base.Get(id);
 }

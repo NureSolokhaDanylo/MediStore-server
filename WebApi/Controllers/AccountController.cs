@@ -30,6 +30,16 @@ namespace WebApi.Controllers
             return Ok(new { token = res.Value });
         }
 
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var id = userId;
+            var name = login;
+            if (string.IsNullOrEmpty(id)) return Unauthorized();
+            return Ok(new { Id = id, Login = name, Roles = roles });
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)

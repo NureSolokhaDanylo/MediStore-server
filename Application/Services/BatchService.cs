@@ -6,7 +6,7 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class BatchService : ServiceBase<Batch>, IBatchService
+public class BatchService : CrudService<Batch>, IBatchService
 {
     public BatchService(IBatchRepository repository, IUnitOfWork uow) : base(repository, uow) { }
 

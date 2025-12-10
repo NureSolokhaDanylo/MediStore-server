@@ -15,12 +15,16 @@ namespace Application.Services
 {
     public class AccountService : IAccountService
     {
+        protected readonly IUnitOfWork _uow;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
         public AccountService(IUnitOfWork uow, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IJwtTokenGenerator jwtTokenGenerator)
         {
+            _uow = uow;
             _userManager = userManager;
+            _roleManager = roleManager;
             _jwtTokenGenerator = jwtTokenGenerator;
         }
 
@@ -51,8 +55,21 @@ namespace Application.Services
 
             if (roles != null)
             {
+                var provided = roles.ToArray();
+                var missing = new List<string>();
+                foreach (var r in provided)
+                {
+                    if (!await _roleManager.RoleExistsAsync(r)) missing.Add(r);
+                }
+                if (missing.Any())
+                {
+                    // rollback created user
+                    await _userManager.DeleteAsync(user);
+                    return Result.Failure($"Roles do not exist: {string.Join(',', missing)}");
+                }
+
                 // do not allow granting Admin role via this method (explicit)
-                var sanitized = roles.Where(r => r != "Admin");
+                var sanitized = provided.Where(r => r != "Admin");
                 if (sanitized.Any()) await _userManager.AddToRolesAsync(user, sanitized);
             }
 
@@ -101,11 +118,20 @@ namespace Application.Services
             var targetRoles = await _userManager.GetRolesAsync(target);
             if (targetRoles.Contains("Admin")) return Result.Failure("Cannot change roles of an Admin");
 
+            // validate requested roles exist
+            var provided = roles.ToArray();
+            var missing = new List<string>();
+            foreach (var r in provided)
+            {
+                if (!await _roleManager.RoleExistsAsync(r)) missing.Add(r);
+            }
+            if (missing.Any()) return Result.Failure($"Roles do not exist: {string.Join(',', missing)}");
+
             // apply roles: remove all current except Admin, then add provided (but cannot grant Admin)
             var toRemove = targetRoles.Where(r => r != "Admin").ToArray();
             if (toRemove.Any()) await _userManager.RemoveFromRolesAsync(target, toRemove);
 
-            var toAdd = roles.Where(r => r != "Admin").ToArray();
+            var toAdd = provided.Where(r => r != "Admin").ToArray();
             if (toAdd.Any()) await _userManager.AddToRolesAsync(target, toAdd);
 
             return Result.Success();
