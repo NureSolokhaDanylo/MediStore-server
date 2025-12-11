@@ -5,7 +5,6 @@ namespace Domain.Models
     public class Alert : EntityBase
     {
         public string Message { get; set; } = null!;
-        public bool IsSolved { get; set; } = false;
         public DateTime CreationTime { get; set; } = DateTime.UtcNow;
         public DateTime? SolveTime { get; set; }
         public AlertType AlertType { get; set; }

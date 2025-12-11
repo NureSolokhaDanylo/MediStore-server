@@ -22,9 +22,9 @@ public class AlertService : CrudService<Alert>, IAlertService
         var existing = await _alertRepo.GetAsync(alertId);
         if (existing is null) return Result.Failure("Not found");
 
-        if (existing.IsSolved) return Result.Success();
+        // no IsSolved field now; use SolveTime to indicate solved
+        if (existing.SolveTime.HasValue) return Result.Success();
 
-        existing.IsSolved = true;
         existing.SolveTime = DateTime.UtcNow;
 
         _alertRepo.Update(existing);

@@ -14,7 +14,7 @@ namespace WebApi.Hosted
             var logger = services.GetService<ILogger<ExpiredChecker>>();
 
             // run periodically
-            var delay = TimeSpan.FromSeconds(10);
+            var delay = TimeSpan.FromMinutes(1);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -25,15 +25,23 @@ namespace WebApi.Hosted
 
                     var uow = provider.GetRequiredService<IUnitOfWork>();
 
+                    // check app settings: if alerts disabled skip
+                    var appSettings = await uow.AppSettings.GetAsync(1);
+                    if (appSettings is null || !appSettings.AlertEnabled)
+                    {
+                        await Task.Delay(delay, stoppingToken);
+                        continue;
+                    }
+
                     var batches = await uow.Batches.GetExpiredBatchesAsync(DateTime.UtcNow);
 
                     foreach (var batch in batches)
                     {
                         try
                         {
-                            // check existing unresolved alert using optimized repo method
-                            var existsUnsolved = await uow.Alerts.HasUnresolvedAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.Expired);
-                            if (existsUnsolved)
+                            // check existing alert using optimized repo method
+                            var exists = await uow.Alerts.HasAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.Expired);
+                            if (exists)
                                 continue;
 
                             // create new alert
@@ -63,9 +71,7 @@ namespace WebApi.Hosted
                                 SensorId = null,
                                 ZoneId = null,
                                 AlertType = Domain.Enums.AlertType.Expired,
-                                IsSolved = false,
                                 CreationTime = DateTime.UtcNow,
-                                SolveTime = null,
                                 Message = message.ToString()
                             };
 

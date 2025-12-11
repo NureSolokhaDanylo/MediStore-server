@@ -8,7 +8,10 @@ namespace WebApi.Extensions
         {
             services
                 .AddHostedService<SeederHostedService>()
-                .AddHostedService<ExpiredChecker>();
+                .AddHostedService<ExpiredChecker>()
+                .AddHostedService<ExpirationSoonChecker>();
+                //            .AddHostedService<ExpiredChecker>()
+                //.AddHostedService<ExpirationSoonChecker>();
 
             return services;
         }

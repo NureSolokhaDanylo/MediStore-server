@@ -5,6 +5,6 @@ namespace Infrastructure.Interfaces
 {
     public interface IAlertRepository : IRepository<Alert>
     {
-        Task<bool> HasUnresolvedAlertForBatchAsync(int batchId, Domain.Enums.AlertType alertType);
+        Task<bool> HasAlertForBatchAsync(int batchId, Domain.Enums.AlertType alertType);
     }
 }

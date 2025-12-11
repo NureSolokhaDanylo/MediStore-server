@@ -35,7 +35,8 @@ namespace Infrastructure
                     Id = 1,
                     AlertEnabled = true,
                     TempAlertDeviation = 2.0,
-                    HumidityAlertDeviation = 5.0
+                    HumidityAlertDeviation = 5.0,
+                    CheckDeviationInterval = TimeSpan.FromMinutes(10)
                 });
             });
 

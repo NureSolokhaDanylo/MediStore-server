@@ -165,7 +165,6 @@ public static class DtoMappers
     {
         Id = a.Id,
         Message = a.Message,
-        IsSolved = a.IsSolved,
         CreationTime = a.CreationTime,
         SolveTime = a.SolveTime,
         AlertType = a.AlertType,

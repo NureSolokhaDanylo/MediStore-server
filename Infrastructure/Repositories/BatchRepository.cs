@@ -14,5 +14,14 @@ namespace Infrastructure.Repositories
                 .Where(b => b.ExpireDate <= asOf)
                 .ToListAsync();
         }
+
+        public Task<List<Batch>> GetBatchesApproachingExpirationAsync(DateTime now)
+        {
+            // We'll return batches where ExpireDate >= now (not yet expired).
+            // Further filtering by medicine.WarningThresholdDays will be done in service layer.
+            return _context.Set<Batch>()
+                .Where(b => b.ExpireDate >= now)
+                .ToListAsync();
+        }
     }
 }

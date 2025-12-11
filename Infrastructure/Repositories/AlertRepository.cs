@@ -8,10 +8,10 @@ namespace Infrastructure.Repositories
     {
         public AlertRepository(AppDbContext context) : base(context) { }
 
-        public Task<bool> HasUnresolvedAlertForBatchAsync(int batchId, Domain.Enums.AlertType alertType)
+        public Task<bool> HasAlertForBatchAsync(int batchId, Domain.Enums.AlertType alertType)
         {
             return _context.Set<Alert>()
-                .AnyAsync(a => a.BatchId == batchId && a.AlertType == alertType && !a.IsSolved);
+                .AnyAsync(a => a.BatchId == batchId && a.AlertType == alertType);
         }
     }
 }
