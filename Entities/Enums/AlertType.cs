@@ -2,9 +2,10 @@
 {
     public enum AlertType
     {
-        ExpirationSoon = 1,
-        Expired = 2,
-        BatchConditionWarning = 3,
-        ZoneConditionAlert = 4
+        //проверка по всем нужным айди + типу алерта + issolved
+        ExpirationSoon = 1, //msg: batch id + medicine name + expiration date. ids: batchId
+        Expired = 2, //msg: batch id + medicine name + expiration date. ids: batchId
+        BatchConditionWarning = 3, //msg: . ids: batchId, zoneId, sensorId
+        ZoneConditionAlert = 4 //msg . ids: batchId, zoneId, sensorId
     }
 }

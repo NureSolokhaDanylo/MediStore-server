@@ -1,7 +1,7 @@
 ﻿
 namespace WebApi.Hosted
 {
-    public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
+    public class ExpiredSoonChecker(IServiceProvider services) : BackgroundService
     {
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {

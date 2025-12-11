@@ -29,7 +29,7 @@ namespace WebApi
                 .AddAppSeeders()
                 .AddAuth()
                 .AddAppControllersAndSwagger()
-                .AddAppHostedServices<SeederHostedService>();
+                .AddAppHostedServices();
 
             #endregion
 
