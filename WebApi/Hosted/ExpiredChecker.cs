@@ -1,0 +1,92 @@
+﻿using Application.Results.Base;
+using Domain.Models;
+using Infrastructure.UOW;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace WebApi.Hosted
+{
+    public class ExpiredChecker(IServiceProvider services) : BackgroundService
+    {
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            var logger = services.GetService<ILogger<ExpiredChecker>>();
+
+            // run periodically
+            var delay = TimeSpan.FromSeconds(10);
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    using var scope = services.CreateScope();
+                    var provider = scope.ServiceProvider;
+
+                    var uow = provider.GetRequiredService<IUnitOfWork>();
+
+                    var batches = await uow.Batches.GetExpiredBatchesAsync(DateTime.UtcNow);
+
+                    foreach (var batch in batches)
+                    {
+                        try
+                        {
+                            // check existing unresolved alert using optimized repo method
+                            var existsUnsolved = await uow.Alerts.HasUnresolvedAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.Expired);
+                            if (existsUnsolved)
+                                continue;
+
+                            // create new alert
+                            var med = await uow.Medicines.GetAsync(batch.MedicineId);
+
+                            // build detailed info snapshot for the message (capture data at time of alert creation)
+                            var medName = med?.Name ?? "<unknown>";
+                            var medDesc = med?.Description ?? string.Empty;
+                            var medTempRange = med is null ? string.Empty : $"Temp[{med.TempMin:F1}..{med.TempMax:F1}]";
+                            var medHumRange = med is null ? string.Empty : $"Humid[{med.HumidMin:F1}..{med.HumidMax:F1}]";
+
+                            var message = new System.Text.StringBuilder();
+                            message.Append($"Batch {batch.Id}");
+                            if (!string.IsNullOrEmpty(batch.BatchNumber)) message.Append($" (#{batch.BatchNumber})");
+                            message.Append($" for Medicine: {medName}");
+                            if (!string.IsNullOrEmpty(medDesc)) message.Append($" - {medDesc}");
+                            if (!string.IsNullOrEmpty(medTempRange) || !string.IsNullOrEmpty(medHumRange))
+                                message.Append($" [{medTempRange} {medHumRange}]");
+
+                            message.Append($"; Quantity: {batch.Quantity}");
+                            message.Append($"; DateAdded: {batch.DateAdded.ToUniversalTime():yyyy-MM-dd HH:mm:ss} UTC");
+                            message.Append($"; ExpireDate: {batch.ExpireDate.ToUniversalTime():yyyy-MM-dd HH:mm:ss} UTC");
+
+                            var alert = new Alert
+                            {
+                                BatchId = batch.Id,
+                                SensorId = null,
+                                ZoneId = null,
+                                AlertType = Domain.Enums.AlertType.Expired,
+                                IsSolved = false,
+                                CreationTime = DateTime.UtcNow,
+                                SolveTime = null,
+                                Message = message.ToString()
+                            };
+
+                            await uow.Alerts.AddAsync(alert);
+                            await uow.SaveChangesAsync();
+
+                            logger?.LogInformation("Created expired alert for batch {BatchId}", batch.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger?.LogError(ex, "Error processing batch {BatchId}", batch.Id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Error in ExpiredChecker loop");
+                }
+
+                await Task.Delay(delay, stoppingToken);
+            }
+        }
+    }
+}

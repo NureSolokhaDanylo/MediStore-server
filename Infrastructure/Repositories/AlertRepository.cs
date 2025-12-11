@@ -1,11 +1,17 @@
 using Domain.Models;
-
 using Infrastructure.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
     public class AlertRepository : Repository<Alert>, IAlertRepository
     {
         public AlertRepository(AppDbContext context) : base(context) { }
+
+        public Task<bool> HasUnresolvedAlertForBatchAsync(int batchId, Domain.Enums.AlertType alertType)
+        {
+            return _context.Set<Alert>()
+                .AnyAsync(a => a.BatchId == batchId && a.AlertType == alertType && !a.IsSolved);
+        }
     }
 }

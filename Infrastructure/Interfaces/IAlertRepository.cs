@@ -1,8 +1,10 @@
 ﻿using Domain.Models;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Interfaces
 {
     public interface IAlertRepository : IRepository<Alert>
     {
+        Task<bool> HasUnresolvedAlertForBatchAsync(int batchId, Domain.Enums.AlertType alertType);
     }
 }
