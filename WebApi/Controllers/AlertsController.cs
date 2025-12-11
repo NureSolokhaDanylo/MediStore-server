@@ -23,13 +23,4 @@ public class AlertsController : ReadController<Alert, AlertDto, IAlertService>
 
     [Authorize(Roles = "Admin,Operator,Observer")]
     public override Task<ActionResult<AlertDto>> Get(int id) => base.Get(id);
-
-    [HttpPost("{id:int}/solve")]
-    [Authorize(Roles = "Admin,Operator")]
-    public async Task<IActionResult> MarkSolved(int id)
-    {
-        var res = await _alertService.MarkSolvedAsync(id);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
-        return NoContent();
-    }
 }

@@ -13,5 +13,11 @@ namespace Infrastructure.Repositories
             return _context.Set<Alert>()
                 .AnyAsync(a => a.BatchId == batchId && a.AlertType == alertType);
         }
+
+        public Task<bool> HasAlertForZoneAsync(int zoneId, Domain.Enums.AlertType alertType)
+        {
+            return _context.Set<Alert>()
+                .AnyAsync(a => a.ZoneId == zoneId && a.AlertType == alertType);
+        }
     }
 }

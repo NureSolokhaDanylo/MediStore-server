@@ -6,5 +6,5 @@ namespace Application.Interfaces;
 
 public interface IAlertService : ICrudService<Alert>
 {
-    Task<Result> MarkSolvedAsync(int alertId);
+    Task<Result> CreateZoneConditionAlertAsync(int zoneId, int sensorId, string message);
 }

@@ -9,9 +9,9 @@ namespace WebApi.Extensions
             services
                 .AddHostedService<SeederHostedService>()
                 .AddHostedService<ExpiredChecker>()
-                .AddHostedService<ExpirationSoonChecker>();
-                //            .AddHostedService<ExpiredChecker>()
-                //.AddHostedService<ExpirationSoonChecker>();
+                .AddHostedService<ExpirationSoonChecker>()
+                .AddHostedService<BatchConditionChecker>()
+                .AddHostedService<ZoneConditionChecker>();
 
             return services;
         }

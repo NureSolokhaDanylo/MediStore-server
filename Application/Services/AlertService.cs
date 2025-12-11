@@ -17,17 +17,18 @@ public class AlertService : CrudService<Alert>, IAlertService
         _alertRepo = repository;
     }
 
-    public async Task<Result> MarkSolvedAsync(int alertId)
+    public async Task<Result> CreateZoneConditionAlertAsync(int zoneId, int sensorId, string message)
     {
-        var existing = await _alertRepo.GetAsync(alertId);
-        if (existing is null) return Result.Failure("Not found");
+        var alert = new Alert
+        {
+            ZoneId = zoneId,
+            SensorId = sensorId,
+            AlertType = Domain.Enums.AlertType.ZoneConditionAlert,
+            CreationTime = DateTime.UtcNow,
+            Message = message
+        };
 
-        // no IsSolved field now; use SolveTime to indicate solved
-        if (existing.SolveTime.HasValue) return Result.Success();
-
-        existing.SolveTime = DateTime.UtcNow;
-
-        _alertRepo.Update(existing);
+        await _alertRepo.AddAsync(alert);
         await _uow.SaveChangesAsync();
 
         return Result.Success();

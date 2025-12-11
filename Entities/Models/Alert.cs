@@ -6,7 +6,6 @@ namespace Domain.Models
     {
         public string Message { get; set; } = null!;
         public DateTime CreationTime { get; set; } = DateTime.UtcNow;
-        public DateTime? SolveTime { get; set; }
         public AlertType AlertType { get; set; }
 
 

@@ -166,7 +166,6 @@ public static class DtoMappers
         Id = a.Id,
         Message = a.Message,
         CreationTime = a.CreationTime,
-        SolveTime = a.SolveTime,
         AlertType = a.AlertType,
         SensorId = a.SensorId,
         BatchId = a.BatchId,

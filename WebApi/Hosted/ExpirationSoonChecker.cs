@@ -13,7 +13,7 @@ namespace WebApi.Hosted
         {
             var logger = services.GetService<ILogger<ExpirationSoonChecker>>();
 
-            var delay = TimeSpan.FromMinutes(1);
+            var defaultDelay = TimeSpan.FromMinutes(1);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -28,7 +28,7 @@ namespace WebApi.Hosted
                     var appSettings = await uow.AppSettings.GetAsync(1);
                     if (appSettings is null || !appSettings.AlertEnabled)
                     {
-                        await Task.Delay(delay, stoppingToken);
+                        await Task.Delay(defaultDelay, stoppingToken);
                         continue;
                     }
 
@@ -37,7 +37,7 @@ namespace WebApi.Hosted
                     var maxThreshold = medicines.Any() ? medicines.Max(m => m.WarningThresholdDays) : 0;
                     if (maxThreshold <= 0)
                     {
-                        await Task.Delay(delay, stoppingToken);
+                        await Task.Delay(defaultDelay, stoppingToken);
                         continue;
                     }
 
@@ -106,13 +106,16 @@ namespace WebApi.Hosted
                             logger?.LogError(ex, "Error processing candidate batch {BatchId}", batch.Id);
                         }
                     }
+
+                    // use configured interval for sleeping
+                    var sleep = appSettings.CheckDeviationInterval;
+                    await Task.Delay(sleep, stoppingToken);
                 }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, "Error in ExpirationSoonChecker loop");
+                    await Task.Delay(defaultDelay, stoppingToken);
                 }
-
-                await Task.Delay(delay, stoppingToken);
             }
         }
     }

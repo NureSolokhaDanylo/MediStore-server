@@ -13,8 +13,7 @@ namespace WebApi.Hosted
         {
             var logger = services.GetService<ILogger<ExpiredChecker>>();
 
-            // run periodically
-            var delay = TimeSpan.FromMinutes(1);
+            var defaultDelay = TimeSpan.FromMinutes(1);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -29,7 +28,7 @@ namespace WebApi.Hosted
                     var appSettings = await uow.AppSettings.GetAsync(1);
                     if (appSettings is null || !appSettings.AlertEnabled)
                     {
-                        await Task.Delay(delay, stoppingToken);
+                        await Task.Delay(defaultDelay, stoppingToken);
                         continue;
                     }
 
@@ -85,13 +84,16 @@ namespace WebApi.Hosted
                             logger?.LogError(ex, "Error processing batch {BatchId}", batch.Id);
                         }
                     }
+
+                    // use configured interval for sleeping
+                    var sleep = appSettings.CheckDeviationInterval;
+                    await Task.Delay(sleep, stoppingToken);
                 }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, "Error in ExpiredChecker loop");
+                    await Task.Delay(defaultDelay, stoppingToken);
                 }
-
-                await Task.Delay(delay, stoppingToken);
             }
         }
     }
