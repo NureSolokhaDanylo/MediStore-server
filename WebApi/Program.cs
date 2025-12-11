@@ -29,7 +29,7 @@ namespace WebApi
                 .AddAppSeeders()
                 .AddAuth()
                 .AddAppControllersAndSwagger()
-                .AddHostedService<SeederHostedService>();
+                .AddAppHostedServices<SeederHostedService>();
 
             #endregion
 
@@ -40,6 +40,7 @@ namespace WebApi
             app.UseDeveloperFeatures();
             //no cors for now
             app.UseAppRequestPipeline(string.Empty);
+            app.UseStaticFiles();
 
             #endregion
 

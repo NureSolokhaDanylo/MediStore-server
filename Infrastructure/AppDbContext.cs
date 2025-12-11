@@ -97,6 +97,8 @@ namespace Infrastructure
                     .WithMany(s => s.Readings)
                     .HasForeignKey(r => r.SensorId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(r => new { r.SensorId });
             });
 
             // Alert

@@ -99,8 +99,6 @@ public static class DtoMappers
     public static Sensor ToEntity(this SensorCreateDto dto) => new()
     {
         SerialNumber = dto.SerialNumber,
-        LastValue = dto.LastValue,
-        LastUpdate = dto.LastUpdate,
         IsOn = dto.IsOn,
         SensorType = dto.SensorType,
         ZoneId = dto.ZoneId
@@ -159,8 +157,7 @@ public static class DtoMappers
     public static Reading ToEntity(this ReadingCreateDto dto) => new()
     {
         TimeStamp = dto.TimeStamp,
-        Value = dto.Value,
-        SensorId = dto.SensorId
+        Value = dto.Value
     };
 
     // Alert

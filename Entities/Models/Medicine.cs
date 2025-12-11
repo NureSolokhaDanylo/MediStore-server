@@ -8,6 +8,7 @@
         public double TempMin { get; set; }
         public double HumidMax { get; set; }
         public double HumidMin { get; set; }
+        public int WarningThresholdDays { get; set; } = 60;
 
         //relationships
         public virtual ICollection<Batch> Batches { get; set; } = new List<Batch>();

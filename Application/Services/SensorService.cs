@@ -12,6 +12,13 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
 
     public virtual async Task<Result<Sensor>> Add(Sensor entity)
     {
+        if (entity.ZoneId is not null)
+        {
+            var zone = await _uow.Zones.GetAsync((int)entity.ZoneId);
+            if (zone is null)
+                return Result<Sensor>.Failure("Zone not found");
+        }
+
         await _repository.AddAsync(entity);
         await _uow.SaveChangesAsync();   // <-- CRUD SaveChanges
         return Result<Sensor>.Success(entity);
