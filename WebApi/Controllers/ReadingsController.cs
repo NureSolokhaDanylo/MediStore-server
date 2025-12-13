@@ -44,4 +44,15 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
         var created = res.Value!;
         return CreatedAtAction(nameof(Get), new { id = created.Id }, created.ToDto());
     }
+
+    [HttpGet("sensor/{sensorId}")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<IActionResult> GetForSensor([FromRoute] int sensorId, [FromQuery] DateTime from, [FromQuery] DateTime to)
+    {
+        var res = await _readingService.GetReadingsForSensorAsync(sensorId, from.ToUniversalTime(), to.ToUniversalTime());
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        var list = res.Value!.Select(r => r.ToDto());
+        return Ok(list);
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.OpenApi.Models;
+using WebApi.Services;
 
 namespace WebApi.Extensions
 {
@@ -27,6 +28,10 @@ namespace WebApi.Extensions
                     { jwtScheme, Array.Empty<string>() }
                 });
             });
+
+            // register web-specific services
+            services.AddScoped<IReportDocumentService, ReportDocumentService>();
+
             return services;
         }
     }

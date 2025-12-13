@@ -16,5 +16,13 @@ namespace Infrastructure.Repositories
                 .Where(r => r.TimeStamp >= since && r.Sensor.ZoneId == zoneId && r.Sensor.SensorType == sensorType)
                 .ToListAsync();
         }
+
+        public Task<List<Reading>> GetReadingsForSensorAsync(int sensorId, DateTime from, DateTime to)
+        {
+            return _context.Set<Reading>()
+                .Where(r => r.SensorId == sensorId && r.TimeStamp >= from && r.TimeStamp <= to)
+                .OrderBy(r => r.TimeStamp)
+                .ToListAsync();
+        }
     }
 }

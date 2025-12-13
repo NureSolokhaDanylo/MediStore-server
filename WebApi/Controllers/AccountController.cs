@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 using WebApi.DTOs.AccountDTOs;
+using WebApi.DTOs;
 
 namespace WebApi.Controllers
 {
@@ -87,6 +88,25 @@ namespace WebApi.Controllers
             var res = await _accountService.DeleteUserAsync(requester, id);
             if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
             return NoContent();
+        }
+
+        [HttpGet("users")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUsers([FromQuery] int skip = 0, [FromQuery] int take = 50)
+        {
+            var res = await _accountService.GetUsersAsync(skip, take);
+            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+            var appUsers = res.Value ?? Enumerable.Empty<Application.DTOs.UserDto>();
+            var dtoList = appUsers.Select(u => new UserDto
+            {
+                Id = u.Id,
+                UserName = u.UserName,
+                Email = u.Email,
+                Roles = u.Roles
+            });
+
+            return Ok(dtoList);
         }
     }
 }

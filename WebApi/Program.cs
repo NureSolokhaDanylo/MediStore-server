@@ -7,6 +7,7 @@ using SharedConfiguration.Options;
 
 using WebApi.Extensions;
 using WebApi.Hosted;
+using QuestPDF.Infrastructure;
 
 namespace WebApi
 {
@@ -37,10 +38,12 @@ namespace WebApi
 
             var app = builder.Build();
 
+            // Configure QuestPDF license to suppress runtime license validation exception during development
+            QuestPDF.Settings.License = LicenseType.Community;
+
             app.UseDeveloperFeatures();
             //no cors for now
             app.UseAppRequestPipeline(string.Empty);
-            app.UseStaticFiles();
 
             #endregion
 

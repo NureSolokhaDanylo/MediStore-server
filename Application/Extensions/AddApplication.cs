@@ -22,7 +22,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<IReadingService, ReadingService>()
             .AddScoped<ISensorApiKeyService, SensorApiKeyService>()
             .AddScoped<IPasswordHasher<SensorApiKey>, PasswordHasher<SensorApiKey>>()
-            .AddScoped<IAppSettingsService, AppSettingsService>();
+            .AddScoped<IAppSettingsService, AppSettingsService>()
+            .AddScoped<IReportService, ReportService>();
 
         return services;
     }

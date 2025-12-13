@@ -10,7 +10,9 @@ namespace Application.Services;
 
 public class ReadingService : ReadOnlyService<Reading>, IReadingService
 {
-    public ReadingService(IReadingRepository repository, IUnitOfWork uow) : base(repository, uow) {}
+    private readonly IReadingRepository _readingRepo;
+
+    public ReadingService(IReadingRepository repository, IUnitOfWork uow) : base(repository, uow) { _readingRepo = repository; }
 
     public async Task<Result<Reading>> CreateForSensorAsync(int sensorId, Reading reading)
     {
@@ -33,5 +35,13 @@ public class ReadingService : ReadOnlyService<Reading>, IReadingService
         await _uow.SaveChangesAsync();
 
         return Result<Reading>.Success(reading);
+    }
+
+    public async Task<Result<IEnumerable<Reading>>> GetReadingsForSensorAsync(int sensorId, DateTime from, DateTime to)
+    {
+        if (from >= to) return Result<IEnumerable<Reading>>.Failure("Invalid time range");
+
+        var readings = await _readingRepo.GetReadingsForSensorAsync(sensorId, from, to);
+        return Result<IEnumerable<Reading>>.Success(readings);
     }
 }

@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 using Application.Interfaces;
 using Application.Results.Base;
+using Application.DTOs;
 
 using Infrastructure.UOW;
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services
 {
@@ -154,6 +156,24 @@ namespace Application.Services
             if (!delRes.Succeeded) return Result.Failure(string.Join(';', delRes.Errors.Select(e => e.Description)));
 
             return Result.Success();
+        }
+
+        public async Task<Result<IEnumerable<UserDto>>> GetUsersAsync(int skip, int take)
+        {
+            // get users sorted by username
+            var users = await _userManager.Users
+                .OrderBy(u => u.UserName)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+
+            var list = await Task.WhenAll(users.Select(async u =>
+            {
+                var roles = (await _userManager.GetRolesAsync(u)).ToArray();
+                return new UserDto { Id = u.Id, UserName = u.UserName, Email = u.Email, Roles = roles };
+            }));
+
+            return Result<IEnumerable<UserDto>>.Success(list);
         }
     }
 }
