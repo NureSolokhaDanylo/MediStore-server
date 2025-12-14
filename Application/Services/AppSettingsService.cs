@@ -33,8 +33,13 @@ public class AppSettingsService : IAppSettingsService
         if (entity.HumidityAlertDeviation < 0 || entity.HumidityAlertDeviation > 100)
             return Result<AppSettings>.Failure("HumidityAlertDeviation out of range");
 
-        _uow.AppSettings.Update(entity);
+        // update only allowed fields on the existing tracked entity to avoid overwriting other columns
+        existing.AlertEnabled = entity.AlertEnabled;
+        existing.TempAlertDeviation = entity.TempAlertDeviation;
+        existing.HumidityAlertDeviation = entity.HumidityAlertDeviation;
+
+        _uow.AppSettings.Update(existing);
         await _uow.SaveChangesAsync();
-        return Result<AppSettings>.Success(entity);
+        return Result<AppSettings>.Success(existing);
     }
 }

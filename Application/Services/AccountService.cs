@@ -167,11 +167,13 @@ namespace Application.Services
                 .Take(take)
                 .ToListAsync();
 
-            var list = await Task.WhenAll(users.Select(async u =>
+            var list = new List<UserDto>();
+            foreach (var u in users)
             {
+                // call GetRolesAsync sequentially to avoid concurrent DbContext operations
                 var roles = (await _userManager.GetRolesAsync(u)).ToArray();
-                return new UserDto { Id = u.Id, UserName = u.UserName, Email = u.Email, Roles = roles };
-            }));
+                list.Add(new UserDto { Id = u.Id, UserName = u.UserName, Email = u.Email, Roles = roles });
+            }
 
             return Result<IEnumerable<UserDto>>.Success(list);
         }

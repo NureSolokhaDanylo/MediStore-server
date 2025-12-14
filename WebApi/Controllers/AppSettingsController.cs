@@ -36,7 +36,8 @@ namespace WebApi.Controllers
                 Id = dto.Id,
                 AlertEnabled = dto.AlertEnabled,
                 TempAlertDeviation = dto.TempAlertDeviation,
-                HumidityAlertDeviation = dto.HumidityAlertDeviation
+                HumidityAlertDeviation = dto.HumidityAlertDeviation,
+                CheckDeviationInterval = dto.CheckDeviationInterval
             };
 
             var res = await _settingsService.Update(entity);
