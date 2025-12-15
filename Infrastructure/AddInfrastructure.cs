@@ -17,7 +17,18 @@ namespace Infrastructure
             services.AddDbContext<AppDbContext>((p, o) =>
             {
                 var options = p.GetRequiredService<IOptions<InfrastructureOptions>>().Value;
-                o.UseLazyLoadingProxies().UseSqlServer(options.ConnectionString);
+                o.UseLazyLoadingProxies()
+                .UseSqlServer(
+                    options.ConnectionString,
+                    sql =>
+                    {
+                        sql.EnableRetryOnFailure(
+                            maxRetryCount: 10,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+
+                        sql.CommandTimeout(120);
+                    });
             });
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
