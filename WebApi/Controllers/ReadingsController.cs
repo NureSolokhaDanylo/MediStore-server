@@ -34,6 +34,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
     public async Task<IActionResult> CreateForSensor([FromBody] ReadingCreateDto dto)
     {
         var sid = sensorId;
+        Console.WriteLine($"Request from SensorId: {sid}");
         if (!sid.HasValue) return Unauthorized();
 
         var reading = dto.ToEntity();
