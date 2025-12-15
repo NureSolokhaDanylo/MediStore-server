@@ -1,5 +1,23 @@
 ﻿{
   "InfrastructureOptions": {
     "ConnectionString": "CHANGE_ME"
+  },
+  "IdentityOptions": {
+    "PasswordRequiredLength": 8,
+    "PasswordRequireNonAlphanumeric": false,
+    "PasswordRequireUppercase": false,
+    "PasswordRequireLowercase": false,
+    "PasswordRequireDigit": false,
+    "UserRequireUniqueEmail": false
+  },
+  "JwtOptions": {
+    "Key": "CHANGE_ME",
+    "Issuer": "Manga4UServer",
+    "Audience": "Manga4UClient",
+    "ExpireMinutes": 1000
+  },
+  "SeedOptions": {
+    "AdminLogin": "CHANGE_ME",
+    "AdminPassword": "CHANGE_ME"
   }
 }
