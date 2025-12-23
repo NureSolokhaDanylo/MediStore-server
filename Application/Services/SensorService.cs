@@ -1,6 +1,8 @@
 using Application.Interfaces;
 using Application.Results.Base;
+
 using Domain.Models;
+
 using Infrastructure.Interfaces;
 using Infrastructure.UOW;
 
@@ -40,10 +42,16 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         var existing = await _uow.Sensors.GetAsync(id);
         if (existing is null) return Result<Sensor>.Failure("Not found");
 
-        // only update allowed fields
         if (serialNumber is not null) existing.SerialNumber = serialNumber;
         if (isOn.HasValue) existing.IsOn = isOn.Value;
-        if (zoneId.HasValue) existing.ZoneId = zoneId;
+
+        if (existing.ZoneId != zoneId)
+        {
+            existing.LastValue = null;
+            existing.LastUpdate = null;
+        }
+
+        existing.ZoneId = zoneId;
 
         _uow.Sensors.Update(existing);
         await _uow.SaveChangesAsync();
