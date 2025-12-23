@@ -10,5 +10,6 @@ namespace Infrastructure.Interfaces
     {
         Task<List<Reading>> GetReadingsForZoneAsync(int zoneId, DateTime since, SensorType sensorType);
         Task<List<Reading>> GetReadingsForSensorAsync(int sensorId, DateTime from, DateTime to);
+        Task<int> DeleteOlderThanAsync(DateTime cutoffUtc);
     }
 }

@@ -1,4 +1,4 @@
-﻿using WebApi.Hosted;
+﻿using Application.Hosted;
 
 namespace WebApi.Extensions
 {
@@ -11,7 +11,8 @@ namespace WebApi.Extensions
                 .AddHostedService<ExpiredChecker>()
                 .AddHostedService<ExpirationSoonChecker>()
                 .AddHostedService<BatchConditionChecker>()
-                .AddHostedService<ZoneConditionChecker>();
+                .AddHostedService<ZoneConditionChecker>()
+                .AddHostedService<ReadingsRetentionCleaner>();
 
             return services;
         }

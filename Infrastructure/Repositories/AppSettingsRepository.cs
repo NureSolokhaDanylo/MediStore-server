@@ -17,7 +17,6 @@ namespace Infrastructure.Repositories
         public async Task UpdateAsync(AppSettings appSettings) => context.AppSettings.Update(appSettings);
         public Task AddAsync(AppSettings appSettings) => context.AppSettings.AddAsync(appSettings).AsTask();
 
-
         //{
         //    var exist = context.AppSettings.Single();
         //    appSettings.Id = exist.Id;

@@ -23,5 +23,12 @@ namespace Infrastructure.Repositories
                 .OrderBy(r => r.TimeStamp)
                 .ToListAsync();
         }
+
+        public Task<int> DeleteOlderThanAsync(DateTime cutoffUtc)
+        {
+            return _context.Set<Reading>()
+                .Where(r => r.TimeStamp < cutoffUtc)
+                .ExecuteDeleteAsync();
+        }
     }
 }

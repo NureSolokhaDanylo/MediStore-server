@@ -6,7 +6,6 @@ using SharedConfiguration;
 using SharedConfiguration.Options;
 
 using WebApi.Extensions;
-using WebApi.Hosted;
 using QuestPDF.Infrastructure;
 
 namespace WebApi
