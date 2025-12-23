@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class AlertRepository : Repository<Alert>, IAlertRepository
+    internal class AlertRepository : Repository<Alert>, IAlertRepository
     {
         public AlertRepository(AppDbContext context) : base(context) { }
 

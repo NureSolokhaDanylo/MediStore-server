@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class ZoneRepository : Repository<Zone>, IZoneRepository
+    internal class ZoneRepository : Repository<Zone>, IZoneRepository
     {
         public ZoneRepository(AppDbContext context) : base(context) { }
 

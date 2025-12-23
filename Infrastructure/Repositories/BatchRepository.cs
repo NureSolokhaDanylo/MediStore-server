@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    public class BatchRepository : Repository<Batch>, IBatchRepository
+    internal class BatchRepository : Repository<Batch>, IBatchRepository
     {
         public BatchRepository(AppDbContext context) : base(context) { }
 

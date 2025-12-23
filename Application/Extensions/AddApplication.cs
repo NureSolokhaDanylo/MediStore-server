@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.Services;
+using Application.Seeders;
 
 using Domain.Models;
 

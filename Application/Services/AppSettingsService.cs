@@ -17,28 +17,31 @@ public class AppSettingsService : IAppSettingsService
     // convenience: get single settings (assumes single row)
     public async Task<Result<AppSettings>> GetSingletonAsync()
     {
-        var list = await _uow.AppSettings.GetAllAsync();
-        var first = list.FirstOrDefault();
-        return first is null ? Result<AppSettings>.Failure("Not found") : Result<AppSettings>.Success(first);
+        var existing = await _uow.AppSettings.GetAsync();
+        //если в репозиотрии нет записи то будет выкинута ошибка. Поэтому это как-то бессмысленно проверять на null
+        return existing is null ? Result<AppSettings>.Failure("Not found") : Result<AppSettings>.Success(existing);
     }
 
     public async Task<Result<AppSettings>> Update(AppSettings entity)
     {
-        var existing = await _uow.AppSettings.GetAsync(entity.Id);
+        var existing = await _uow.AppSettings.GetAsync();
         if (existing is null) return Result<AppSettings>.Failure("Not found");
 
-        // basic range checks
         if (entity.TempAlertDeviation < 0 || entity.TempAlertDeviation > 100)
             return Result<AppSettings>.Failure("TempAlertDeviation out of range");
         if (entity.HumidityAlertDeviation < 0 || entity.HumidityAlertDeviation > 100)
             return Result<AppSettings>.Failure("HumidityAlertDeviation out of range");
 
-        // update only allowed fields on the existing tracked entity to avoid overwriting other columns
+        if (entity.ReadingsRetentionDays < 1 || entity.ReadingsRetentionDays > 365 * 5)
+            return Result<AppSettings>.Failure("ReadingsRetentionDays out of allowed range (1..1825)");
+
         existing.AlertEnabled = entity.AlertEnabled;
         existing.TempAlertDeviation = entity.TempAlertDeviation;
         existing.HumidityAlertDeviation = entity.HumidityAlertDeviation;
+        existing.CheckDeviationInterval = entity.CheckDeviationInterval;
+        existing.ReadingsRetentionDays = entity.ReadingsRetentionDays;
 
-        _uow.AppSettings.Update(existing);
+        await _uow.AppSettings.UpdateAsync(existing);
         await _uow.SaveChangesAsync();
         return Result<AppSettings>.Success(existing);
     }

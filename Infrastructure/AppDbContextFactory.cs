@@ -6,7 +6,7 @@ using SharedConfiguration;
 using SharedConfiguration.Options;
 namespace Infrastructure
 {
-    public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+    internal class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         public AppDbContext CreateDbContext(string[] args)
         {

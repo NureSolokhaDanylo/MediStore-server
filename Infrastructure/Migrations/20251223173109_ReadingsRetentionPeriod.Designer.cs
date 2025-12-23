@@ -4,6 +4,7 @@ using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251223173109_ReadingsRetentionPeriod")]
+    partial class ReadingsRetentionPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,8 +83,8 @@ namespace Infrastructure.Migrations
                     b.Property<double>("HumidityAlertDeviation")
                         .HasColumnType("float");
 
-                    b.Property<int>("ReadingsRetentionDays")
-                        .HasColumnType("int");
+                    b.Property<TimeSpan>("ReadingsRetentionPeriod")
+                        .HasColumnType("time");
 
                     b.Property<double>("TempAlertDeviation")
                         .HasColumnType("float");
@@ -91,6 +94,17 @@ namespace Infrastructure.Migrations
                     b.ToTable("Settings", "config", t =>
                         {
                             t.HasCheckConstraint("CK_AppSettings_Singleton", "[Id] = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AlertEnabled = true,
+                            CheckDeviationInterval = new TimeSpan(0, 0, 10, 0, 0),
+                            HumidityAlertDeviation = 5.0,
+                            ReadingsRetentionPeriod = new TimeSpan(30, 0, 0, 0, 0),
+                            TempAlertDeviation = 2.0
                         });
                 });
 

@@ -23,7 +23,7 @@ namespace Infrastructure.UOW
 
         private readonly AppDbContext _context;
 
-        public UnitOfWork(
+        internal UnitOfWork(
             AppDbContext context,
             IMedicineRepository medicines,
             ISensorRepository sensors,

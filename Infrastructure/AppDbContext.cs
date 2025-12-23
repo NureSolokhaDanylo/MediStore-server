@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure
 {
-    public class AppDbContext : IdentityDbContext<IdentityUser>
+    internal class AppDbContext : IdentityDbContext<IdentityUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
@@ -30,14 +30,15 @@ namespace Infrastructure
             {
                 builder.ToTable("Settings", "config", t => { t.HasCheckConstraint("CK_AppSettings_Singleton", "[Id] = 1"); });
 
-                builder.HasData(new AppSettings
-                {
-                    Id = 1,
-                    AlertEnabled = true,
-                    TempAlertDeviation = 2.0,
-                    HumidityAlertDeviation = 5.0,
-                    CheckDeviationInterval = TimeSpan.FromMinutes(10)
-                });
+                //builder.HasData(new AppSettings
+                //{
+                //    Id = 1,
+                //    AlertEnabled = true,
+                //    TempAlertDeviation = 2.0,
+                //    HumidityAlertDeviation = 5.0,
+                //    CheckDeviationInterval = TimeSpan.FromMinutes(10),
+                //    ReadingsRetentionPeriod = TimeSpan.FromDays(30)
+                //});
             });
 
             ConfigureDomain(modelBuilder);

@@ -29,15 +29,15 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update([FromBody] AppSettingsUpdateDto dto)
+        public async Task<IActionResult> Update([FromBody] AppSettingsDto dto)
         {
             var entity = new AppSettings
             {
-                Id = dto.Id,
                 AlertEnabled = dto.AlertEnabled,
                 TempAlertDeviation = dto.TempAlertDeviation,
                 HumidityAlertDeviation = dto.HumidityAlertDeviation,
-                CheckDeviationInterval = dto.CheckDeviationInterval
+                CheckDeviationInterval = dto.CheckDeviationInterval,
+                ReadingsRetentionDays = dto.ReadingsRetentionDays
             };
 
             var res = await _settingsService.Update(entity);

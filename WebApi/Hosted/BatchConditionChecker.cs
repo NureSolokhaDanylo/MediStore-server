@@ -25,7 +25,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
 
                 var uow = provider.GetRequiredService<IUnitOfWork>();
 
-                appSettings = await uow.AppSettings.GetAsync(1);
+                appSettings = await uow.AppSettings.GetAsync();
                 if (appSettings is null || !appSettings.AlertEnabled)
                 {
                     await Task.Delay(defaultDelay, stoppingToken);

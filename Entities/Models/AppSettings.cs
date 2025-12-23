@@ -12,5 +12,8 @@ namespace Domain.Models
         public double TempAlertDeviation { get; set; } = 2.0;
         public double HumidityAlertDeviation { get; set; } = 5.0;
         public TimeSpan CheckDeviationInterval { get; set; } = TimeSpan.FromMinutes(10);
+
+        // How many days readings are retained
+        public int ReadingsRetentionDays { get; set; } = 30;
     }
 }

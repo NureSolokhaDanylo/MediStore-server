@@ -25,7 +25,7 @@ namespace WebApi.Hosted
                     var uow = provider.GetRequiredService<IUnitOfWork>();
 
                     // check app settings: if alerts disabled skip
-                    var appSettings = await uow.AppSettings.GetAsync(1);
+                    var appSettings = await uow.AppSettings.GetAsync();
                     if (appSettings is null || !appSettings.AlertEnabled)
                     {
                         await Task.Delay(defaultDelay, stoppingToken);
@@ -67,7 +67,8 @@ namespace WebApi.Hosted
         {
             // check existing alert using optimized repo method
             var exists = await uow.Alerts.HasAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.Expired);
-            if (exists) return;
+            if (exists)
+                return;
 
             // create new alert
             var med = await uow.Medicines.GetAsync(batch.MedicineId);

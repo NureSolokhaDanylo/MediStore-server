@@ -8,7 +8,8 @@ namespace Application.Extensions
     {
         public static IServiceCollection AddAppSeeders(this IServiceCollection services)
         {
-            services.AddScoped<ISeeder, IdentitySeeder>();
+            services.AddScoped<ISeeder, IdentitySeeder>()
+                    .AddScoped<ISeeder, AppSettingsSeeder>();
             return services;
         }
     }

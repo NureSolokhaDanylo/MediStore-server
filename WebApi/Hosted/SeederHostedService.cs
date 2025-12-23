@@ -1,8 +1,5 @@
 ﻿using Application.Seeders;
 
-using Infrastructure;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace WebApi.Hosted
@@ -22,7 +19,6 @@ namespace WebApi.Hosted
         {
             using var scope = _serviceProvider.CreateScope();
 
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var seeders = scope.ServiceProvider.GetServices<ISeeder>();
 
             if (!seeders.Any())

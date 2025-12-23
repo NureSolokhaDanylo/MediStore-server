@@ -25,7 +25,7 @@ namespace WebApi.Hosted
                     var uow = provider.GetRequiredService<IUnitOfWork>();
 
                     // check app settings: if alerts disabled skip
-                    var appSettings = await uow.AppSettings.GetAsync(1);
+                    var appSettings = await uow.AppSettings.GetAsync();
                     if (appSettings is null || !appSettings.AlertEnabled)
                     {
                         await Task.Delay(defaultDelay, stoppingToken);
