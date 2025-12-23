@@ -19,8 +19,8 @@ public class ReportService : IReportService
         if (from >= to) return Result<AlertsReportDto>.Failure("Invalid time range");
 
         var alerts = (await _uow.Alerts.GetAllAsync())
-            .Where(a => a.CreationTime >= from.ToUniversalTime() && a.CreationTime <= to.ToUniversalTime())
-            .OrderBy(a => a.CreationTime)
+            .Where(a => a.CreatedAt >= from.ToUniversalTime() && a.CreatedAt <= to.ToUniversalTime())
+            .OrderBy(a => a.CreatedAt)
             .ToList();
 
         var dto = new AlertsReportDto();

@@ -12,5 +12,6 @@
         //relationships
         public virtual ICollection<Sensor> Sensors { get; set; } = new List<Sensor>();
         public virtual ICollection<Batch> Batches { get; set; } = new List<Batch>();
+        public virtual ICollection<Reading> Readings { get; set; } = new List<Reading>();
     }
 }

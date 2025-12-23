@@ -28,17 +28,7 @@ namespace Infrastructure
 
             modelBuilder.Entity<AppSettings>(builder =>
             {
-                builder.ToTable("Settings", "config", t => { t.HasCheckConstraint("CK_AppSettings_Singleton", "[Id] = 1"); });
-
-                //builder.HasData(new AppSettings
-                //{
-                //    Id = 1,
-                //    AlertEnabled = true,
-                //    TempAlertDeviation = 2.0,
-                //    HumidityAlertDeviation = 5.0,
-                //    CheckDeviationInterval = TimeSpan.FromMinutes(10),
-                //    ReadingsRetentionPeriod = TimeSpan.FromDays(30)
-                //});
+                builder.ToTable("Settings", "config");
             });
 
             ConfigureDomain(modelBuilder);
@@ -98,7 +88,12 @@ namespace Infrastructure
                 e.HasOne(r => r.Sensor)
                     .WithMany(s => s.Readings)
                     .HasForeignKey(r => r.SensorId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasOne(r => r.Zone)
+                    .WithMany(z => z.Readings)
+                    .HasForeignKey(r => r.ZoneId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 e.HasIndex(r => new { r.SensorId });
             });

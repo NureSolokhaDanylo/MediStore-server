@@ -5,8 +5,12 @@ namespace Domain.Models
     public class Alert : EntityBase
     {
         public string Message { get; set; } = null!;
-        public DateTime CreationTime { get; set; } = DateTime.UtcNow;
         public AlertType AlertType { get; set; }
+
+
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? ResolvedAt { get; set; }
 
 
         //relationships

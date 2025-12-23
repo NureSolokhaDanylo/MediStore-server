@@ -88,7 +88,8 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
             ZoneId = batch.ZoneId,
             SensorId = null,
             AlertType = AlertType.BatchConditionWarning,
-            CreationTime = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true,
             Message = message
         };
 

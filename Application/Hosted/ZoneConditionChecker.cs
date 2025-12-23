@@ -85,7 +85,8 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
             ZoneId = zone.Id,
             SensorId = sensorId,
             AlertType = AlertType.ZoneConditionAlert,
-            CreationTime = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true,
             Message = message
         };
 

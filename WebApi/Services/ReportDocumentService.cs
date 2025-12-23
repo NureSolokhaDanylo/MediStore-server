@@ -69,7 +69,7 @@ namespace WebApi.Services
             if (a.ZoneId.HasValue) ids.Add($"Zone:{a.ZoneId}");
             if (a.SensorId.HasValue) ids.Add($"Sensor:{a.SensorId}");
 
-            return $"[{a.CreationTime:yyyy-MM-dd HH:mm:ss} UTC] Type: {a.AlertType}; {string.Join(',', ids)}; Msg: {a.Message}";
+            return $"[{a.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC] Type: {a.AlertType}; {string.Join(',', ids)}; Msg: {a.Message}";
         }
     }
 }

@@ -97,7 +97,8 @@ namespace Application.Hosted
                 SensorId = null,
                 ZoneId = null,
                 AlertType = Domain.Enums.AlertType.Expired,
-                CreationTime = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
                 Message = message.ToString()
             };
 

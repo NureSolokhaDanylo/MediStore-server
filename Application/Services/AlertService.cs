@@ -24,7 +24,8 @@ public class AlertService : CrudService<Alert>, IAlertService
             ZoneId = zoneId,
             SensorId = sensorId,
             AlertType = Domain.Enums.AlertType.ZoneConditionAlert,
-            CreationTime = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true,
             Message = message
         };
 

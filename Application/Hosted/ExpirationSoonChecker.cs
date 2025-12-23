@@ -119,7 +119,8 @@ namespace Application.Hosted
                 SensorId = null,
                 ZoneId = null,
                 AlertType = Domain.Enums.AlertType.ExpirationSoon,
-                CreationTime = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
                 Message = sb.ToString()
             };
 

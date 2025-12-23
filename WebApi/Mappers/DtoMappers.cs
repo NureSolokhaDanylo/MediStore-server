@@ -143,7 +143,7 @@ public static class DtoMappers
         Id = r.Id,
         TimeStamp = r.TimeStamp,
         Value = r.Value,
-        SensorId = r.SensorId
+        //SensorId = r.SensorId
     };
 
     public static Reading ToEntity(this ReadingDto dto) => new()
@@ -151,7 +151,7 @@ public static class DtoMappers
         Id = dto.Id,
         TimeStamp = dto.TimeStamp,
         Value = dto.Value,
-        SensorId = dto.SensorId
+        //SensorId = dto.SensorId
     };
 
     public static Reading ToEntity(this ReadingCreateDto dto) => new()
@@ -165,8 +165,10 @@ public static class DtoMappers
     {
         Id = a.Id,
         Message = a.Message,
-        CreationTime = a.CreationTime,
+        CreatedAt = a.CreatedAt,
         AlertType = a.AlertType,
+        IsActive = a.IsActive,
+        ResolvedAt = a.ResolvedAt,
         SensorId = a.SensorId,
         BatchId = a.BatchId,
         ZoneId = a.ZoneId

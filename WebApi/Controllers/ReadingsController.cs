@@ -43,7 +43,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
         if (!res.IsSucceed) return NoContent(); // if sensor off or similar, do nothing
 
         var created = res.Value!;
-        return CreatedAtAction(nameof(Get), new { id = created.Id }, created.ToDto());
+        return Ok();
     }
 
     [HttpGet("sensor/{sensorId}")]
