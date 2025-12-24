@@ -3,6 +3,7 @@ using Application.Results.Base;
 using Domain.Models;
 using Infrastructure.Interfaces;
 using Infrastructure.UOW;
+using System.Text.Json;
 
 namespace Application.Services;
 
@@ -63,6 +64,22 @@ public class BatchService : CrudService<Batch>, IBatchService
         return await base.Update(userId, entity);
     }
 
-    protected override Task LogAsync(string userId, string action, Batch? before, Batch? after)
-        => Task.CompletedTask;
+    protected override async Task LogAsync(string userId, string action, Batch? before, Batch? after)
+    {
+        var id = after?.Id ?? before?.Id ?? 0;
+        var log = new AuditLog
+        {
+            OccurredAt = DateTime.UtcNow,
+            EntityType = "Batch",
+            EntityId = id,
+            Action = action,
+            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
+            Summary = $"Batch {action} (Id={id})",
+            OldValues = before is null ? null : JsonSerializer.Serialize(before),
+            NewValues = after is null ? null : JsonSerializer.Serialize(after)
+        };
+
+        await _uow.AuditLogs.AddAsync(log);
+        await _uow.SaveChangesAsync();
+    }
 }

@@ -10,17 +10,17 @@ namespace Domain.Models
     {
         public DateTime OccurredAt { get; set; }
 
-        public string EntityType { get; set; } = null!;   // "Sensor", "Batch"
+        public string EntityType { get; set; } = null!; 
         public int EntityId { get; set; }
 
-        public string Action { get; set; } = null!;       // Create / Update / Delete
+        public string Action { get; set; } = null!;     
 
-        public string? UserId { get; set; }                // если есть автор
+        public string? UserId { get; set; }             
 
-        public string? Summary { get; set; }               // коротко, человеко-читаемо
+        public string? Summary { get; set; }            
 
-        public string? OldValues { get; set; }             // JSON
-        public string? NewValues { get; set; }             // JSON
+        public string? OldValues { get; set; }          
+        public string? NewValues { get; set; }          
     }
 
 }
