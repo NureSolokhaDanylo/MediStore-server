@@ -56,4 +56,37 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
         var list = res.Value!.Select(r => r.ToDto());
         return Ok(list);
     }
+
+    [HttpGet("sensor/{sensorId}/last")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<IActionResult> GetLastForSensor([FromRoute] int sensorId, [FromQuery] int count)
+    {
+        var res = await _readingService.GetLatestReadingsForSensorAsync(sensorId, count);
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        var list = res.Value!.Select(r => r.ToDto());
+        return Ok(list);
+    }
+
+    [HttpGet("zone/{zoneId}")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<IActionResult> GetForZone([FromRoute] int zoneId, [FromQuery] DateTime from, [FromQuery] DateTime to)
+    {
+        var res = await _readingService.GetReadingsForZoneAsync(zoneId, from.ToUniversalTime(), to.ToUniversalTime());
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        var list = res.Value!.Select(r => r.ToDto());
+        return Ok(list);
+    }
+
+    [HttpGet("zone/{zoneId}/last")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<IActionResult> GetLastForZone([FromRoute] int zoneId, [FromQuery] int count)
+    {
+        var res = await _readingService.GetLatestReadingsForZoneAsync(zoneId, count);
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        var list = res.Value!.Select(r => r.ToDto());
+        return Ok(list);
+    }
 }

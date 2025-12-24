@@ -44,4 +44,25 @@ public class ReadingService : ReadOnlyService<Reading>, IReadingService
         var readings = await _readingRepo.GetReadingsForSensorAsync(sensorId, from, to);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
+
+    public async Task<Result<IEnumerable<Reading>>> GetLatestReadingsForSensorAsync(int sensorId, int count)
+    {
+        if (count <= 0) return Result<IEnumerable<Reading>>.Failure("Count must be positive");
+        var readings = await _readingRepo.GetLatestForSensorAsync(sensorId, count);
+        return Result<IEnumerable<Reading>>.Success(readings);
+    }
+
+    public async Task<Result<IEnumerable<Reading>>> GetReadingsForZoneAsync(int zoneId, DateTime from, DateTime to)
+    {
+        if (from >= to) return Result<IEnumerable<Reading>>.Failure("Invalid time range");
+        var readings = await _readingRepo.GetReadingsForZoneAsync(zoneId, from, to);
+        return Result<IEnumerable<Reading>>.Success(readings);
+    }
+
+    public async Task<Result<IEnumerable<Reading>>> GetLatestReadingsForZoneAsync(int zoneId, int count)
+    {
+        if (count <= 0) return Result<IEnumerable<Reading>>.Failure("Count must be positive");
+        var readings = await _readingRepo.GetLatestForZoneAsync(zoneId, count);
+        return Result<IEnumerable<Reading>>.Success(readings);
+    }
 }
