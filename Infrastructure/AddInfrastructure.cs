@@ -1,5 +1,6 @@
 ﻿using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Infrastructure.UOW;
 
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,23 @@ public static class ServiceCollectionExtensions
                 });
         });
 
+        services.AddDbContextFactory<AppDbContext>((p, o) =>
+        {
+            var options = p.GetRequiredService<IOptions<InfrastructureOptions>>().Value;
+            o.UseLazyLoadingProxies()
+            .UseSqlServer(
+                options.ConnectionString,
+                sql =>
+                {
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 10,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
+
+                    sql.CommandTimeout(120);
+                });
+        }, ServiceLifetime.Scoped);
+
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IZoneRepository, ZoneRepository>();
         services.AddScoped<IBatchRepository, BatchRepository>();
@@ -41,6 +59,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISensorApiKeyRepository, SensorApiKeyRepository>();
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<IDbExecutionStrategyProvider, DbExecutionStrategyProvider>();
 
         services.AddScoped<IUnitOfWork>(sp => new UnitOfWork(
             sp.GetRequiredService<AppDbContext>(),

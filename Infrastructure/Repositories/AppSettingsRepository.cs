@@ -12,7 +12,7 @@ namespace Infrastructure.Repositories
     {
         public Task<AppSettings?> GetAsync()
         {
-            return context.AppSettings.SingleAsync()!;
+            return context.AppSettings.SingleOrDefaultAsync();
         }
         public async Task UpdateAsync(AppSettings appSettings) => context.AppSettings.Update(appSettings);
         public Task AddAsync(AppSettings appSettings) => context.AppSettings.AddAsync(appSettings).AsTask();

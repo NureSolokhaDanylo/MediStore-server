@@ -9,7 +9,6 @@ namespace Application.Extensions
         public static IServiceCollection AddAppHostedServices(this IServiceCollection services)
         {
             services
-                .AddHostedService<SeederHostedService>()
                 .AddHostedService<ExpiredChecker>()
                 .AddHostedService<ExpirationSoonChecker>()
                 .AddHostedService<BatchConditionChecker>()
