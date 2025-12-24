@@ -12,7 +12,6 @@ public class ZoneService : CrudService<Zone>, IZoneService
 
     private Result Validate(Zone z)
     {
-        // temperature range
         if (z.TempMin < -50 || z.TempMin > 100)
             return Result.Failure("TempMin must be between -50 and 100");
 
@@ -22,7 +21,6 @@ public class ZoneService : CrudService<Zone>, IZoneService
         if (z.TempMin > z.TempMax)
             return Result.Failure("TempMin cannot be greater than TempMax");
 
-        // humidity range
         if (z.HumidMin < 0 || z.HumidMin > 100)
             return Result.Failure("HumidMin must be between 0 and 100");
 
@@ -35,19 +33,16 @@ public class ZoneService : CrudService<Zone>, IZoneService
         return Result.Success();
     }
 
-    public override async Task<Result<Zone>> Add(Zone entity)
+    public override async Task<Result<Zone>> Add(string userId, Zone entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.ErrorMessage ?? "Validation failed");
 
-        await _repository.AddAsync(entity);
-        await _uow.SaveChangesAsync();
-
-        return Result<Zone>.Success(entity);
+        return await base.Add(userId, entity);
     }
 
-    public override async Task<Result<Zone>> Update(Zone entity)
+    public override async Task<Result<Zone>> Update(string userId, Zone entity)
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
@@ -57,9 +52,9 @@ public class ZoneService : CrudService<Zone>, IZoneService
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.ErrorMessage ?? "Validation failed");
 
-        _repository.Update(entity);
-        await _uow.SaveChangesAsync();
-
-        return Result<Zone>.Success(entity);
+        return await base.Update(userId, entity);
     }
+
+    protected override Task LogAsync(string userId, string action, Zone? before, Zone? after)
+        => Task.CompletedTask;
 }

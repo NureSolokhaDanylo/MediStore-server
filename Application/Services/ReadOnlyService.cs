@@ -13,7 +13,7 @@ using Infrastructure.UOW;
 
 namespace Application.Services
 {
-    public class ReadOnlyService<T> where T : EntityBase
+    public abstract class ReadOnlyService<T> where T : EntityBase
     {
         protected readonly IRepository<T> _repository;
         protected readonly IUnitOfWork _uow;

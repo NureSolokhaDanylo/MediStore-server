@@ -13,6 +13,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddHttpContextAccessor();
+
         services
             .AddScoped<IAccountService, AccountService>()
             .AddScoped<IZoneService, ZoneService>()
@@ -22,6 +24,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<ISensorService, SensorService>()
             .AddScoped<IReadingService, ReadingService>()
             .AddScoped<ISensorApiKeyService, SensorApiKeyService>()
+            .AddScoped<IAuditLogService, AuditLogService>()
             .AddScoped<IPasswordHasher<SensorApiKey>, PasswordHasher<SensorApiKey>>()
             .AddScoped<IAppSettingsService, AppSettingsService>()
             .AddScoped<IReportService, ReportService>();

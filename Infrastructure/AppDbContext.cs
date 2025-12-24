@@ -19,6 +19,7 @@ namespace Infrastructure
         public DbSet<Zone> Zones { get; set; } = null!;
         public DbSet<SensorApiKey> SensorApiKeys { get; set; } = null!;
         public DbSet<AppSettings> AppSettings { get; set; } = null!;
+        public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +30,11 @@ namespace Infrastructure
             modelBuilder.Entity<AppSettings>(builder =>
             {
                 builder.ToTable("Settings", "config");
+            });
+
+            modelBuilder.Entity<AuditLog>(builder =>
+            {
+                builder.ToTable("Audit", "log");
             });
 
             ConfigureDomain(modelBuilder);

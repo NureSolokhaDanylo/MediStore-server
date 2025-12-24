@@ -173,6 +173,20 @@ public static class DtoMappers
         ZoneId = a.ZoneId
     };
 
+    // AuditLog
+    public static AuditLogDto ToDto(this AuditLog a) => new()
+    {
+        Id = a.Id,
+        OccurredAt = a.OccurredAt,
+        EntityType = a.EntityType,
+        EntityId = a.EntityId,
+        Action = a.Action,
+        UserId = a.UserId,
+        Summary = a.Summary,
+        OldValues = a.OldValues,
+        NewValues = a.NewValues
+    };
+
     // Collections
     public static IEnumerable<MedicineDto> ToDto(this IEnumerable<Medicine> list) => list.Select(x => x.ToDto());
     public static IEnumerable<BatchDto> ToDto(this IEnumerable<Batch> list) => list.Select(x => x.ToDto());
@@ -180,4 +194,5 @@ public static class DtoMappers
     public static IEnumerable<ZoneDto> ToDto(this IEnumerable<Zone> list) => list.Select(x => x.ToDto());
     public static IEnumerable<ReadingDto> ToDto(this IEnumerable<Reading> list) => list.Select(x => x.ToDto());
     public static IEnumerable<AlertDto> ToDto(this IEnumerable<Alert> list) => list.Select(x => x.ToDto());
+    public static IEnumerable<AuditLogDto> ToDto(this IEnumerable<AuditLog> list) => list.Select(x => x.ToDto());
 }

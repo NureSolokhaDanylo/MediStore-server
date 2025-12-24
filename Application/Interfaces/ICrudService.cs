@@ -5,7 +5,7 @@ namespace Application.Interfaces;
 
 public interface ICrudService<T> : IReadOnlyService<T> where T : EntityBase
 {
-    Task<Result<T>> Add(T entity);
-    Task<Result<T>> Update(T entity);
-    Task<Result> Delete(int id);
+    Task<Result<T>> Add(string userId, T entity);
+    Task<Result<T>> Update(string userId, T entity);
+    Task<Result> Delete(string userId, int id);
 }

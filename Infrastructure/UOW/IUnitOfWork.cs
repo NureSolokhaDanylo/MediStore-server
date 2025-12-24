@@ -14,6 +14,7 @@ namespace Infrastructure.UOW
         IAlertRepository Alerts { get; }
         ISensorApiKeyRepository SensorApiKeys { get; }
         IAppSettingsRepository AppSettings { get; }
+        IAuditLogRepository AuditLogs { get; }
 
         Task<int> SaveChangesAsync();
     }

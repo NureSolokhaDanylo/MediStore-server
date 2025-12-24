@@ -18,7 +18,10 @@ public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : Read
     [HttpPost]
     public virtual async Task<IActionResult> Create([FromBody] TCreateDto dto)
     {
-        var res = await _service.Add(ToEntity(dto));
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var res = await _service.Add(uid, ToEntity(dto));
         if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
         var created = res.Value!;
         var createdDto = ToDto(created);
@@ -28,7 +31,10 @@ public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : Read
     [HttpPut]
     public virtual async Task<ActionResult<TDto>> Update([FromBody] TDto dto)
     {
-        var res = await _service.Update(ToEntity(dto));
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var res = await _service.Update(uid, ToEntity(dto));
         if (!res.IsSucceed) return NotFound(res.ErrorMessage);
         var updated = res.Value!;
         return Ok(ToDto(updated));
@@ -37,7 +43,10 @@ public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : Read
     [HttpDelete("{id:int}")]
     public virtual async Task<IActionResult> Delete(int id)
     {
-        var res = await _service.Delete(id);
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var res = await _service.Delete(uid, id);
         if (!res.IsSucceed) return NotFound(res.ErrorMessage);
         return NoContent();
     }

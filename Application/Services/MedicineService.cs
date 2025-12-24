@@ -5,6 +5,7 @@ using Domain.Models;
 
 using Infrastructure.Interfaces;
 using Infrastructure.UOW;
+using System.Text.Json;
 
 namespace Application.Services;
 
@@ -23,7 +24,6 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
         if (m.TempMin > m.TempMax)
             return Result.Failure("TempMin cannot be greater than TempMax");
 
-        // humidity validation
         if (m.HumidMin < 0 || m.HumidMin > 100)
             return Result.Failure("HumidMin must be between 0 and 100");
 
@@ -36,19 +36,16 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
         return Result.Success();
     }
 
-    public override async Task<Result<Medicine>> Add(Medicine entity)
+    public override async Task<Result<Medicine>> Add(string userId, Medicine entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.ErrorMessage ?? "Validation failed");
 
-        await _repository.AddAsync(entity);
-        await _uow.SaveChangesAsync();
-
-        return Result<Medicine>.Success(entity);
+        return await base.Add(userId, entity);
     }
 
-    public override async Task<Result<Medicine>> Update(Medicine entity)
+    public override async Task<Result<Medicine>> Update(string userId, Medicine entity)
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
@@ -58,9 +55,24 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.ErrorMessage ?? "Validation failed");
 
-        _repository.Update(entity);
-        await _uow.SaveChangesAsync();
+        return await base.Update(userId, entity);
+    }
 
-        return Result<Medicine>.Success(entity);
+    protected override async Task LogAsync(string userId, string action, Medicine? before, Medicine? after)
+    {
+        var log = new AuditLog
+        {
+            OccurredAt = DateTime.UtcNow,
+            EntityType = "Medicine",
+            EntityId = after?.Id ?? before?.Id ?? 0,
+            Action = action,
+            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
+            Summary = $"Medicine {action} (Id={after?.Id ?? before?.Id})",
+            OldValues = before is null ? null : JsonSerializer.Serialize(before),
+            NewValues = after is null ? null : JsonSerializer.Serialize(after)
+        };
+
+        await _uow.AuditLogs.AddAsync(log);
+        await _uow.SaveChangesAsync();
     }
 }

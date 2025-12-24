@@ -15,25 +15,22 @@ public class BatchService : CrudService<Batch>, IBatchService
         if (b.Quantity <= 0)
             return Result.Failure("Quantity must be greater than 0");
 
-        // DateAdded should not be in the future
         var now = DateTime.UtcNow;
         if (b.DateAdded.ToUniversalTime() > now.AddMinutes(1))
             return Result.Failure("DateAdded cannot be in the future");
 
-        // ExpireDate should be after or equal to DateAdded
         if (b.ExpireDate.ToUniversalTime() < b.DateAdded.ToUniversalTime())
             return Result.Failure("ExpireDate must be after DateAdded");
 
         return Result.Success();
     }
 
-    public override async Task<Result<Batch>> Add(Batch entity)
+    public override async Task<Result<Batch>> Add(string userId, Batch entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Batch>.Failure(check.ErrorMessage ?? "Validation failed");
 
-        // ensure referenced entities exist
         var medicine = await _uow.Medicines.GetAsync(entity.MedicineId);
         if (medicine is null)
             return Result<Batch>.Failure("Referenced medicine not found");
@@ -42,13 +39,10 @@ public class BatchService : CrudService<Batch>, IBatchService
         if (zone is null)
             return Result<Batch>.Failure("Referenced zone not found");
 
-        await _repository.AddAsync(entity);
-        await _uow.SaveChangesAsync();
-
-        return Result<Batch>.Success(entity);
+        return await base.Add(userId, entity);
     }
 
-    public override async Task<Result<Batch>> Update(Batch entity)
+    public override async Task<Result<Batch>> Update(string userId, Batch entity)
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
@@ -66,9 +60,9 @@ public class BatchService : CrudService<Batch>, IBatchService
         if (zone is null)
             return Result<Batch>.Failure("Referenced zone not found");
 
-        _repository.Update(entity);
-        await _uow.SaveChangesAsync();
-
-        return Result<Batch>.Success(entity);
+        return await base.Update(userId, entity);
     }
+
+    protected override Task LogAsync(string userId, string action, Batch? before, Batch? after)
+        => Task.CompletedTask;
 }

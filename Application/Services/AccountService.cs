@@ -13,6 +13,8 @@ using Infrastructure.UOW;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using Domain.Models;
+
 namespace Application.Services
 {
     public class AccountService : IAccountService
@@ -45,7 +47,6 @@ namespace Application.Services
 
         public async Task<Result> CreateAccountAsync(string requesterId, string userName, string password, IEnumerable<string>? roles)
         {
-            // only admin can create
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure("Requester not found");
             var requesterRoles = await _userManager.GetRolesAsync(requester);
@@ -65,15 +66,15 @@ namespace Application.Services
                 }
                 if (missing.Any())
                 {
-                    // rollback created user
                     await _userManager.DeleteAsync(user);
                     return Result.Failure($"Roles do not exist: {string.Join(',', missing)}");
                 }
 
-                // do not allow granting Admin role via this method (explicit)
                 var sanitized = provided.Where(r => r != "Admin");
                 if (sanitized.Any()) await _userManager.AddToRolesAsync(user, sanitized);
             }
+
+            await LogAsync("User", "Create", requesterId, user.Id, $"Created user {user.UserName}", null, System.Text.Json.JsonSerializer.Serialize(new { user.UserName, roles = roles?.ToArray() ?? Array.Empty<string>() }));
 
             return Result.Success();
         }
@@ -91,7 +92,6 @@ namespace Application.Services
 
             if (!isAdmin)
             {
-                // user can change only their own password and must provide current password
                 if (requesterId != targetUserId) return Result.Failure("Forbidden");
                 if (string.IsNullOrEmpty(currentPassword)) return Result.Failure("Current password required");
                 var ok = await _userManager.CheckPasswordAsync(target, currentPassword);
@@ -101,6 +101,8 @@ namespace Application.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(target);
             var changeRes = await _userManager.ResetPasswordAsync(target, token, newPassword);
             if (!changeRes.Succeeded) return Result.Failure(string.Join(';', changeRes.Errors.Select(e => e.Description)));
+
+            await LogAsync("User", "ChangePassword", requesterId, target.Id, $"Password changed for {target.UserName}", null, null);
 
             return Result.Success();
         }
@@ -116,11 +118,9 @@ namespace Application.Services
             var target = await _userManager.FindByIdAsync(targetUserId);
             if (target is null) return Result.Failure("Target user not found");
 
-            // prevent changing roles of Admins
             var targetRoles = await _userManager.GetRolesAsync(target);
             if (targetRoles.Contains("Admin")) return Result.Failure("Cannot change roles of an Admin");
 
-            // validate requested roles exist
             var provided = roles.ToArray();
             var missing = new List<string>();
             foreach (var r in provided)
@@ -129,12 +129,20 @@ namespace Application.Services
             }
             if (missing.Any()) return Result.Failure($"Roles do not exist: {string.Join(',', missing)}");
 
-            // apply roles: remove all current except Admin, then add provided (but cannot grant Admin)
             var toRemove = targetRoles.Where(r => r != "Admin").ToArray();
             if (toRemove.Any()) await _userManager.RemoveFromRolesAsync(target, toRemove);
 
             var toAdd = provided.Where(r => r != "Admin").ToArray();
             if (toAdd.Any()) await _userManager.AddToRolesAsync(target, toAdd);
+
+            await LogAsync(
+                "User",
+                "ChangeRoles",
+                requesterId,
+                target.Id,
+                $"Roles changed for {target.UserName}",
+                System.Text.Json.JsonSerializer.Serialize(new { roles = targetRoles }),
+                System.Text.Json.JsonSerializer.Serialize(new { roles = toAdd }));
 
             return Result.Success();
         }
@@ -155,12 +163,13 @@ namespace Application.Services
             var delRes = await _userManager.DeleteAsync(target);
             if (!delRes.Succeeded) return Result.Failure(string.Join(';', delRes.Errors.Select(e => e.Description)));
 
+            await LogAsync("User", "Delete", requesterId, target.Id, $"Deleted user {target.UserName}", null, null);
+
             return Result.Success();
         }
 
         public async Task<Result<IEnumerable<UserDto>>> GetUsersAsync(int skip, int take)
         {
-            // get users sorted by username
             var users = await _userManager.Users
                 .OrderBy(u => u.UserName)
                 .Skip(skip)
@@ -170,12 +179,29 @@ namespace Application.Services
             var list = new List<UserDto>();
             foreach (var u in users)
             {
-                // call GetRolesAsync sequentially to avoid concurrent DbContext operations
                 var roles = (await _userManager.GetRolesAsync(u)).ToArray();
                 list.Add(new UserDto { Id = u.Id, UserName = u.UserName, Email = u.Email, Roles = roles });
             }
 
             return Result<IEnumerable<UserDto>>.Success(list);
+        }
+
+        private async Task LogAsync(string entityType, string action, string? userId, string entityId, string? summary, string? oldValues, string? newValues)
+        {
+            var log = new AuditLog
+            {
+                OccurredAt = DateTime.UtcNow,
+                EntityType = entityType,
+                EntityId = 0, // IdentityUser uses string ids; store real id in summary
+                Action = action,
+                UserId = userId,
+                Summary = summary + $" (UserId: {entityId})",
+                OldValues = oldValues,
+                NewValues = newValues
+            };
+
+            await _uow.AuditLogs.AddAsync(log);
+            await _uow.SaveChangesAsync();
         }
     }
 }
