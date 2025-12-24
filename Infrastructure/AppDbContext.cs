@@ -101,11 +101,6 @@ namespace Infrastructure
             // Alert
             modelBuilder.Entity<Alert>(e =>
             {
-                e.HasOne(a => a.Sensor)
-                    .WithMany(s => s.Alerts)
-                    .HasForeignKey(a => a.SensorId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
                 e.HasOne(a => a.Batch)
                     .WithMany(b => b.Alerts)
                     .HasForeignKey(a => a.BatchId)

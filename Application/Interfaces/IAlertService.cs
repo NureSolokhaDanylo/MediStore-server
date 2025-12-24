@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces;
 
-public interface IAlertService : ICrudService<Alert>
+public interface IAlertService : IReadOnlyService<Alert>
 {
-    Task<Result> CreateZoneConditionAlertAsync(int zoneId, int sensorId, string message);
+    Task<Result> CreateZoneConditionAlertAsync(int zoneId, string message);
+    Task<bool> HasActiveZoneConditionAlertAsync(int zoneId);
+    Task<bool> HasActiveBatchConditionAlertAsync(int batchId);
 }

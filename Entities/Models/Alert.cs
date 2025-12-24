@@ -14,8 +14,6 @@ namespace Domain.Models
 
 
         //relationships
-        public int? SensorId { get; set; }
-        public virtual Sensor? Sensor { get; set; }
         public int? BatchId { get; set; }
         public virtual Batch? Batch { get; set; }
         public int? ZoneId { get; set; }

@@ -1,6 +1,8 @@
 ﻿using Application.Hosted;
 
-namespace WebApi.Extensions
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Application.Extensions
 {
     public static class HostedServicesExtension
     {

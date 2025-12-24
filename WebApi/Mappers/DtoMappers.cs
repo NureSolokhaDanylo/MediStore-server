@@ -169,7 +169,6 @@ public static class DtoMappers
         AlertType = a.AlertType,
         IsActive = a.IsActive,
         ResolvedAt = a.ResolvedAt,
-        SensorId = a.SensorId,
         BatchId = a.BatchId,
         ZoneId = a.ZoneId
     };

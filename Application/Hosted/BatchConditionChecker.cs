@@ -76,27 +76,60 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
         if (med is null) return;
 
         var sensors = zone.Sensors.Where(s => s.LastUpdate.HasValue && s.LastUpdate.Value >= since && s.LastValue.HasValue).ToList();
-        if (!sensors.Any()) return;
+        if (!sensors.Any())
+        {
+            // no fresh data: if there is active alert, keep it for now
+            return;
+        }
+
+        var activeAlert = await uow.Alerts.GetActiveBatchConditionAlertAsync(batch.Id);
 
         var (shouldAlert, message) = EvaluateSensorsForBatch(appSettings, batch, med, sensors);
 
-        if (!shouldAlert) return;
-
-        var alert = new Alert
+        if (shouldAlert)
         {
-            BatchId = batch.Id,
-            ZoneId = batch.ZoneId,
-            SensorId = null,
-            AlertType = AlertType.BatchConditionWarning,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true,
-            Message = message
-        };
+            if (activeAlert is null)
+            {
+                var alert = new Alert
+                {
+                    BatchId = batch.Id,
+                    ZoneId = batch.ZoneId,
+                    AlertType = AlertType.BatchConditionWarning,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    Message = message
+                };
 
-        await uow.Alerts.AddAsync(alert);
+                await uow.Alerts.AddAsync(alert);
+            }
+            else
+            {
+                // append new info to existing active alert
+                activeAlert.Message = string.Concat(activeAlert.Message, " | ", message);
+                // keep IsActive true
+                uow.Alerts.Update(activeAlert);
+            }
+        }
+        else
+        {
+            // metrics back to normal – close existing alert if any
+            if (activeAlert is not null)
+            {
+                activeAlert.IsActive = false;
+                activeAlert.ResolvedAt = DateTime.UtcNow;
+                uow.Alerts.Update(activeAlert);
+            }
+            else
+            {
+                return; // nothing to save
+            }
+        }
+
         await uow.SaveChangesAsync();
-
-        logger?.LogInformation("Created batch condition alert for batch {BatchId}", batch.Id);
+        if (shouldAlert)
+            logger?.LogInformation("Created/updated batch condition alert for batch {BatchId}", batch.Id);
+        else
+            logger?.LogInformation("Resolved batch condition alert for batch {BatchId}", batch.Id);
     }
 
     private static (bool ShouldAlert, string Message) EvaluateSensorsForBatch(AppSettings appSettings, Batch batch, Medicine med, List<Sensor> sensors)

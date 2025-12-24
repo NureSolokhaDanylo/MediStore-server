@@ -10,7 +10,6 @@ public class AlertDto
     public required AlertType AlertType { get; set; }
     public bool IsActive { get; set; }
     public DateTime? ResolvedAt { get; set; }
-    public int? SensorId { get; set; }
     public int? BatchId { get; set; }
     public int? ZoneId { get; set; }
 }

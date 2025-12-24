@@ -8,7 +8,7 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class AlertService : CrudService<Alert>, IAlertService
+public class AlertService : ReadOnlyService<Alert>, IAlertService
 {
     private readonly IAlertRepository _alertRepo;
 
@@ -17,12 +17,11 @@ public class AlertService : CrudService<Alert>, IAlertService
         _alertRepo = repository;
     }
 
-    public async Task<Result> CreateZoneConditionAlertAsync(int zoneId, int sensorId, string message)
+    public async Task<Result> CreateZoneConditionAlertAsync(int zoneId, string message)
     {
         var alert = new Alert
         {
             ZoneId = zoneId,
-            SensorId = sensorId,
             AlertType = Domain.Enums.AlertType.ZoneConditionAlert,
             CreatedAt = DateTime.UtcNow,
             IsActive = true,
@@ -34,4 +33,10 @@ public class AlertService : CrudService<Alert>, IAlertService
 
         return Result.Success();
     }
+
+    public Task<bool> HasActiveZoneConditionAlertAsync(int zoneId)
+        => _alertRepo.HasActiveZoneConditionAlertAsync(zoneId);
+
+    public Task<bool> HasActiveBatchConditionAlertAsync(int batchId)
+        => _alertRepo.HasActiveBatchConditionAlertAsync(batchId);
 }

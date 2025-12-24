@@ -72,31 +72,60 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
 
     private static async Task ProcessZoneAsync(IUnitOfWork uow, AppSettings appSettings, DateTime since, Zone zone, ILogger? logger)
     {
-        // collect latest values from sensors in the zone within the interval
         var sensors = zone.Sensors.Where(s => s.LastUpdate.HasValue && s.LastUpdate.Value >= since && s.LastValue.HasValue).ToList();
-        if (!sensors.Any()) return;
-
-        var (shouldAlert, message, sensorId) = EvaluateSensorsForZone(appSettings, zone, sensors);
-
-        if (!shouldAlert) return;
-
-        var alert = new Alert
+        if (!sensors.Any())
         {
-            ZoneId = zone.Id,
-            SensorId = sensorId,
-            AlertType = AlertType.ZoneConditionAlert,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true,
-            Message = message
-        };
+            return;
+        }
 
-        await uow.Alerts.AddAsync(alert);
+        var activeAlert = await uow.Alerts.GetActiveZoneConditionAlertAsync(zone.Id);
+
+        var (shouldAlert, message) = EvaluateSensorsForZone(appSettings, zone, sensors);
+
+        if (shouldAlert)
+        {
+            if (activeAlert is null)
+            {
+                var alert = new Alert
+                {
+                    ZoneId = zone.Id,
+                    AlertType = AlertType.ZoneConditionAlert,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true,
+                    Message = message
+                };
+
+                await uow.Alerts.AddAsync(alert);
+            }
+            else
+            {
+                activeAlert.Message = string.Concat(activeAlert.Message, " | ", message);
+                uow.Alerts.Update(activeAlert);
+            }
+        }
+        else
+        {
+            if (activeAlert is not null)
+            {
+                activeAlert.IsActive = false;
+                activeAlert.ResolvedAt = DateTime.UtcNow;
+                uow.Alerts.Update(activeAlert);
+            }
+            else
+            {
+                return;
+            }
+        }
+
         await uow.SaveChangesAsync();
 
-        logger?.LogInformation("Created zone condition alert for zone {ZoneId}", zone.Id);
+        if (shouldAlert)
+            logger?.LogInformation("Created/updated zone condition alert for zone {ZoneId}", zone.Id);
+        else
+            logger?.LogInformation("Resolved zone condition alert for zone {ZoneId}", zone.Id);
     }
 
-    private static (bool ShouldAlert, string Message, int? SensorId) EvaluateSensorsForZone(AppSettings appSettings, Zone zone, List<Sensor> sensors)
+    private static (bool ShouldAlert, string Message) EvaluateSensorsForZone(AppSettings appSettings, Zone zone, List<Sensor> sensors)
     {
         double? maxTempDev = null;
         Sensor? maxTempSensor = null;
@@ -163,7 +192,6 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
                 sb.Append($"LastHum={maxHumSensor.LastValue:F2} at {maxHumSensor.LastUpdate:yyyy-MM-dd HH:mm:ss} UTC (sensor {maxHumSensor.Id}); ");
         }
 
-        int? sensorId = maxTempSensor?.Id ?? maxHumSensor?.Id;
-        return (shouldAlert, sb.ToString(), sensorId);
+        return (shouldAlert, sb.ToString());
     }
 }

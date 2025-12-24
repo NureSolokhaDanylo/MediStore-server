@@ -94,7 +94,6 @@ namespace Application.Hosted
             var alert = new Alert
             {
                 BatchId = batch.Id,
-                SensorId = null,
                 ZoneId = null,
                 AlertType = Domain.Enums.AlertType.Expired,
                 CreatedAt = DateTime.UtcNow,
