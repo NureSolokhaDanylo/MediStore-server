@@ -1,3 +1,4 @@
+using Application.Interfaces;
 using Domain.Models;
 using Domain.Enums;
 using Infrastructure.UOW;
@@ -24,6 +25,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
                 var provider = scope.ServiceProvider;
 
                 var uow = provider.GetRequiredService<IUnitOfWork>();
+                var alertService = provider.GetRequiredService<IAlertService>();
 
                 appSettings = await uow.AppSettings.GetAsync();
                 if (appSettings is null || !appSettings.AlertEnabled)
@@ -41,7 +43,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
                 {
                     try
                     {
-                        await ProcessBatchAsync(uow, appSettings, since, batch, zones, logger);
+                        await ProcessBatchAsync(uow, alertService, appSettings, since, batch, zones, logger);
                     }
                     catch (Exception ex)
                     {
@@ -68,7 +70,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
         return (batches, zones);
     }
 
-    private static async Task ProcessBatchAsync(IUnitOfWork uow, AppSettings appSettings, DateTime since, Batch batch, Dictionary<int, Zone> zones, ILogger? logger)
+    private static async Task ProcessBatchAsync(IUnitOfWork uow, IAlertService alertService, AppSettings appSettings, DateTime since, Batch batch, Dictionary<int, Zone> zones, ILogger? logger)
     {
         if (!zones.TryGetValue(batch.ZoneId, out var zone)) return;
 
@@ -82,7 +84,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
             return;
         }
 
-        var activeAlert = await uow.Alerts.GetActiveBatchConditionAlertAsync(batch.Id);
+        var activeAlert = await alertService.GetActiveBatchConditionAlertAsync(batch.Id);
 
         var (shouldAlert, message) = EvaluateSensorsForBatch(appSettings, batch, med, sensors);
 
@@ -90,24 +92,11 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
         {
             if (activeAlert is null)
             {
-                var alert = new Alert
-                {
-                    BatchId = batch.Id,
-                    ZoneId = batch.ZoneId,
-                    AlertType = AlertType.BatchConditionWarning,
-                    CreatedAt = DateTime.UtcNow,
-                    IsActive = true,
-                    Message = message
-                };
-
-                await uow.Alerts.AddAsync(alert);
+                await alertService.CreateBatchConditionAlertAsync(batch.Id, batch.ZoneId, message);
             }
             else
             {
-                // append new info to existing active alert
-                activeAlert.Message = string.Concat(activeAlert.Message, " | ", message);
-                // keep IsActive true
-                uow.Alerts.Update(activeAlert);
+                await alertService.AppendToBatchConditionAlertAsync(activeAlert, message);
             }
         }
         else
@@ -115,9 +104,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
             // metrics back to normal – close existing alert if any
             if (activeAlert is not null)
             {
-                activeAlert.IsActive = false;
-                activeAlert.ResolvedAt = DateTime.UtcNow;
-                uow.Alerts.Update(activeAlert);
+                await alertService.ResolveBatchConditionAlertAsync(activeAlert);
             }
             else
             {
@@ -125,7 +112,6 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
             }
         }
 
-        await uow.SaveChangesAsync();
         if (shouldAlert)
             logger?.LogInformation("Created/updated batch condition alert for batch {BatchId}", batch.Id);
         else

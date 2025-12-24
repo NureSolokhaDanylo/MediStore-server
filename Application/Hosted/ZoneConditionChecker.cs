@@ -27,6 +27,7 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
                 var provider = scope.ServiceProvider;
 
                 var uow = provider.GetRequiredService<IUnitOfWork>();
+                var alertService = provider.GetRequiredService<IAlertService>();
 
                 appSettings = await uow.AppSettings.GetAsync();
                 if (appSettings is null || !appSettings.AlertEnabled)
@@ -45,7 +46,7 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
                 {
                     try
                     {
-                        await ProcessZoneAsync(uow, appSettings, since, zone, logger);
+                        await ProcessZoneAsync(uow, alertService, appSettings, since, zone, logger);
                     }
                     catch (Exception ex)
                     {
@@ -70,7 +71,7 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
         return uow.Zones.GetAllWithSensorsAsync();
     }
 
-    private static async Task ProcessZoneAsync(IUnitOfWork uow, AppSettings appSettings, DateTime since, Zone zone, ILogger? logger)
+    private static async Task ProcessZoneAsync(IUnitOfWork uow, IAlertService alertService, AppSettings appSettings, DateTime since, Zone zone, ILogger? logger)
     {
         var sensors = zone.Sensors.Where(s => s.LastUpdate.HasValue && s.LastUpdate.Value >= since && s.LastValue.HasValue).ToList();
         if (!sensors.Any())
@@ -78,7 +79,7 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
             return;
         }
 
-        var activeAlert = await uow.Alerts.GetActiveZoneConditionAlertAsync(zone.Id);
+        var activeAlert = await alertService.GetActiveZoneConditionAlertAsync(zone.Id);
 
         var (shouldAlert, message) = EvaluateSensorsForZone(appSettings, zone, sensors);
 
@@ -86,38 +87,24 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
         {
             if (activeAlert is null)
             {
-                var alert = new Alert
-                {
-                    ZoneId = zone.Id,
-                    AlertType = AlertType.ZoneConditionAlert,
-                    CreatedAt = DateTime.UtcNow,
-                    IsActive = true,
-                    Message = message
-                };
-
-                await uow.Alerts.AddAsync(alert);
+                await alertService.CreateZoneConditionAlertAsync(zone.Id, message);
             }
             else
             {
-                activeAlert.Message = string.Concat(activeAlert.Message, " | ", message);
-                uow.Alerts.Update(activeAlert);
+                await alertService.AppendToZoneConditionAlertAsync(activeAlert, message);
             }
         }
         else
         {
             if (activeAlert is not null)
             {
-                activeAlert.IsActive = false;
-                activeAlert.ResolvedAt = DateTime.UtcNow;
-                uow.Alerts.Update(activeAlert);
+                await alertService.ResolveZoneConditionAlertAsync(activeAlert);
             }
             else
             {
                 return;
             }
         }
-
-        await uow.SaveChangesAsync();
 
         if (shouldAlert)
             logger?.LogInformation("Created/updated zone condition alert for zone {ZoneId}", zone.Id);

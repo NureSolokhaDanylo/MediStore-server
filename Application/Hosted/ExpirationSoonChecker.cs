@@ -1,3 +1,4 @@
+using Application.Interfaces;
 using Application.Results.Base;
 using Domain.Models;
 using Infrastructure.UOW;
@@ -23,8 +24,8 @@ namespace Application.Hosted
                     var provider = scope.ServiceProvider;
 
                     var uow = provider.GetRequiredService<IUnitOfWork>();
+                    var alertService = provider.GetRequiredService<IAlertService>();
 
-                    // check app settings: if alerts disabled skip
                     var appSettings = await uow.AppSettings.GetAsync();
                     if (appSettings is null || !appSettings.AlertEnabled)
                     {
@@ -32,7 +33,6 @@ namespace Application.Hosted
                         continue;
                     }
 
-                    // determine maximum warning threshold to limit candidates
                     var medicines = await uow.Medicines.GetAllAsync();
                     var maxThreshold = medicines.Any() ? medicines.Max(m => m.WarningThresholdDays) : 0;
                     if (maxThreshold <= 0)
@@ -49,7 +49,7 @@ namespace Application.Hosted
                     {
                         try
                         {
-                            await ProcessCandidateBatchAsync(uow, appSettings, batch, cutoff, logger);
+                            await ProcessCandidateBatchAsync(uow, alertService, appSettings, batch, cutoff, logger);
                         }
                         catch (Exception ex)
                         {
@@ -75,7 +75,7 @@ namespace Application.Hosted
             return uow.Batches.GetBatchesApproachingExpirationAsync(DateTime.UtcNow);
         }
 
-        private static async Task ProcessCandidateBatchAsync(IUnitOfWork uow, AppSettings appSettings, Batch batch, DateTime cutoff, ILogger? logger)
+        private static async Task ProcessCandidateBatchAsync(IUnitOfWork uow, IAlertService alertService, AppSettings appSettings, Batch batch, DateTime cutoff, ILogger? logger)
         {
             // skip already expired (handled by ExpiredChecker) — we only want soon, not already expired
             if (batch.ExpireDate <= DateTime.UtcNow) return;
@@ -91,7 +91,7 @@ namespace Application.Hosted
             if (thresholdDate < batch.ExpireDate) return;
 
             // ensure no existing alert of this type for this batch
-            var exists = await uow.Alerts.HasAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.ExpirationSoon);
+            var exists = await alertService.HasAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.ExpirationSoon);
             if (exists) return;
 
             // build detailed message
@@ -113,18 +113,7 @@ namespace Application.Hosted
             sb.Append($"{medTempRange} {medHumRange}; ");
             sb.Append($"WarningThresholdDays: {med.WarningThresholdDays}");
 
-            var alert = new Alert
-            {
-                BatchId = batch.Id,
-                ZoneId = null,
-                AlertType = Domain.Enums.AlertType.ExpirationSoon,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-                Message = sb.ToString()
-            };
-
-            await uow.Alerts.AddAsync(alert);
-            await uow.SaveChangesAsync();
+            await alertService.CreateBatchAlertAsync(batch.Id, Domain.Enums.AlertType.ExpirationSoon, sb.ToString());
 
             logger?.LogInformation("Created expiration-soon alert for batch {BatchId}", batch.Id);
         }

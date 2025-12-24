@@ -1,4 +1,5 @@
-﻿using Application.Results.Base;
+﻿using Application.Interfaces;
+using Application.Results.Base;
 using Domain.Models;
 using Infrastructure.UOW;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ namespace Application.Hosted
                     var provider = scope.ServiceProvider;
 
                     var uow = provider.GetRequiredService<IUnitOfWork>();
+                    var alertService = provider.GetRequiredService<IAlertService>();
 
                     // check app settings: if alerts disabled skip
                     var appSettings = await uow.AppSettings.GetAsync();
@@ -38,7 +40,7 @@ namespace Application.Hosted
                     {
                         try
                         {
-                            await ProcessExpiredBatchAsync(uow, batch, logger);
+                            await ProcessExpiredBatchAsync(uow, alertService, batch, logger);
                         }
                         catch (Exception ex)
                         {
@@ -63,10 +65,10 @@ namespace Application.Hosted
             return uow.Batches.GetExpiredBatchesAsync(DateTime.UtcNow);
         }
 
-        private static async Task ProcessExpiredBatchAsync(IUnitOfWork uow, Batch batch, ILogger? logger)
+        private static async Task ProcessExpiredBatchAsync(IUnitOfWork uow, IAlertService alertService, Batch batch, ILogger? logger)
         {
             // check existing alert using optimized repo method
-            var exists = await uow.Alerts.HasAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.Expired);
+            var exists = await alertService.HasAlertForBatchAsync(batch.Id, Domain.Enums.AlertType.Expired);
             if (exists)
                 return;
 
@@ -91,18 +93,7 @@ namespace Application.Hosted
             message.Append($"; DateAdded: {batch.DateAdded.ToUniversalTime():yyyy-MM-dd HH:mm:ss} UTC");
             message.Append($"; ExpireDate: {batch.ExpireDate.ToUniversalTime():yyyy-MM-dd HH:mm:ss} UTC");
 
-            var alert = new Alert
-            {
-                BatchId = batch.Id,
-                ZoneId = null,
-                AlertType = Domain.Enums.AlertType.Expired,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-                Message = message.ToString()
-            };
-
-            await uow.Alerts.AddAsync(alert);
-            await uow.SaveChangesAsync();
+            await alertService.CreateBatchAlertAsync(batch.Id, Domain.Enums.AlertType.Expired, message.ToString());
 
             logger?.LogInformation("Created expired alert for batch {BatchId}", batch.Id);
         }
