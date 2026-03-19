@@ -16,8 +16,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - InfrastructureOptions__ConnectionString=Server=sqlserver,1433;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=True;Encrypt=False
       - JwtOptions__Key=${JwtOptions__Key}
-      - JwtOptions__Issuer=${JwtOptions__Issuer}
-      - JwtOptions__Audience=${JwtOptions__Audience}
       - SeedOptions__AdminLogin=${SeedOptions__AdminLogin}
       - SeedOptions__AdminPassword=${SeedOptions__AdminPassword}
 

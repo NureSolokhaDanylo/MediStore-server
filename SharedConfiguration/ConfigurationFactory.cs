@@ -11,7 +11,7 @@ namespace SharedConfiguration
 
             return new ConfigurationBuilder()
                 .SetBasePath(basePath)
-                .AddJsonFile("sharedsettings.json", optional: true)
+                .AddJsonFile("sharedsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
         }
