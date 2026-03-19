@@ -1,0 +1,37 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+
+services:
+  webapi:
+    image: webapi
+    build:
+      context: .
+      dockerfile: WebApi/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - ${SERVER_PORT}:5215
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - InfrastructureOptions__ConnectionString=Server=sqlserver,1433;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=True;Encrypt=False
+      - JwtOptions__Key=${JwtOptions__Key}
+      - JwtOptions__Issuer=${JwtOptions__Issuer}
+      - JwtOptions__Audience=${JwtOptions__Audience}
+      - SeedOptions__AdminLogin=${SeedOptions__AdminLogin}
+      - SeedOptions__AdminPassword=${SeedOptions__AdminPassword}
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: medistore-sqlserver
+    ports:
+      - ${DB_PORT}:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Developer
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+volumes:
+  sqlserver_data:
