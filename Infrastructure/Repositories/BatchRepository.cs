@@ -23,5 +23,25 @@ namespace Infrastructure.Repositories
                 .Where(b => b.ExpireDate >= now)
                 .ToListAsync();
         }
+
+        public async Task<(List<Batch> items, int totalCount)> SearchByBatchNumberAsync(string query, int limit, int offset)
+        {
+            var baseQuery = _set.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                var lowerQuery = query.ToLower();
+                baseQuery = baseQuery.Where(b => b.BatchNumber.ToLower().Contains(lowerQuery));
+            }
+
+            var totalCount = await baseQuery.CountAsync();
+            var items = await baseQuery
+                .OrderBy(b => b.BatchNumber)
+                .Skip(offset)
+                .Take(limit)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

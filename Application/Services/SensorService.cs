@@ -10,7 +10,12 @@ namespace Application.Services;
 
 public class SensorService : ReadOnlyService<Sensor>, ISensorService
 {
-    public SensorService(ISensorRepository repository, IUnitOfWork uow) : base(repository, uow) { }
+    private readonly ISensorRepository _sensorRepository;
+    
+    public SensorService(ISensorRepository repository, IUnitOfWork uow) : base(repository, uow) 
+    {
+        _sensorRepository = repository;
+    }
 
     public virtual async Task<Result<Sensor>> Add(Sensor entity)
     {
@@ -57,5 +62,18 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         await _uow.SaveChangesAsync();
 
         return Result<Sensor>.Success(existing);
+    }
+
+    public async Task<Result<IEnumerable<Sensor>>> GetByZoneIdAsync(string userId, int zoneId)
+    {
+        try
+        {
+            var sensors = await _sensorRepository.GetByZoneIdAsync(zoneId);
+            return Result<IEnumerable<Sensor>>.Success(sensors);
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<Sensor>>.Failure($"Error retrieving sensors: {ex.Message}");
+        }
     }
 }

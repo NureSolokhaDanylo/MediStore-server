@@ -11,7 +11,12 @@ namespace Application.Services;
 
 public class MedicineService : CrudService<Medicine>, IMedicineService
 {
-    public MedicineService(IMedicineRepository repository, IUnitOfWork uow) : base(repository, uow) { }
+    private readonly IMedicineRepository _medicineRepository;
+
+    public MedicineService(IMedicineRepository repository, IUnitOfWork uow) : base(repository, uow) 
+    { 
+        _medicineRepository = repository;
+    }
 
     private Result Validate(Medicine m)
     {
@@ -56,6 +61,18 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
             return Result<Medicine>.Failure(check.ErrorMessage ?? "Validation failed");
 
         return await base.Update(userId, entity);
+    }
+
+    public async Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
+    {
+        if (limit <= 0)
+            return Result<(IEnumerable<Medicine>, int)>.Failure("Limit must be greater than 0");
+
+        if (offset < 0)
+            return Result<(IEnumerable<Medicine>, int)>.Failure("Offset cannot be negative");
+
+        var (items, totalCount) = await _medicineRepository.SearchAsync(query?.Trim() ?? "", limit, offset);
+        return Result<(IEnumerable<Medicine>, int)>.Success((items, totalCount));
     }
 
     protected override async Task LogAsync(string userId, string action, Medicine? before, Medicine? after)

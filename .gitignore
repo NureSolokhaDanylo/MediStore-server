@@ -4,6 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 Scripts/path_to_env
+*.notes
 
 # User-specific files
 *.rsuser

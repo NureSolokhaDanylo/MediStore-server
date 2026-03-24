@@ -9,5 +9,6 @@ namespace Infrastructure.Interfaces
     {
         Task<List<Batch>> GetExpiredBatchesAsync(DateTime asOf);
         Task<List<Batch>> GetBatchesApproachingExpirationAsync(DateTime now);
+        Task<(List<Batch> items, int totalCount)> SearchByBatchNumberAsync(string query, int limit, int offset);
     }
 }

@@ -23,4 +23,11 @@ public interface IAlertService : IReadOnlyService<Alert>
 
     Task<bool> HasAlertForBatchAsync(int batchId, AlertType alertType);
     Task<Result> CreateBatchAlertAsync(int batchId, AlertType alertType, string message);
+    
+    Task<Result<(IEnumerable<Alert> Items, int TotalCount)>> GetFilteredAlertsAsync(
+        int skip, 
+        int take, 
+        bool? isActive = null, 
+        int? zoneId = null, 
+        int? batchId = null);
 }

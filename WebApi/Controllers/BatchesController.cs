@@ -35,4 +35,27 @@ public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto,
 
     [Authorize(Roles = "Operator")]
     public override Task<IActionResult> Delete(int id) => base.Delete(id);
+
+    [HttpGet("search")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<ActionResult<PagedSearchResultDto<BatchSearchResultDto>>> Search(
+        [FromQuery] string q,
+        [FromQuery] int limit = 10,
+        [FromQuery] int offset = 0)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var result = await _service.SearchByBatchNumber(uid, q, limit, offset);
+        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+
+        var (items, totalCount) = result.Value!;
+        return Ok(new PagedSearchResultDto<BatchSearchResultDto>
+        {
+            Items = items.ToSearchResultDto().ToList(),
+            TotalCount = totalCount,
+            Limit = limit,
+            Offset = offset
+        });
+    }
 }

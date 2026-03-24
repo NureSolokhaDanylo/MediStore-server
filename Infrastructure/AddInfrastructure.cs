@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISensorApiKeyRepository, SensorApiKeyRepository>();
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
         services.AddScoped<IDbExecutionStrategyProvider, DbExecutionStrategyProvider>();
 
         services.AddScoped<IUnitOfWork>(sp => new UnitOfWork(
@@ -71,7 +72,8 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<IAlertRepository>(),
             sp.GetRequiredService<ISensorApiKeyRepository>(),
             sp.GetRequiredService<IAppSettingsRepository>(),
-            sp.GetRequiredService<IAuditLogRepository>()));
+            sp.GetRequiredService<IAuditLogRepository>(),
+            sp.GetRequiredService<IUserDeviceRepository>()));
 
         return services;
     }

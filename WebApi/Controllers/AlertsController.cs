@@ -23,4 +23,31 @@ public class AlertsController : ReadController<Alert, AlertDto, IAlertService>
 
     [Authorize(Roles = "Admin,Operator,Observer")]
     public override Task<ActionResult<AlertDto>> Get(int id) => base.Get(id);
+
+    [HttpGet("filtered")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<ActionResult<PagedResultDto<AlertDto>>> GetFiltered([FromQuery] AlertFilterDto filter)
+    {
+        var result = await _alertService.GetFilteredAlertsAsync(
+            filter.Skip, 
+            filter.Take, 
+            filter.IsActive, 
+            filter.ZoneId, 
+            filter.BatchId);
+
+        if (!result.IsSucceed)
+            return BadRequest(result.ErrorMessage);
+
+        var (items, totalCount) = result.Value!;
+
+        var response = new PagedResultDto<AlertDto>
+        {
+            Items = items.Select(ToDto),
+            TotalCount = totalCount,
+            Skip = filter.Skip,
+            Take = filter.Take
+        };
+
+        return Ok(response);
+    }
 }

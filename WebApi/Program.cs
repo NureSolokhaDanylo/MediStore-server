@@ -40,8 +40,6 @@ namespace WebApi
 
             var app = builder.Build();
 
-            await app.InitializeDatabaseAsync();
-
             using (var scope = app.Services.CreateScope())
             {
                 var strategyProvider = scope.ServiceProvider.GetRequiredService<IDbExecutionStrategyProvider>();

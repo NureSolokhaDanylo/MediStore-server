@@ -12,5 +12,12 @@ namespace Infrastructure.Interfaces
         Task<bool> HasActiveBatchConditionAlertAsync(int batchId);
         Task<Alert?> GetActiveBatchConditionAlertAsync(int batchId);
         Task<Alert?> GetActiveZoneConditionAlertAsync(int zoneId);
+        
+        Task<(IEnumerable<Alert> Items, int TotalCount)> GetFilteredAlertsAsync(
+            int skip, 
+            int take, 
+            bool? isActive = null, 
+            int? zoneId = null, 
+            int? batchId = null);
     }
 }

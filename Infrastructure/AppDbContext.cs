@@ -18,6 +18,7 @@ namespace Infrastructure
         public DbSet<Sensor> Sensors { get; set; } = null!;
         public DbSet<Zone> Zones { get; set; } = null!;
         public DbSet<SensorApiKey> SensorApiKeys { get; set; } = null!;
+        public DbSet<UserDevice> UserDevices { get; set; } = null!;
         public DbSet<AppSettings> AppSettings { get; set; } = null!;
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 

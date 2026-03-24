@@ -18,6 +18,13 @@ public static class DtoMappers
         HumidMin = m.HumidMin
     };
 
+    public static MedicineSearchResultDto ToSearchResultDto(this Medicine m) => new()
+    {
+        Id = m.Id,
+        Name = m.Name,
+        Description = m.Description
+    };
+
     public static Medicine ToEntity(this MedicineDto dto) => new()
     {
         Id = dto.Id,
@@ -48,6 +55,14 @@ public static class DtoMappers
         Quantity = b.Quantity,
         ExpireDate = b.ExpireDate,
         DateAdded = b.DateAdded,
+        MedicineId = b.MedicineId,
+        ZoneId = b.ZoneId
+    };
+
+    public static BatchSearchResultDto ToSearchResultDto(this Batch b) => new()
+    {
+        Id = b.Id,
+        BatchNumber = b.BatchNumber,
         MedicineId = b.MedicineId,
         ZoneId = b.ZoneId
     };
@@ -114,6 +129,13 @@ public static class DtoMappers
         TempMin = z.TempMin,
         HumidMax = z.HumidMax,
         HumidMin = z.HumidMin
+    };
+
+    public static ZoneSearchResultDto ToSearchResultDto(this Zone z) => new()
+    {
+        Id = z.Id,
+        Name = z.Name,
+        Description = z.Description
     };
 
     public static Zone ToEntity(this ZoneDto dto) => new()
@@ -189,9 +211,12 @@ public static class DtoMappers
 
     // Collections
     public static IEnumerable<MedicineDto> ToDto(this IEnumerable<Medicine> list) => list.Select(x => x.ToDto());
+    public static IEnumerable<MedicineSearchResultDto> ToSearchResultDto(this IEnumerable<Medicine> list) => list.Select(x => x.ToSearchResultDto());
     public static IEnumerable<BatchDto> ToDto(this IEnumerable<Batch> list) => list.Select(x => x.ToDto());
+    public static IEnumerable<BatchSearchResultDto> ToSearchResultDto(this IEnumerable<Batch> list) => list.Select(x => x.ToSearchResultDto());
     public static IEnumerable<SensorDto> ToDto(this IEnumerable<Sensor> list) => list.Select(x => x.ToDto());
     public static IEnumerable<ZoneDto> ToDto(this IEnumerable<Zone> list) => list.Select(x => x.ToDto());
+    public static IEnumerable<ZoneSearchResultDto> ToSearchResultDto(this IEnumerable<Zone> list) => list.Select(x => x.ToSearchResultDto());
     public static IEnumerable<ReadingDto> ToDto(this IEnumerable<Reading> list) => list.Select(x => x.ToDto());
     public static IEnumerable<AlertDto> ToDto(this IEnumerable<Alert> list) => list.Select(x => x.ToDto());
     public static IEnumerable<AuditLogDto> ToDto(this IEnumerable<AuditLog> list) => list.Select(x => x.ToDto());

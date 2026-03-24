@@ -9,7 +9,12 @@ namespace Application.Services;
 
 public class BatchService : CrudService<Batch>, IBatchService
 {
-    public BatchService(IBatchRepository repository, IUnitOfWork uow) : base(repository, uow) { }
+    private readonly IBatchRepository _batchRepository;
+
+    public BatchService(IBatchRepository repository, IUnitOfWork uow) : base(repository, uow) 
+    { 
+        _batchRepository = repository;
+    }
 
     private Result Validate(Batch b)
     {
@@ -62,6 +67,18 @@ public class BatchService : CrudService<Batch>, IBatchService
             return Result<Batch>.Failure("Referenced zone not found");
 
         return await base.Update(userId, entity);
+    }
+
+    public async Task<Result<(IEnumerable<Batch> items, int totalCount)>> SearchByBatchNumber(string userId, string query, int limit, int offset)
+    {
+        if (limit <= 0)
+            return Result<(IEnumerable<Batch>, int)>.Failure("Limit must be greater than 0");
+
+        if (offset < 0)
+            return Result<(IEnumerable<Batch>, int)>.Failure("Offset cannot be negative");
+
+        var (items, totalCount) = await _batchRepository.SearchByBatchNumberAsync(query?.Trim() ?? "", limit, offset);
+        return Result<(IEnumerable<Batch>, int)>.Success((items, totalCount));
     }
 
     protected override async Task LogAsync(string userId, string action, Batch? before, Batch? after)

@@ -21,6 +21,7 @@ namespace Infrastructure.UOW
         public ISensorApiKeyRepository SensorApiKeys { get; }
         public IAppSettingsRepository AppSettings { get; }
         public IAuditLogRepository AuditLogs { get; }
+        public IUserDeviceRepository UserDevices { get; }
 
         private readonly AppDbContext _context;
 
@@ -34,7 +35,8 @@ namespace Infrastructure.UOW
             IAlertRepository alerts,
             ISensorApiKeyRepository sensorApiKeys,
             IAppSettingsRepository appSettings,
-            IAuditLogRepository auditLogs)
+            IAuditLogRepository auditLogs,
+            IUserDeviceRepository userDevices)
         {
             _context = context;
 
@@ -47,6 +49,7 @@ namespace Infrastructure.UOW
             SensorApiKeys = sensorApiKeys;
             AppSettings = appSettings;
             AuditLogs = auditLogs;
+            UserDevices = userDevices;
         }
 
         public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();

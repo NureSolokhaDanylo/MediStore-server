@@ -22,12 +22,31 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
     protected override SensorDto ToDto(Sensor entity) => entity.ToDto();
     protected override int GetId(SensorDto dto) => dto.Id;
 
-    [Authorize(Roles = "Admin,Operator,Observer")]
+    [NonAction]
     public override Task<ActionResult<IEnumerable<SensorDto>>> GetAll() => base.GetAll();
+
+    [HttpGet]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors([FromQuery] int? zoneId)
+    {
+        if (!zoneId.HasValue)
+        {
+            // If no zoneId provided, return all sensors
+            return await GetAll();
+        }
+
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var result = await _sensorService.GetByZoneIdAsync(uid, zoneId.Value);
+        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+
+        var sensors = result.Value ?? Enumerable.Empty<Sensor>();
+        return Ok(sensors.Select(ToDto));
+    }
 
     [Authorize(Roles = "Admin,Operator,Observer")]
     public override Task<ActionResult<SensorDto>> Get(int id) => base.Get(id);
-
 
     [HttpPost]
     [Authorize(Roles = "Admin")]

@@ -116,4 +116,22 @@ public class AlertService : ReadOnlyService<Alert>, IAlertService
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
+
+    public async Task<Result<(IEnumerable<Alert> Items, int TotalCount)>> GetFilteredAlertsAsync(
+        int skip, 
+        int take, 
+        bool? isActive = null, 
+        int? zoneId = null, 
+        int? batchId = null)
+    {
+        try
+        {
+            var result = await _alertRepo.GetFilteredAlertsAsync(skip, take, isActive, zoneId, batchId);
+            return Result<(IEnumerable<Alert>, int)>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return Result<(IEnumerable<Alert>, int)>.Failure($"Error retrieving alerts: {ex.Message}");
+        }
+    }
 }

@@ -48,5 +48,39 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(a => a.CreatedAt)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<(IEnumerable<Alert> Items, int TotalCount)> GetFilteredAlertsAsync(
+            int skip, 
+            int take, 
+            bool? isActive = null, 
+            int? zoneId = null, 
+            int? batchId = null)
+        {
+            var query = _context.Set<Alert>().AsQueryable();
+
+            // Apply filters
+            if (isActive.HasValue)
+                query = query.Where(a => a.IsActive == isActive.Value);
+
+            if (zoneId.HasValue)
+                query = query.Where(a => a.ZoneId == zoneId.Value);
+
+            if (batchId.HasValue)
+                query = query.Where(a => a.BatchId == batchId.Value);
+
+            // Order by most recent first
+            query = query.OrderByDescending(a => a.CreatedAt);
+
+            // Get total count before applying pagination
+            var totalCount = await query.CountAsync();
+
+            // Apply pagination
+            var items = await query
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

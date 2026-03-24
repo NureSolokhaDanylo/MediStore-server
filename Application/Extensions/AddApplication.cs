@@ -27,7 +27,8 @@ public static class ServiceCollectionExtensions
             .AddScoped<IAuditLogService, AuditLogService>()
             .AddScoped<IPasswordHasher<SensorApiKey>, PasswordHasher<SensorApiKey>>()
             .AddScoped<IAppSettingsService, AppSettingsService>()
-            .AddScoped<IReportService, ReportService>();
+            .AddScoped<IReportService, ReportService>()
+            .AddScoped<IUserDeviceService, UserDeviceService>();
 
         return services;
     }

@@ -10,4 +10,6 @@ public interface ISensorService : IReadOnlyService<Sensor>
 
     Task<Result<Sensor>> Add(Sensor entity);
     Task<Result> Delete(int id);
+    
+    Task<Result<IEnumerable<Sensor>>> GetByZoneIdAsync(string userId, int zoneId);
 }

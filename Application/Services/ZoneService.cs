@@ -9,7 +9,12 @@ namespace Application.Services;
 
 public class ZoneService : CrudService<Zone>, IZoneService
 {
-    public ZoneService(IZoneRepository repository, IUnitOfWork uow) : base(repository, uow) { }
+    private readonly IZoneRepository _zoneRepository;
+
+    public ZoneService(IZoneRepository repository, IUnitOfWork uow) : base(repository, uow) 
+    { 
+        _zoneRepository = repository;
+    }
 
     private Result Validate(Zone z)
     {
@@ -54,6 +59,18 @@ public class ZoneService : CrudService<Zone>, IZoneService
             return Result<Zone>.Failure(check.ErrorMessage ?? "Validation failed");
 
         return await base.Update(userId, entity);
+    }
+
+    public async Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
+    {
+        if (limit <= 0)
+            return Result<(IEnumerable<Zone>, int)>.Failure("Limit must be greater than 0");
+
+        if (offset < 0)
+            return Result<(IEnumerable<Zone>, int)>.Failure("Offset cannot be negative");
+
+        var (items, totalCount) = await _zoneRepository.SearchAsync(query?.Trim() ?? "", limit, offset);
+        return Result<(IEnumerable<Zone>, int)>.Success((items, totalCount));
     }
 
     protected override async Task LogAsync(string userId, string action, Zone? before, Zone? after)
