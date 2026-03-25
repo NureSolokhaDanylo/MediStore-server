@@ -1,4 +1,5 @@
 ﻿using Microsoft.OpenApi.Models;
+using WebApi.HealthChecks;
 using WebApi.Services;
 
 namespace WebApi.Extensions
@@ -8,6 +9,8 @@ namespace WebApi.Extensions
         public static IServiceCollection AddAppControllersAndSwagger(this IServiceCollection services)
         {
             services.AddControllers();
+            services.AddHealthChecks()
+                .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
