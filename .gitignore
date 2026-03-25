@@ -5,6 +5,8 @@
 
 Scripts/path_to_env
 *.notes
+compose*
+!compose.yaml
 
 # User-specific files
 *.rsuser

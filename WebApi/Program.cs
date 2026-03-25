@@ -39,6 +39,7 @@ namespace WebApi
             #region Middleware
 
             var app = builder.Build();
+            await app.InitializeDatabaseAsync();
 
             using (var scope = app.Services.CreateScope())
             {
