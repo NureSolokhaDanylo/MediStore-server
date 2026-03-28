@@ -22,15 +22,9 @@ namespace WebApi
             var services = builder.Services;
             var config = ConfigurationFactory.BuildConfiguration();
 
-            // Configure URLs based on environment
-            if (!builder.Environment.IsDevelopment())
-            {
-                builder.WebHost.UseUrls("http://api.medistore.app");
-            }
-            else
-            {
-                builder.WebHost.UseUrls("http://+:5215");
-            }
+            // Configure URLs - always bind to all interfaces on port 5215
+            // External hostname (api.medistore.app) is handled by Ingress/LoadBalancer
+            builder.WebHost.UseUrls("http://+:5215");
 
             #region Building
 
