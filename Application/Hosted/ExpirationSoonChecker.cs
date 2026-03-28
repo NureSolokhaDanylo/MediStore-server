@@ -61,10 +61,21 @@ namespace Application.Hosted
                     var sleep = appSettings.CheckDeviationInterval;
                     await Task.Delay(sleep, stoppingToken);
                 }
+                catch (OperationCanceledException)
+                {
+                    // Expected when application is shutting down
+                }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, "Error in ExpirationSoonChecker loop");
-                    await Task.Delay(defaultDelay, stoppingToken);
+                    try
+                    {
+                        await Task.Delay(defaultDelay, stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected when application is shutting down
+                    }
                 }
             }
         }
@@ -77,7 +88,7 @@ namespace Application.Hosted
 
         private static async Task ProcessCandidateBatchAsync(IUnitOfWork uow, IAlertService alertService, AppSettings appSettings, Batch batch, DateTime cutoff, ILogger? logger)
         {
-            // skip already expired (handled by ExpiredChecker) — we only want soon, not already expired
+            // skip already expired (handled by ExpiredChecker) ï¿½ we only want soon, not already expired
             if (batch.ExpireDate <= DateTime.UtcNow) return;
 
             // skip those beyond the global cutoff (they expire later than any medicine's threshold)

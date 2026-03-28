@@ -55,10 +55,21 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
                 var sleep = appSettings.CheckDeviationInterval;
                 await Task.Delay(sleep, stoppingToken);
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when application is shutting down
+            }
             catch (Exception ex)
             {
                 logger?.LogError(ex, "Error in BatchConditionChecker loop");
-                await Task.Delay(defaultDelay, stoppingToken);
+                try
+                {
+                    await Task.Delay(defaultDelay, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when application is shutting down
+                }
             }
         }
     }
@@ -101,7 +112,7 @@ public class BatchConditionChecker(IServiceProvider services) : BackgroundServic
         }
         else
         {
-            // metrics back to normal – close existing alert if any
+            // metrics back to normal ï¿½ close existing alert if any
             if (activeAlert is not null)
             {
                 await alertService.ResolveBatchConditionAlertAsync(activeAlert);

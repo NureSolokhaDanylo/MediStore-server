@@ -58,10 +58,21 @@ public class ZoneConditionChecker(IServiceProvider services) : BackgroundService
                 var sleep = appSettings.CheckDeviationInterval;
                 await Task.Delay(sleep, stoppingToken);
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when application is shutting down
+            }
             catch (Exception ex)
             {
                 logger?.LogError(ex, "Error in ZoneConditionChecker loop");
-                await Task.Delay(defaultDelay, stoppingToken);
+                try
+                {
+                    await Task.Delay(defaultDelay, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when application is shutting down
+                }
             }
         }
     }
