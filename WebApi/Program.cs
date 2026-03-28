@@ -22,6 +22,16 @@ namespace WebApi
             var services = builder.Services;
             var config = ConfigurationFactory.BuildConfiguration();
 
+            // Configure URLs based on environment
+            if (!builder.Environment.IsDevelopment())
+            {
+                builder.WebHost.UseUrls("http://api.medistore.app");
+            }
+            else
+            {
+                builder.WebHost.UseUrls("http://+:5215");
+            }
+
             #region Building
 
             services
@@ -55,8 +65,7 @@ namespace WebApi
             QuestPDF.Settings.License = LicenseType.Community;
 
             app.UseDeveloperFeatures();
-            //no cors for now
-            app.UseAppRequestPipeline(string.Empty);
+            app.UseAppRequestPipeline("medistore");
 
             #endregion
 

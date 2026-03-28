@@ -32,6 +32,18 @@ namespace WebApi.Extensions
                 });
             });
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("medistore", builder =>
+                {
+                    builder
+                        .WithOrigins("https://medistore.app", "http://medistore.app")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                });
+            });
+
             // register web-specific services
             services.AddScoped<IReportDocumentService, ReportDocumentService>();
 

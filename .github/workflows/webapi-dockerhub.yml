@@ -2,8 +2,8 @@ name: Build and Push WebApi to Docker Hub
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 concurrency:
@@ -20,6 +20,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Remove 'v' prefix if present (e.g., v1.2.3 -> 1.2.3)
+          TAG=${{ github.ref_name }}
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -40,14 +48,17 @@ jobs:
           file: ./WebApi/Dockerfile
           platforms: linux/arm64
           push: true
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.IMAGE_NAME }}:latest
 
       - name: Remove old tags from Docker Hub
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPOSITORY: ${{ secrets.DOCKERHUB_REPOSITORY }}
-          KEEP_TAG: latest
+          KEEP_LATEST: latest
+          KEEP_COUNT: 3
         run: |
           set -euo pipefail
 
@@ -67,7 +78,8 @@ jobs:
             exit 1
           fi
 
-          tags_to_delete=()
+          # Fetch all tags except 'latest'
+          all_tags=()
           page=1
           while true; do
             tags_response=$(curl -fsS \
@@ -75,8 +87,8 @@ jobs:
               "https://hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY/tags?page_size=100&page=$page")
 
             while IFS= read -r tag_name; do
-              if [ "$tag_name" != "$KEEP_TAG" ]; then
-                tags_to_delete+=("$tag_name")
+              if [ "$tag_name" != "$KEEP_LATEST" ]; then
+                all_tags+=("$tag_name")
               fi
             done < <(echo "$tags_response" | jq -r '.results[].name')
 
@@ -88,9 +100,19 @@ jobs:
             page=$((page + 1))
           done
 
-          for tag_name in "${tags_to_delete[@]}"; do
-            echo "Deleting tag: $tag_name"
-            curl -fsS -X DELETE \
-              -H "Authorization: JWT $jwt_token" \
-              "https://hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY/tags/$tag_name/" >/dev/null
-          done
+          # Sort tags by date (newest first) and delete old ones
+          total_tags=${#all_tags[@]}
+          tags_to_delete=$((total_tags > KEEP_COUNT ? total_tags - KEEP_COUNT : 0))
+
+          if [ "$tags_to_delete" -gt 0 ]; then
+            # Delete oldest tags
+            for ((i = KEEP_COUNT; i < total_tags; i++)); do
+              tag_name="${all_tags[$i]}"
+              echo "Deleting tag: $tag_name"
+              curl -fsS -X DELETE \
+                -H "Authorization: JWT $jwt_token" \
+                "https://hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY/tags/$tag_name/" >/dev/null
+            done
+          else
+            echo "Keeping all $total_tags tags (less than or equal to $KEEP_COUNT)"
+          fi
