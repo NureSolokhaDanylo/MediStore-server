@@ -42,6 +42,24 @@ namespace WebApi.Extensions
                         .AllowAnyHeader()
                         .AllowCredentials();
                 });
+
+                options.AddPolicy("medistore-dev", builder =>
+                {
+                    builder
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                            {
+                                return false;
+                            }
+
+                            return uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                                || uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase);
+                        })
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                });
             });
 
             // register web-specific services

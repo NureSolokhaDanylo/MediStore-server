@@ -22,4 +22,38 @@ public class AuditLogService : ReadOnlyService<AuditLog>, IAuditLogService
         var list = await _repo.GetByTypeAsync(entityType, from, to, take);
         return Result<IEnumerable<AuditLog>>.Success(list);
     }
+
+    public async Task<Result<(IEnumerable<AuditLog> Items, int TotalCount)>> GetPagedAsync(
+        string? q,
+        string? entityType,
+        string? action,
+        string? userId,
+        DateTime? from,
+        DateTime? to,
+        int skip,
+        int take)
+    {
+        if (skip < 0)
+        {
+            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure("skip cannot be negative");
+        }
+
+        if (take <= 0)
+        {
+            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure("take must be greater than 0");
+        }
+
+        var result = await _repo.GetPagedAsync(q, entityType, action, userId, from, to, skip, take);
+        return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Success(result);
+    }
+
+    public async Task<Result<(IEnumerable<AuditLog> Items, int TotalCount)>> GetByTypePagedAsync(
+        string entityType,
+        DateTime? from,
+        DateTime? to,
+        int skip,
+        int take)
+    {
+        return await GetPagedAsync(null, entityType, null, null, from, to, skip, take);
+    }
 }

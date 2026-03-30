@@ -12,6 +12,6 @@ namespace Application.Interfaces
         Task<Result> ChangePasswordAsync(string requesterId, string targetUserId, string? currentPassword, string newPassword);
         Task<Result> ChangeRolesAsync(string requesterId, string targetUserId, IEnumerable<string> roles);
         Task<Result> DeleteUserAsync(string requesterId, string targetUserId);
-        Task<Result<IEnumerable<UserDto>>> GetUsersAsync(int skip, int take);
+        Task<Result<(IEnumerable<UserDto> Items, int TotalCount)>> GetUsersAsync(int skip, int take, string? q = null, string? role = null);
     }
 }

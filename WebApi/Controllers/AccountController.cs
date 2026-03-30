@@ -92,12 +92,20 @@ namespace WebApi.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUsers([FromQuery] int skip = 0, [FromQuery] int take = 50)
+        public async Task<ActionResult<PagedResultDto<UserDto>>> GetUsers(
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 50,
+            [FromQuery] string? q = null,
+            [FromQuery] string? role = null)
         {
-            var res = await _accountService.GetUsersAsync(skip, take);
+            if (skip < 0) return BadRequest("skip cannot be negative");
+            if (take <= 0) return BadRequest("take must be positive");
+
+            var res = await _accountService.GetUsersAsync(skip, take, q, role);
             if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
 
-            var appUsers = res.Value ?? Enumerable.Empty<Application.DTOs.UserDto>();
+            var (items, totalCount) = res.Value!;
+            var appUsers = items ?? Enumerable.Empty<Application.DTOs.UserDto>();
             var dtoList = appUsers.Select(u => new UserDto
             {
                 Id = u.Id,
@@ -106,7 +114,13 @@ namespace WebApi.Controllers
                 Roles = u.Roles
             });
 
-            return Ok(dtoList);
+            return Ok(new PagedResultDto<UserDto>
+            {
+                Items = dtoList,
+                TotalCount = totalCount,
+                Skip = skip,
+                Take = take
+            });
         }
     }
 }

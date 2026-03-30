@@ -45,13 +45,18 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
     [Authorize(Roles = "Admin,Operator,Observer")]
     public async Task<ActionResult<PagedSearchResultDto<ZoneSearchResultDto>>> Search(
         [FromQuery] string q,
-        [FromQuery] int limit = 10,
-        [FromQuery] int offset = 0)
+        [FromQuery] int? skip = null,
+        [FromQuery] int? take = null,
+        [FromQuery] int? offset = null,
+        [FromQuery] int? limit = null)
     {
         var uid = userId;
         if (string.IsNullOrEmpty(uid)) return Unauthorized();
 
-        var result = await _service.Search(uid, q, limit, offset);
+        var effectiveOffset = skip ?? offset ?? 0;
+        var effectiveLimit = take ?? limit ?? 10;
+
+        var result = await _service.Search(uid, q, effectiveLimit, effectiveOffset);
         if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
 
         var (items, totalCount) = result.Value!;
@@ -59,8 +64,8 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
         {
             Items = items.ToSearchResultDto().ToList(),
             TotalCount = totalCount,
-            Limit = limit,
-            Offset = offset
+            Limit = effectiveLimit,
+            Offset = effectiveOffset
         });
     }
 

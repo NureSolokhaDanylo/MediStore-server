@@ -38,6 +38,67 @@ public class AuditLogsController : MyController
         return Ok(list.ToDto());
     }
 
+    [HttpGet("type/{entityType}/paged")]
+    public async Task<ActionResult<PagedResultDto<AuditLogDto>>> GetByTypePaged(
+        [FromRoute] string entityType,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50)
+    {
+        if (string.IsNullOrWhiteSpace(entityType)) return BadRequest("entityType is required");
+        if (skip < 0) return BadRequest("skip cannot be negative");
+        if (take <= 0) return BadRequest("take must be positive");
+
+        var res = await _service.GetByTypePagedAsync(entityType, from?.ToUniversalTime(), to?.ToUniversalTime(), skip, take);
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        var (items, totalCount) = res.Value!;
+        return Ok(new PagedResultDto<AuditLogDto>
+        {
+            Items = items.ToDto(),
+            TotalCount = totalCount,
+            Skip = skip,
+            Take = take
+        });
+    }
+
+    [HttpGet("paged")]
+    public async Task<ActionResult<PagedResultDto<AuditLogDto>>> GetPaged(
+        [FromQuery] string? q = null,
+        [FromQuery] string? entityType = null,
+        [FromQuery] string? action = null,
+        [FromQuery] string? userId = null,
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50)
+    {
+        if (skip < 0) return BadRequest("skip cannot be negative");
+        if (take <= 0) return BadRequest("take must be positive");
+
+        var res = await _service.GetPagedAsync(
+            q,
+            entityType,
+            action,
+            userId,
+            from?.ToUniversalTime(),
+            to?.ToUniversalTime(),
+            skip,
+            take);
+
+        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+
+        var (items, totalCount) = res.Value!;
+        return Ok(new PagedResultDto<AuditLogDto>
+        {
+            Items = items.ToDto(),
+            TotalCount = totalCount,
+            Skip = skip,
+            Take = take
+        });
+    }
+
     [HttpGet("type/{entityType}/last")]
     public async Task<IActionResult> GetByTypeLast([FromRoute] string entityType, [FromQuery] int count)
     {

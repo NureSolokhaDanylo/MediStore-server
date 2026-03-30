@@ -58,8 +58,10 @@ namespace WebApi
             // Configure QuestPDF license to suppress runtime license validation exception during development
             QuestPDF.Settings.License = LicenseType.Community;
 
+            var corsPolicy = app.Environment.IsDevelopment() ? "medistore-dev" : "medistore";
+
             app.UseDeveloperFeatures();
-            app.UseAppRequestPipeline("medistore");
+            app.UseAppRequestPipeline(corsPolicy);
 
             #endregion
 

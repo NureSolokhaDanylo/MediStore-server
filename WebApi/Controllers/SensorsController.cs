@@ -1,5 +1,6 @@
 using Application.Interfaces;
 
+using Domain.Enums;
 using Domain.Models;
 
 using Microsoft.AspNetCore.Authorization;
@@ -43,6 +44,35 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
 
         var sensors = result.Value ?? Enumerable.Empty<Sensor>();
         return Ok(sensors.Select(ToDto));
+    }
+
+    [HttpGet("paged")]
+    [Authorize(Roles = "Admin,Operator,Observer")]
+    public async Task<ActionResult<PagedResultDto<SensorDto>>> GetSensorsPaged(
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50,
+        [FromQuery] string? q = null,
+        [FromQuery] SensorType? sensorType = null,
+        [FromQuery] bool? isOn = null,
+        [FromQuery] int? zoneId = null)
+    {
+        if (skip < 0) return BadRequest("skip cannot be negative");
+        if (take <= 0) return BadRequest("take must be positive");
+
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+
+        var result = await _sensorService.GetPagedAsync(uid, skip, take, q, sensorType, isOn, zoneId);
+        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+
+        var (items, totalCount) = result.Value!;
+        return Ok(new PagedResultDto<SensorDto>
+        {
+            Items = items.Select(ToDto),
+            TotalCount = totalCount,
+            Skip = skip,
+            Take = take
+        });
     }
 
     [Authorize(Roles = "Admin,Operator,Observer")]

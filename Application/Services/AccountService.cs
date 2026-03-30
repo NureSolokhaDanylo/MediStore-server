@@ -8,6 +8,7 @@ using Application.Interfaces;
 using Application.Results.Base;
 using Application.DTOs;
 
+using Infrastructure;
 using Infrastructure.UOW;
 
 using Microsoft.AspNetCore.Identity;
@@ -23,13 +24,20 @@ namespace Application.Services
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly AppDbContext _dbContext;
 
-        public AccountService(IUnitOfWork uow, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IJwtTokenGenerator jwtTokenGenerator)
+        public AccountService(
+            IUnitOfWork uow,
+            UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IJwtTokenGenerator jwtTokenGenerator,
+            AppDbContext dbContext)
         {
             _uow = uow;
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _dbContext = dbContext;
         }
 
         public async Task<Result<string>> LoginAsync(string login, string password)
@@ -168,22 +176,66 @@ namespace Application.Services
             return Result.Success();
         }
 
-        public async Task<Result<IEnumerable<UserDto>>> GetUsersAsync(int skip, int take)
+        public async Task<Result<(IEnumerable<UserDto> Items, int TotalCount)>> GetUsersAsync(int skip, int take, string? q = null, string? role = null)
         {
-            var users = await _userManager.Users
+            if (skip < 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure("skip cannot be negative");
+            if (take <= 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure("take must be positive");
+
+            var query = _userManager.Users.AsNoTracking().AsQueryable();
+
+            var search = q?.Trim();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(u =>
+                    u.UserName!.Contains(search) ||
+                    (u.Email != null && u.Email.Contains(search)));
+            }
+
+            var roleFilter = role?.Trim();
+            if (!string.IsNullOrWhiteSpace(roleFilter))
+            {
+                var roleUserIds = from userRole in _dbContext.UserRoles
+                                  join identityRole in _dbContext.Roles on userRole.RoleId equals identityRole.Id
+                                  where identityRole.Name == roleFilter
+                                  select userRole.UserId;
+
+                query = query.Where(u => roleUserIds.Contains(u.Id));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var users = await query
                 .OrderBy(u => u.UserName)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync();
 
+            var userIds = users.Select(u => u.Id).ToList();
+            var rolePairs = await (
+                from userRole in _dbContext.UserRoles
+                join identityRole in _dbContext.Roles on userRole.RoleId equals identityRole.Id
+                where userIds.Contains(userRole.UserId)
+                select new { userRole.UserId, RoleName = identityRole.Name! }
+            ).ToListAsync();
+
+            var rolesByUser = rolePairs
+                .GroupBy(x => x.UserId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.RoleName).ToArray());
+
             var list = new List<UserDto>();
             foreach (var u in users)
             {
-                var roles = (await _userManager.GetRolesAsync(u)).ToArray();
-                list.Add(new UserDto { Id = u.Id, UserName = u.UserName, Email = u.Email, Roles = roles });
+                rolesByUser.TryGetValue(u.Id, out var roles);
+                list.Add(new UserDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName ?? string.Empty,
+                    Email = u.Email,
+                    Roles = roles ?? Array.Empty<string>()
+                });
             }
 
-            return Result<IEnumerable<UserDto>>.Success(list);
+            return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Success((list, totalCount));
         }
 
         private async Task LogAsync(string entityType, string action, string? userId, string entityId, string? summary, string? oldValues, string? newValues)

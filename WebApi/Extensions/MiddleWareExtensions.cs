@@ -39,10 +39,7 @@ namespace WebApi.Extensions
                     [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
                 }
             });
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseCors(corsPolicy);
-            }
+            app.UseCors(corsPolicy);
             app.UseMiddleware<ApiKeyMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();

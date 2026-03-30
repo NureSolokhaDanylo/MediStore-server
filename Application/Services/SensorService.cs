@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.Results.Base;
 
+using Domain.Enums;
 using Domain.Models;
 
 using Infrastructure.Interfaces;
@@ -74,6 +75,36 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         catch (Exception ex)
         {
             return Result<IEnumerable<Sensor>>.Failure($"Error retrieving sensors: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<(IEnumerable<Sensor> Items, int TotalCount)>> GetPagedAsync(
+        string userId,
+        int skip,
+        int take,
+        string? q = null,
+        SensorType? sensorType = null,
+        bool? isOn = null,
+        int? zoneId = null)
+    {
+        try
+        {
+            if (take <= 0)
+            {
+                return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure("take must be greater than 0");
+            }
+
+            if (skip < 0)
+            {
+                return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure("skip cannot be negative");
+            }
+
+            var result = await _sensorRepository.GetPagedAsync(skip, take, q, sensorType, isOn, zoneId);
+            return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure($"Error retrieving sensors: {ex.Message}");
         }
     }
 }
