@@ -13,7 +13,7 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - InfrastructureOptions__ConnectionString=Server=sqlserver,1433;Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};TrustServerCertificate=True;Encrypt=False
       - JwtOptions__Key=${JwtOptions__Key}
       - SeedOptions__AdminLogin=${SeedOptions__AdminLogin}
