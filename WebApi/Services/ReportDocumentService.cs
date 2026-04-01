@@ -68,7 +68,88 @@ namespace WebApi.Services
             if (a.BatchId.HasValue) ids.Add($"Batch:{a.BatchId}");
             if (a.ZoneId.HasValue) ids.Add($"Zone:{a.ZoneId}");
 
-            return $"[{a.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC] Type: {a.AlertType}; {string.Join(',', ids)}; Msg: {a.Message}";
+            var header = $"[{a.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC] Type: {a.AlertType}; {string.Join(',', ids)}";
+            var details = FormatMessageForReport(a.Message);
+            return $"{header}\n{details}";
+        }
+
+        private static string FormatMessageForReport(string? rawMessage)
+        {
+            if (string.IsNullOrWhiteSpace(rawMessage))
+            {
+                return "Details: (empty)";
+            }
+
+            var fragments = rawMessage
+                .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(NormalizeFragment)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (fragments.Count == 0)
+            {
+                return "Details: (empty)";
+            }
+
+            var ordered = new List<string>();
+            var counters = new Dictionary<string, int>(StringComparer.Ordinal);
+
+            foreach (var fragment in fragments)
+            {
+                if (counters.TryGetValue(fragment, out var current))
+                {
+                    counters[fragment] = current + 1;
+                    continue;
+                }
+
+                counters[fragment] = 1;
+                ordered.Add(fragment);
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("Details:");
+
+            foreach (var fragment in ordered)
+            {
+                var count = counters[fragment];
+                var formatted = FormatFragmentLines(fragment);
+                sb.Append("- ");
+                sb.Append($"[x{count}] ");
+                sb.AppendLine(formatted);
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        private static string NormalizeFragment(string fragment)
+        {
+            var trimmed = fragment.Trim();
+            return trimmed.TrimEnd(' ', ';');
+        }
+
+        private static string FormatFragmentLines(string fragment)
+        {
+            var parts = fragment
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .ToList();
+
+            if (parts.Count <= 1)
+            {
+                return fragment;
+            }
+
+            var sb = new StringBuilder();
+            sb.Append(parts[0]);
+
+            for (var i = 1; i < parts.Count; i++)
+            {
+                sb.AppendLine();
+                sb.Append("    - ");
+                sb.Append(parts[i]);
+            }
+
+            return sb.ToString();
         }
     }
 }
