@@ -33,6 +33,17 @@ public class MedicinesController : CrudController<Medicine, MedicineDto, Medicin
     [Authorize(Roles = "Admin")]
     public override Task<ActionResult<MedicineDto>> Update([FromBody] MedicineDto dto) => base.Update(dto);
 
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<MedicineDto>> Update(int id, [FromBody] MedicineDto dto)
+    {
+        if (dto.Id != 0 && dto.Id != id)
+            return BadRequest("Route id and payload id must match.");
+
+        dto.Id = id;
+        return await base.Update(dto);
+    }
+
     [Authorize(Roles = "Admin")]
     public override Task<IActionResult> Delete(int id) => base.Delete(id);
 

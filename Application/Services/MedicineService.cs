@@ -77,6 +77,34 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
 
     protected override async Task LogAsync(string userId, string action, Medicine? before, Medicine? after)
     {
+        var beforeSnapshot = before is null
+            ? null
+            : new
+            {
+                before.Id,
+                before.Name,
+                before.Description,
+                before.TempMax,
+                before.TempMin,
+                before.HumidMax,
+                before.HumidMin,
+                before.WarningThresholdDays
+            };
+
+        var afterSnapshot = after is null
+            ? null
+            : new
+            {
+                after.Id,
+                after.Name,
+                after.Description,
+                after.TempMax,
+                after.TempMin,
+                after.HumidMax,
+                after.HumidMin,
+                after.WarningThresholdDays
+            };
+
         var log = new AuditLog
         {
             OccurredAt = DateTime.UtcNow,
@@ -85,8 +113,8 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
             Action = action,
             UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
             Summary = $"Medicine {action} (Id={after?.Id ?? before?.Id})",
-            OldValues = before is null ? null : JsonSerializer.Serialize(before),
-            NewValues = after is null ? null : JsonSerializer.Serialize(after)
+            OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
+            NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)
         };
 
         await _uow.AuditLogs.AddAsync(log);

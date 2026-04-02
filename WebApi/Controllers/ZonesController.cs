@@ -38,6 +38,17 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
     [Authorize(Roles = "Admin")]
     public override Task<ActionResult<ZoneDto>> Update([FromBody] ZoneDto dto) => base.Update(dto);
 
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ZoneDto>> Update(int id, [FromBody] ZoneDto dto)
+    {
+        if (dto.Id != 0 && dto.Id != id)
+            return BadRequest("Route id and payload id must match.");
+
+        dto.Id = id;
+        return await base.Update(dto);
+    }
+
     [Authorize(Roles = "Admin")]
     public override Task<IActionResult> Delete(int id) => base.Delete(id);
 

@@ -76,6 +76,32 @@ public class ZoneService : CrudService<Zone>, IZoneService
     protected override async Task LogAsync(string userId, string action, Zone? before, Zone? after)
     {
         var id = after?.Id ?? before?.Id ?? 0;
+        var beforeSnapshot = before is null
+            ? null
+            : new
+            {
+                before.Id,
+                before.Name,
+                before.Description,
+                before.TempMax,
+                before.TempMin,
+                before.HumidMax,
+                before.HumidMin
+            };
+
+        var afterSnapshot = after is null
+            ? null
+            : new
+            {
+                after.Id,
+                after.Name,
+                after.Description,
+                after.TempMax,
+                after.TempMin,
+                after.HumidMax,
+                after.HumidMin
+            };
+
         var log = new AuditLog
         {
             OccurredAt = DateTime.UtcNow,
@@ -84,8 +110,8 @@ public class ZoneService : CrudService<Zone>, IZoneService
             Action = action,
             UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
             Summary = $"Zone {action} (Id={id})",
-            OldValues = before is null ? null : JsonSerializer.Serialize(before),
-            NewValues = after is null ? null : JsonSerializer.Serialize(after)
+            OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
+            NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)
         };
 
         await _uow.AuditLogs.AddAsync(log);

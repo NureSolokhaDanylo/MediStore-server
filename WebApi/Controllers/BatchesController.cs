@@ -33,6 +33,17 @@ public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto,
     [Authorize(Roles = "Operator")]
     public override Task<ActionResult<BatchDto>> Update([FromBody] BatchDto dto) => base.Update(dto);
 
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Operator")]
+    public async Task<ActionResult<BatchDto>> Update(int id, [FromBody] BatchDto dto)
+    {
+        if (dto.Id != 0 && dto.Id != id)
+            return BadRequest("Route id and payload id must match.");
+
+        dto.Id = id;
+        return await base.Update(dto);
+    }
+
     [Authorize(Roles = "Operator")]
     public override Task<IActionResult> Delete(int id) => base.Delete(id);
 

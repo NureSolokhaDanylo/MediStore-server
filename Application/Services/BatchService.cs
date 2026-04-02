@@ -84,6 +84,32 @@ public class BatchService : CrudService<Batch>, IBatchService
     protected override async Task LogAsync(string userId, string action, Batch? before, Batch? after)
     {
         var id = after?.Id ?? before?.Id ?? 0;
+        var beforeSnapshot = before is null
+            ? null
+            : new
+            {
+                before.Id,
+                before.BatchNumber,
+                before.Quantity,
+                before.ExpireDate,
+                before.DateAdded,
+                before.MedicineId,
+                before.ZoneId
+            };
+
+        var afterSnapshot = after is null
+            ? null
+            : new
+            {
+                after.Id,
+                after.BatchNumber,
+                after.Quantity,
+                after.ExpireDate,
+                after.DateAdded,
+                after.MedicineId,
+                after.ZoneId
+            };
+
         var log = new AuditLog
         {
             OccurredAt = DateTime.UtcNow,
@@ -92,8 +118,8 @@ public class BatchService : CrudService<Batch>, IBatchService
             Action = action,
             UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
             Summary = $"Batch {action} (Id={id})",
-            OldValues = before is null ? null : JsonSerializer.Serialize(before),
-            NewValues = after is null ? null : JsonSerializer.Serialize(after)
+            OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
+            NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)
         };
 
         await _uow.AuditLogs.AddAsync(log);
