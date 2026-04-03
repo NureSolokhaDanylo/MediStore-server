@@ -10,8 +10,7 @@ namespace WebApi.Extensions
         {
             if (app.Environment.IsDevelopment())
             {
-                // app.UseSwagger();
-                // app.UseSwaggerUI();
+                app.MapOpenApi("/openapi/{documentName}/openapi.json");
                 app.UseDeveloperExceptionPage();
             }
             return app;

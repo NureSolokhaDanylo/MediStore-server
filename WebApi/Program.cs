@@ -35,7 +35,7 @@ namespace WebApi
                 .AddApplication()
                 .AddAppSeeders()
                 .AddAuth()
-                .AddAppControllersAndSwagger()
+                .AddAppControllers()
                 .AddAppHostedServices();
 
             #endregion
