@@ -23,12 +23,7 @@ namespace Application.Services
         {
             if (userId != dto.UserId)
             {
-                return Result.Failure(new ErrorInfo
-                {
-                    Code = "push.user_mismatch",
-                    Message = "User ID mismatch",
-                    Type = ErrorType.Forbidden
-                });
+                return Result.Failure(Errors.Forbidden(ErrorCodes.Push.UserMismatch, "User ID mismatch"));
             }
 
             var existingDevice = await _unitOfWork.UserDevices.GetByUserIdAsync(dto.UserId);

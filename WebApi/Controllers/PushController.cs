@@ -28,7 +28,7 @@ namespace WebApi.Controllers
             {
                 return ApiErrorResult(new Application.Results.Base.ErrorInfo
                 {
-                    Code = ApiErrorCodes.Push.UserMismatch,
+                    Code = ErrorCodes.Push.UserMismatch,
                     Message = "User ID mismatch",
                     Type = Application.Results.Base.ErrorType.Forbidden
                 });

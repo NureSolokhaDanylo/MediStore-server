@@ -2,6 +2,7 @@
 using System.Security.Claims;
 
 using Application.Interfaces;
+using Application.Results.Base;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -98,8 +99,8 @@ namespace WebApi.Controllers
             [FromQuery] string? q = null,
             [FromQuery] string? role = null)
         {
-            if (skip < 0) return ValidationErrorResult<PagedResultDto<UserDto>>("skip cannot be negative", ApiErrorCodes.Account.InvalidPaging);
-            if (take <= 0) return ValidationErrorResult<PagedResultDto<UserDto>>("take must be positive", ApiErrorCodes.Account.InvalidPaging);
+            if (skip < 0) return ValidationErrorResult<PagedResultDto<UserDto>>("skip cannot be negative", ErrorCodes.Account.InvalidPaging);
+            if (take <= 0) return ValidationErrorResult<PagedResultDto<UserDto>>("take must be positive", ErrorCodes.Account.InvalidPaging);
 
             var res = await _accountService.GetUsersAsync(skip, take, q, role);
             if (!res.IsSucceed) return ApiErrorResult<PagedResultDto<UserDto>>(res);

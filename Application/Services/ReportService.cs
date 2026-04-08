@@ -16,12 +16,7 @@ public class ReportService : IReportService
 
     public async Task<Result<AlertsReportDto>> GetAlertsReportAsync(DateTime from, DateTime to)
     {
-        if (from >= to) return Result<AlertsReportDto>.Failure(new ErrorInfo
-        {
-            Code = "report.invalid_time_range",
-            Message = "Invalid time range",
-            Type = ErrorType.Validation
-        });
+        if (from >= to) return Result<AlertsReportDto>.Failure(Errors.Validation(ErrorCodes.Report.InvalidTimeRange, "Invalid time range"));
 
         var alerts = (await _uow.Alerts.GetAllAsync())
             .Where(a => a.CreatedAt >= from.ToUniversalTime() && a.CreatedAt <= to.ToUniversalTime())

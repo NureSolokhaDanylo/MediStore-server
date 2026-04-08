@@ -19,12 +19,7 @@ public class Result
 
     public static Result Failure(string errorMessage)
     {
-        return new Result(false, new ErrorInfo
-        {
-            Code = "common.unexpected",
-            Message = errorMessage,
-            Type = ErrorType.Unexpected
-        });
+        return new Result(false, Errors.Unexpected(ErrorCodes.Common.Unexpected, errorMessage));
     }
 
     public static Result Failure(ErrorInfo error)

@@ -44,12 +44,7 @@ namespace Application.Services
         {
             var user = await _userManager.FindByNameAsync(login);
             if (user is null || !await _userManager.CheckPasswordAsync(user, password))
-                return Result<string>.Failure(new ErrorInfo
-                {
-                    Code = "auth.invalid_credentials",
-                    Message = "Invalid credentials",
-                    Type = ErrorType.Unauthorized
-                });
+                return Result<string>.Failure(AuthErrors.InvalidCredentials());
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -61,29 +56,13 @@ namespace Application.Services
         public async Task<Result> CreateAccountAsync(string requesterId, string userName, string password, IEnumerable<string>? roles)
         {
             var requester = await _userManager.FindByIdAsync(requesterId);
-            if (requester is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.requester_not_found",
-                Message = "Requester not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["requesterId"] = requesterId }
-            });
+            if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
             var requesterRoles = await _userManager.GetRolesAsync(requester);
-            if (!requesterRoles.Contains("Admin")) return Result.Failure(new ErrorInfo
-            {
-                Code = "auth.forbidden",
-                Message = "Forbidden",
-                Type = ErrorType.Forbidden
-            });
+            if (!requesterRoles.Contains("Admin")) return Result.Failure(AuthErrors.Forbidden());
 
             var user = new IdentityUser { UserName = userName };
             var res = await _userManager.CreateAsync(user, password);
-            if (!res.Succeeded) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.create_failed",
-                Message = string.Join(';', res.Errors.Select(e => e.Description)),
-                Type = ErrorType.Validation
-            });
+            if (!res.Succeeded) return Result.Failure(Errors.Validation(ErrorCodes.Account.CreateFailed, string.Join(';', res.Errors.Select(e => e.Description))));
 
             if (roles != null)
             {
@@ -96,13 +75,10 @@ namespace Application.Services
                 if (missing.Any())
                 {
                     await _userManager.DeleteAsync(user);
-                    return Result.Failure(new ErrorInfo
-                    {
-                        Code = "account.roles_do_not_exist",
-                        Message = $"Roles do not exist: {string.Join(',', missing)}",
-                        Type = ErrorType.Validation,
-                        Details = new Dictionary<string, object?> { ["roles"] = missing.ToArray() }
-                    });
+                    return Result.Failure(Errors.Validation(
+                        ErrorCodes.Account.RolesDoNotExist,
+                        $"Roles do not exist: {string.Join(',', missing)}",
+                        details: new Dictionary<string, object?> { ["roles"] = missing.ToArray() }));
                 }
 
                 var sanitized = provided.Where(r => r != "Admin");
@@ -117,57 +93,25 @@ namespace Application.Services
         public async Task<Result> ChangePasswordAsync(string requesterId, string targetUserId, string? currentPassword, string newPassword)
         {
             var requester = await _userManager.FindByIdAsync(requesterId);
-            if (requester is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.requester_not_found",
-                Message = "Requester not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["requesterId"] = requesterId }
-            });
+            if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
 
             var target = await _userManager.FindByIdAsync(targetUserId);
-            if (target is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.target_user_not_found",
-                Message = "Target user not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["targetUserId"] = targetUserId }
-            });
+            if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", targetUserId));
 
             var requesterRoles = await _userManager.GetRolesAsync(requester);
             var isAdmin = requesterRoles.Contains("Admin");
 
             if (!isAdmin)
             {
-                if (requesterId != targetUserId) return Result.Failure(new ErrorInfo
-                {
-                    Code = "auth.forbidden",
-                    Message = "Forbidden",
-                    Type = ErrorType.Forbidden
-                });
-                if (string.IsNullOrEmpty(currentPassword)) return Result.Failure(new ErrorInfo
-                {
-                    Code = "auth.current_password_required",
-                    Message = "Current password required",
-                    Type = ErrorType.Validation
-                });
+                if (requesterId != targetUserId) return Result.Failure(AuthErrors.Forbidden());
+                if (string.IsNullOrEmpty(currentPassword)) return Result.Failure(AuthErrors.CurrentPasswordRequired());
                 var ok = await _userManager.CheckPasswordAsync(target, currentPassword);
-                if (!ok) return Result.Failure(new ErrorInfo
-                {
-                    Code = "auth.current_password_incorrect",
-                    Message = "Current password incorrect",
-                    Type = ErrorType.Validation
-                });
+                if (!ok) return Result.Failure(AuthErrors.CurrentPasswordIncorrect());
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(target);
             var changeRes = await _userManager.ResetPasswordAsync(target, token, newPassword);
-            if (!changeRes.Succeeded) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.change_password_failed",
-                Message = string.Join(';', changeRes.Errors.Select(e => e.Description)),
-                Type = ErrorType.Validation
-            });
+            if (!changeRes.Succeeded) return Result.Failure(Errors.Validation(ErrorCodes.Account.ChangePasswordFailed, string.Join(';', changeRes.Errors.Select(e => e.Description))));
 
             await LogAsync("User", "ChangePassword", requesterId, target.Id, $"Password changed for {target.UserName}", null, null);
 
@@ -177,38 +121,16 @@ namespace Application.Services
         public async Task<Result> ChangeRolesAsync(string requesterId, string targetUserId, IEnumerable<string> roles)
         {
             var requester = await _userManager.FindByIdAsync(requesterId);
-            if (requester is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.requester_not_found",
-                Message = "Requester not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["requesterId"] = requesterId }
-            });
+            if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
 
             var requesterRoles = await _userManager.GetRolesAsync(requester);
-            if (!requesterRoles.Contains("Admin")) return Result.Failure(new ErrorInfo
-            {
-                Code = "auth.forbidden",
-                Message = "Forbidden",
-                Type = ErrorType.Forbidden
-            });
+            if (!requesterRoles.Contains("Admin")) return Result.Failure(AuthErrors.Forbidden());
 
             var target = await _userManager.FindByIdAsync(targetUserId);
-            if (target is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.target_user_not_found",
-                Message = "Target user not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["targetUserId"] = targetUserId }
-            });
+            if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", targetUserId));
 
             var targetRoles = await _userManager.GetRolesAsync(target);
-            if (targetRoles.Contains("Admin")) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.cannot_change_admin_roles",
-                Message = "Cannot change roles of an Admin",
-                Type = ErrorType.Conflict
-            });
+            if (targetRoles.Contains("Admin")) return Result.Failure(Errors.Conflict(ErrorCodes.Account.CannotChangeAdminRoles, "Cannot change roles of an Admin"));
 
             var provided = roles.ToArray();
             var missing = new List<string>();
@@ -216,13 +138,10 @@ namespace Application.Services
             {
                 if (!await _roleManager.RoleExistsAsync(r)) missing.Add(r);
             }
-            if (missing.Any()) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.roles_do_not_exist",
-                Message = $"Roles do not exist: {string.Join(',', missing)}",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["roles"] = missing.ToArray() }
-            });
+            if (missing.Any()) return Result.Failure(Errors.Validation(
+                ErrorCodes.Account.RolesDoNotExist,
+                $"Roles do not exist: {string.Join(',', missing)}",
+                details: new Dictionary<string, object?> { ["roles"] = missing.ToArray() }));
 
             var toRemove = targetRoles.Where(r => r != "Admin").ToArray();
             if (toRemove.Any()) await _userManager.RemoveFromRolesAsync(target, toRemove);
@@ -245,45 +164,18 @@ namespace Application.Services
         public async Task<Result> DeleteUserAsync(string requesterId, string targetUserId)
         {
             var requester = await _userManager.FindByIdAsync(requesterId);
-            if (requester is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.requester_not_found",
-                Message = "Requester not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["requesterId"] = requesterId }
-            });
+            if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
 
             var requesterRoles = await _userManager.GetRolesAsync(requester);
-            if (!requesterRoles.Contains("Admin")) return Result.Failure(new ErrorInfo
-            {
-                Code = "auth.forbidden",
-                Message = "Forbidden",
-                Type = ErrorType.Forbidden
-            });
+            if (!requesterRoles.Contains("Admin")) return Result.Failure(AuthErrors.Forbidden());
 
-            if (requesterId == targetUserId) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.cannot_delete_self",
-                Message = "Admin cannot delete themselves",
-                Type = ErrorType.Conflict
-            });
+            if (requesterId == targetUserId) return Result.Failure(Errors.Conflict(ErrorCodes.Account.CannotDeleteSelf, "Admin cannot delete themselves"));
 
             var target = await _userManager.FindByIdAsync(targetUserId);
-            if (target is null) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.target_user_not_found",
-                Message = "Target user not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["targetUserId"] = targetUserId }
-            });
+            if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", targetUserId));
 
             var delRes = await _userManager.DeleteAsync(target);
-            if (!delRes.Succeeded) return Result.Failure(new ErrorInfo
-            {
-                Code = "account.delete_failed",
-                Message = string.Join(';', delRes.Errors.Select(e => e.Description)),
-                Type = ErrorType.Validation
-            });
+            if (!delRes.Succeeded) return Result.Failure(Errors.Validation(ErrorCodes.Account.DeleteFailed, string.Join(';', delRes.Errors.Select(e => e.Description))));
 
             await LogAsync("User", "Delete", requesterId, target.Id, $"Deleted user {target.UserName}", null, null);
 
@@ -292,18 +184,8 @@ namespace Application.Services
 
         public async Task<Result<(IEnumerable<UserDto> Items, int TotalCount)>> GetUsersAsync(int skip, int take, string? q = null, string? role = null)
         {
-            if (skip < 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(new ErrorInfo
-            {
-                Code = "account.invalid_paging",
-                Message = "skip cannot be negative",
-                Type = ErrorType.Validation
-            });
-            if (take <= 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(new ErrorInfo
-            {
-                Code = "account.invalid_paging",
-                Message = "take must be positive",
-                Type = ErrorType.Validation
-            });
+            if (skip < 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(PagingErrors.InvalidSkip(ErrorCodes.Account.InvalidPaging));
+            if (take <= 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(PagingErrors.InvalidTake(ErrorCodes.Account.InvalidPaging));
 
             var query = _userManager.Users.AsNoTracking().AsQueryable();
 

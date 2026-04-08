@@ -18,21 +18,12 @@ public class ReadingService : ReadOnlyService<Reading>, IReadingService
     {
         // ensure sensor exists and is on
         var sensorRes = await _uow.Sensors.GetAsync(sensorId);
-        if (sensorRes is null) return Result<Reading>.Failure(new ErrorInfo
-        {
-            Code = "reading.sensor_not_found",
-            Message = "Sensor not found",
-            Type = ErrorType.NotFound,
-            Details = new Dictionary<string, object?> { ["sensorId"] = sensorId }
-        });
+        if (sensorRes is null) return Result<Reading>.Failure(Errors.NotFound(ErrorCodes.Reading.SensorNotFound, "Sensor not found", "sensorId", sensorId));
 
-        if (!sensorRes.IsOn) return Result<Reading>.Failure(new ErrorInfo
-        {
-            Code = "sensor.sensor_off",
-            Message = "Sensor is off",
-            Type = ErrorType.Validation,
-            Details = new Dictionary<string, object?> { ["sensorId"] = sensorId }
-        });
+        if (!sensorRes.IsOn) return Result<Reading>.Failure(Errors.Validation(
+            ErrorCodes.Sensor.SensorOff,
+            "Sensor is off",
+            details: new Dictionary<string, object?> { ["sensorId"] = sensorId }));
 
         // set sensor id
         reading.SensorId = sensorId;
@@ -51,12 +42,7 @@ public class ReadingService : ReadOnlyService<Reading>, IReadingService
 
     public async Task<Result<IEnumerable<Reading>>> GetReadingsForSensorAsync(int sensorId, DateTime from, DateTime to)
     {
-        if (from >= to) return Result<IEnumerable<Reading>>.Failure(new ErrorInfo
-        {
-            Code = "reading.invalid_time_range",
-            Message = "Invalid time range",
-            Type = ErrorType.Validation
-        });
+        if (from >= to) return Result<IEnumerable<Reading>>.Failure(Errors.Validation(ErrorCodes.Reading.InvalidTimeRange, "Invalid time range"));
 
         var readings = await _readingRepo.GetReadingsForSensorAsync(sensorId, from, to);
         return Result<IEnumerable<Reading>>.Success(readings);
@@ -64,38 +50,21 @@ public class ReadingService : ReadOnlyService<Reading>, IReadingService
 
     public async Task<Result<IEnumerable<Reading>>> GetLatestReadingsForSensorAsync(int sensorId, int count)
     {
-        if (count <= 0) return Result<IEnumerable<Reading>>.Failure(new ErrorInfo
-        {
-            Code = "reading.invalid_count",
-            Message = "Count must be positive",
-            Type = ErrorType.Validation,
-            Details = new Dictionary<string, object?> { ["field"] = "count" }
-        });
+        if (count <= 0) return Result<IEnumerable<Reading>>.Failure(PagingErrors.InvalidCount(ErrorCodes.Reading.InvalidCount));
         var readings = await _readingRepo.GetLatestForSensorAsync(sensorId, count);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
 
     public async Task<Result<IEnumerable<Reading>>> GetReadingsForZoneAsync(int zoneId, DateTime from, DateTime to)
     {
-        if (from >= to) return Result<IEnumerable<Reading>>.Failure(new ErrorInfo
-        {
-            Code = "reading.invalid_time_range",
-            Message = "Invalid time range",
-            Type = ErrorType.Validation
-        });
+        if (from >= to) return Result<IEnumerable<Reading>>.Failure(Errors.Validation(ErrorCodes.Reading.InvalidTimeRange, "Invalid time range"));
         var readings = await _readingRepo.GetReadingsForZoneAsync(zoneId, from, to);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
 
     public async Task<Result<IEnumerable<Reading>>> GetLatestReadingsForZoneAsync(int zoneId, int count)
     {
-        if (count <= 0) return Result<IEnumerable<Reading>>.Failure(new ErrorInfo
-        {
-            Code = "reading.invalid_count",
-            Message = "Count must be positive",
-            Type = ErrorType.Validation,
-            Details = new Dictionary<string, object?> { ["field"] = "count" }
-        });
+        if (count <= 0) return Result<IEnumerable<Reading>>.Failure(PagingErrors.InvalidCount(ErrorCodes.Reading.InvalidCount));
         var readings = await _readingRepo.GetLatestForZoneAsync(zoneId, count);
         return Result<IEnumerable<Reading>>.Success(readings);
     }

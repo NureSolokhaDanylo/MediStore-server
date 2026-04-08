@@ -32,26 +32,16 @@ namespace WebApi.Controllers
 
         protected ActionResult<T> ApiErrorResult<T>(ErrorInfo error) => (ObjectResult)ApiErrorResult(error);
 
-        protected IActionResult ValidationErrorResult(string message, string code = ApiErrorCodes.Common.ValidationError)
-            => ApiErrorResult(new ErrorInfo
-            {
-                Code = code,
-                Message = message,
-                Type = ErrorType.Validation
-            });
+        protected IActionResult ValidationErrorResult(string message, ErrorCode? code = null)
+            => ApiErrorResult(Errors.Validation(code ?? ErrorCodes.Common.ValidationError, message));
 
-        protected ActionResult<T> ValidationErrorResult<T>(string message, string code = ApiErrorCodes.Common.ValidationError)
+        protected ActionResult<T> ValidationErrorResult<T>(string message, ErrorCode? code = null)
             => (ObjectResult)ValidationErrorResult(message, code);
 
-        protected IActionResult UnauthorizedErrorResult(string message = "Unauthorized", string code = ApiErrorCodes.Auth.Unauthorized)
-            => ApiErrorResult(new ErrorInfo
-            {
-                Code = code,
-                Message = message,
-                Type = ErrorType.Unauthorized
-            });
+        protected IActionResult UnauthorizedErrorResult(string message = "Unauthorized", ErrorCode? code = null)
+            => ApiErrorResult(Errors.Unauthorized(code ?? ErrorCodes.Auth.Unauthorized, message));
 
-        protected ActionResult<T> UnauthorizedErrorResult<T>(string message = "Unauthorized", string code = ApiErrorCodes.Auth.Unauthorized)
+        protected ActionResult<T> UnauthorizedErrorResult<T>(string message = "Unauthorized", ErrorCode? code = null)
             => (ObjectResult)UnauthorizedErrorResult(message, code);
     }
 }

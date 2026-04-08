@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedConfiguration", "Shar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensorsEmulator", "SensorsEmulator\SensorsEmulator.csproj", "{4D732EED-1448-46C9-9AD6-4A306797E47D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorContracts", "ErrorContracts\ErrorContracts.csproj", "{A6AA1B4F-9DDF-4E9C-8D71-9F554A77A5AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{4D732EED-1448-46C9-9AD6-4A306797E47D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D732EED-1448-46C9-9AD6-4A306797E47D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D732EED-1448-46C9-9AD6-4A306797E47D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6AA1B4F-9DDF-4E9C-8D71-9F554A77A5AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6AA1B4F-9DDF-4E9C-8D71-9F554A77A5AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6AA1B4F-9DDF-4E9C-8D71-9F554A77A5AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6AA1B4F-9DDF-4E9C-8D71-9F554A77A5AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

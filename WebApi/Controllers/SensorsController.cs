@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Results.Base;
 
 using Domain.Enums;
 using Domain.Models;
@@ -56,8 +57,8 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
         [FromQuery] bool? isOn = null,
         [FromQuery] int? zoneId = null)
     {
-        if (skip < 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("skip cannot be negative", ApiErrorCodes.Sensor.InvalidPaging);
-        if (take <= 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("take must be positive", ApiErrorCodes.Sensor.InvalidPaging);
+        if (skip < 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("skip cannot be negative", ErrorCodes.Sensor.InvalidPaging);
+        if (take <= 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("take must be positive", ErrorCodes.Sensor.InvalidPaging);
 
         var uid = userId;
         if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedResultDto<SensorDto>>();

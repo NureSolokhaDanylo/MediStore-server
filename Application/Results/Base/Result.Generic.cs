@@ -16,12 +16,7 @@ public sealed class Result<T> : Result
 
     public new static Result<T> Failure(string errorMessage)
     {
-        return new Result<T>(false, default, new ErrorInfo
-        {
-            Code = "common.unexpected",
-            Message = errorMessage,
-            Type = ErrorType.Unexpected
-        });
+        return new Result<T>(false, default, Errors.Unexpected(ErrorCodes.Common.Unexpected, errorMessage));
     }
 
     public new static Result<T> Failure(ErrorInfo error)

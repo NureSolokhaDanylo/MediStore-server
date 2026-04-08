@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ErrorContracts\ErrorContracts.csproj" />
     <ProjectReference Include="..\Entities\Domain.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\SharedConfiguration\SharedConfiguration.csproj" />

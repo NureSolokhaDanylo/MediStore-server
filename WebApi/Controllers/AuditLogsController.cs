@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Results.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DTOs;
@@ -29,7 +30,7 @@ public class AuditLogsController : MyController
     [HttpGet("type/{entityType}")]
     public async Task<IActionResult> GetByTypeRange([FromRoute] string entityType, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ApiErrorCodes.AuditLog.InvalidEntityType);
+        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ErrorCodes.AuditLog.InvalidEntityType);
 
         var res = await _service.GetByTypeAsync(entityType, from?.ToUniversalTime(), to?.ToUniversalTime(), null);
         if (!res.IsSucceed) return ApiErrorResult(res);
@@ -46,9 +47,9 @@ public class AuditLogsController : MyController
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50)
     {
-        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("entityType is required", ApiErrorCodes.AuditLog.InvalidEntityType);
-        if (skip < 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("skip cannot be negative", ApiErrorCodes.AuditLog.InvalidPaging);
-        if (take <= 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("take must be positive", ApiErrorCodes.AuditLog.InvalidPaging);
+        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("entityType is required", ErrorCodes.AuditLog.InvalidEntityType);
+        if (skip < 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("skip cannot be negative", ErrorCodes.AuditLog.InvalidPaging);
+        if (take <= 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("take must be positive", ErrorCodes.AuditLog.InvalidPaging);
 
         var res = await _service.GetByTypePagedAsync(entityType, from?.ToUniversalTime(), to?.ToUniversalTime(), skip, take);
         if (!res.IsSucceed) return ApiErrorResult<PagedResultDto<AuditLogDto>>(res);
@@ -74,8 +75,8 @@ public class AuditLogsController : MyController
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50)
     {
-        if (skip < 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("skip cannot be negative", ApiErrorCodes.AuditLog.InvalidPaging);
-        if (take <= 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("take must be positive", ApiErrorCodes.AuditLog.InvalidPaging);
+        if (skip < 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("skip cannot be negative", ErrorCodes.AuditLog.InvalidPaging);
+        if (take <= 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("take must be positive", ErrorCodes.AuditLog.InvalidPaging);
 
         var res = await _service.GetPagedAsync(
             q,
@@ -102,8 +103,8 @@ public class AuditLogsController : MyController
     [HttpGet("type/{entityType}/last")]
     public async Task<IActionResult> GetByTypeLast([FromRoute] string entityType, [FromQuery] int count)
     {
-        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ApiErrorCodes.AuditLog.InvalidEntityType);
-        if (count <= 0) return ValidationErrorResult("count must be positive", ApiErrorCodes.AuditLog.InvalidCount);
+        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ErrorCodes.AuditLog.InvalidEntityType);
+        if (count <= 0) return ValidationErrorResult("count must be positive", ErrorCodes.AuditLog.InvalidCount);
 
         var res = await _service.GetByTypeAsync(entityType, null, null, count);
         if (!res.IsSucceed) return ApiErrorResult(res);

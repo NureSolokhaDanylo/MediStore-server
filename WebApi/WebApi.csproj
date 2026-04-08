@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ErrorContracts\ErrorContracts.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\SharedConfiguration\SharedConfiguration.csproj" />
   </ItemGroup>

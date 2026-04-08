@@ -20,50 +20,22 @@ public class AppSettingsService : IAppSettingsService
         var existing = await _uow.AppSettings.GetAsync();
         //åñëè â ðåïîçèîòðèè íåò çàïèñè òî áóäåò âûêèíóòà îøèáêà. Ïîýòîìó ýòî êàê-òî áåññìûñëåííî ïðîâåðÿòü íà null
         return existing is null
-            ? Result<AppSettings>.Failure(new ErrorInfo
-            {
-                Code = "app_settings.not_found",
-                Message = "Not found",
-                Type = ErrorType.NotFound
-            })
+            ? Result<AppSettings>.Failure(Errors.NotFound(ErrorCodes.AppSettings.NotFound, "Not found"))
             : Result<AppSettings>.Success(existing);
     }
 
     public async Task<Result<AppSettings>> Update(AppSettings entity)
     {
         var existing = await _uow.AppSettings.GetAsync();
-        if (existing is null) return Result<AppSettings>.Failure(new ErrorInfo
-        {
-            Code = "app_settings.not_found",
-            Message = "Not found",
-            Type = ErrorType.NotFound
-        });
+        if (existing is null) return Result<AppSettings>.Failure(Errors.NotFound(ErrorCodes.AppSettings.NotFound, "Not found"));
 
         if (entity.TempAlertDeviation < 0 || entity.TempAlertDeviation > 100)
-            return Result<AppSettings>.Failure(new ErrorInfo
-            {
-                Code = "app_settings.validation_failed",
-                Message = "TempAlertDeviation out of range",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "tempAlertDeviation" }
-            });
+            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ValidationFailed, "TempAlertDeviation out of range", "tempAlertDeviation"));
         if (entity.HumidityAlertDeviation < 0 || entity.HumidityAlertDeviation > 100)
-            return Result<AppSettings>.Failure(new ErrorInfo
-            {
-                Code = "app_settings.validation_failed",
-                Message = "HumidityAlertDeviation out of range",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "humidityAlertDeviation" }
-            });
+            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ValidationFailed, "HumidityAlertDeviation out of range", "humidityAlertDeviation"));
 
         if (entity.ReadingsRetentionDays < 1 || entity.ReadingsRetentionDays > 365 * 5)
-            return Result<AppSettings>.Failure(new ErrorInfo
-            {
-                Code = "app_settings.validation_failed",
-                Message = "ReadingsRetentionDays out of allowed range (1..1825)",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "readingsRetentionDays" }
-            });
+            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ValidationFailed, "ReadingsRetentionDays out of allowed range (1..1825)", "readingsRetentionDays"));
 
         existing.AlertEnabled = entity.AlertEnabled;
         existing.TempAlertDeviation = entity.TempAlertDeviation;

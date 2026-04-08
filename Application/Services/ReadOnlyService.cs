@@ -20,13 +20,7 @@ namespace Application.Services
         {
             var entity = await _repository.GetAsync(id);
             return entity is null
-                ? Result<T>.Failure(new ErrorInfo
-                {
-                    Code = "common.not_found",
-                    Message = "Not found",
-                    Type = ErrorType.NotFound,
-                    Details = new Dictionary<string, object?> { ["id"] = id }
-                })
+                ? Result<T>.Failure(Errors.NotFound(ErrorCodes.Common.NotFound, "Not found", "id", id))
                 : Result<T>.Success(entity);
         }
 

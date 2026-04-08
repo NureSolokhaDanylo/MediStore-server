@@ -19,32 +19,14 @@ public class BatchService : CrudService<Batch>, IBatchService
     private Result Validate(Batch b)
     {
         if (b.Quantity <= 0)
-            return Result.Failure(new ErrorInfo
-            {
-                Code = "batch.validation_failed",
-                Message = "Quantity must be greater than 0",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "quantity" }
-            });
+            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ValidationFailed, "Quantity must be greater than 0", "quantity"));
 
         var now = DateTime.UtcNow;
         if (b.DateAdded.ToUniversalTime() > now.AddMinutes(1))
-            return Result.Failure(new ErrorInfo
-            {
-                Code = "batch.validation_failed",
-                Message = "DateAdded cannot be in the future",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "dateAdded" }
-            });
+            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ValidationFailed, "DateAdded cannot be in the future", "dateAdded"));
 
         if (b.ExpireDate.ToUniversalTime() < b.DateAdded.ToUniversalTime())
-            return Result.Failure(new ErrorInfo
-            {
-                Code = "batch.validation_failed",
-                Message = "ExpireDate must be after DateAdded",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "expireDate" }
-            });
+            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ValidationFailed, "ExpireDate must be after DateAdded", "expireDate"));
 
         return Result.Success();
     }
@@ -57,23 +39,11 @@ public class BatchService : CrudService<Batch>, IBatchService
 
         var medicine = await _uow.Medicines.GetAsync(entity.MedicineId);
         if (medicine is null)
-            return Result<Batch>.Failure(new ErrorInfo
-            {
-                Code = "batch.medicine_not_found",
-                Message = "Referenced medicine not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["medicineId"] = entity.MedicineId }
-            });
+            return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.MedicineNotFound, "Referenced medicine not found", "medicineId", entity.MedicineId));
 
         var zone = await _uow.Zones.GetAsync(entity.ZoneId);
         if (zone is null)
-            return Result<Batch>.Failure(new ErrorInfo
-            {
-                Code = "batch.zone_not_found",
-                Message = "Referenced zone not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["zoneId"] = entity.ZoneId }
-            });
+            return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.ZoneNotFound, "Referenced zone not found", "zoneId", entity.ZoneId));
 
         return await base.Add(userId, entity);
     }
@@ -82,13 +52,7 @@ public class BatchService : CrudService<Batch>, IBatchService
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
-            return Result<Batch>.Failure(new ErrorInfo
-            {
-                Code = "batch.not_found",
-                Message = "Not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["batchId"] = entity.Id }
-            });
+            return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.NotFound, "Not found", "batchId", entity.Id));
 
         var check = Validate(entity);
         if (!check.IsSucceed)
@@ -96,23 +60,11 @@ public class BatchService : CrudService<Batch>, IBatchService
 
         var medicine = await _uow.Medicines.GetAsync(entity.MedicineId);
         if (medicine is null)
-            return Result<Batch>.Failure(new ErrorInfo
-            {
-                Code = "batch.medicine_not_found",
-                Message = "Referenced medicine not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["medicineId"] = entity.MedicineId }
-            });
+            return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.MedicineNotFound, "Referenced medicine not found", "medicineId", entity.MedicineId));
 
         var zone = await _uow.Zones.GetAsync(entity.ZoneId);
         if (zone is null)
-            return Result<Batch>.Failure(new ErrorInfo
-            {
-                Code = "batch.zone_not_found",
-                Message = "Referenced zone not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["zoneId"] = entity.ZoneId }
-            });
+            return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.ZoneNotFound, "Referenced zone not found", "zoneId", entity.ZoneId));
 
         return await base.Update(userId, entity);
     }
@@ -120,22 +72,10 @@ public class BatchService : CrudService<Batch>, IBatchService
     public async Task<Result<(IEnumerable<Batch> items, int totalCount)>> SearchByBatchNumber(string userId, string query, int limit, int offset)
     {
         if (limit <= 0)
-            return Result<(IEnumerable<Batch>, int)>.Failure(new ErrorInfo
-            {
-                Code = "batch.invalid_search_paging",
-                Message = "Limit must be greater than 0",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "limit" }
-            });
+            return Result<(IEnumerable<Batch>, int)>.Failure(PagingErrors.InvalidLimit(ErrorCodes.Batch.InvalidSearchPaging));
 
         if (offset < 0)
-            return Result<(IEnumerable<Batch>, int)>.Failure(new ErrorInfo
-            {
-                Code = "batch.invalid_search_paging",
-                Message = "Offset cannot be negative",
-                Type = ErrorType.Validation,
-                Details = new Dictionary<string, object?> { ["field"] = "offset" }
-            });
+            return Result<(IEnumerable<Batch>, int)>.Failure(PagingErrors.InvalidOffset(ErrorCodes.Batch.InvalidSearchPaging));
 
         var (items, totalCount) = await _batchRepository.SearchByBatchNumberAsync(query?.Trim() ?? "", limit, offset);
         return Result<(IEnumerable<Batch>, int)>.Success((items, totalCount));

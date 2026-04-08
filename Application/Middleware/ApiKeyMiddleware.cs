@@ -30,12 +30,7 @@ namespace Application.Middleware
 
             if (!context.Request.Headers.TryGetValue(HeaderName, out var key))
             {
-                await WriteApiErrorAsync(context, new ErrorInfo
-                {
-                    Code = "sensor_api_key.empty_key",
-                    Message = "Missing API Key",
-                    Type = ErrorType.Unauthorized
-                });
+                await WriteApiErrorAsync(context, Errors.Unauthorized(ErrorCodes.SensorApiKey.EmptyKey, "Missing API Key"));
                 return;
             }
 
@@ -43,12 +38,7 @@ namespace Application.Middleware
             var authResult = await sensorApiKeyService.AuthenticationAsync(keyString);
             if (!authResult.IsSucceed)
             {
-                await WriteApiErrorAsync(context, authResult.Error ?? new ErrorInfo
-                {
-                    Code = "sensor_api_key.invalid_key",
-                    Message = "Invalid API Key",
-                    Type = ErrorType.Unauthorized
-                });
+                await WriteApiErrorAsync(context, authResult.Error ?? Errors.Unauthorized(ErrorCodes.SensorApiKey.InvalidKey, "Invalid API Key"));
                 return;
             }
 

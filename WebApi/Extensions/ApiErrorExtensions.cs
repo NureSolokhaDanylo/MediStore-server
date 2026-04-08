@@ -20,7 +20,7 @@ public static class ApiErrorExtensions
         var status = MapStatus(error.Type);
         var payload = new ApiError
         {
-            Code = error.Code,
+            Code = error.Code.Value,
             Message = error.Message,
             Status = status,
             TraceId = controller.HttpContext.TraceIdentifier,
@@ -38,7 +38,7 @@ public static class ApiErrorExtensions
         var status = MapStatus(error.Type);
         var payload = new ApiError
         {
-            Code = error.Code,
+            Code = error.Code.Value,
             Message = error.Message,
             Status = status,
             TraceId = context.TraceIdentifier,
@@ -72,38 +72,41 @@ public static class ApiErrorExtensions
 
             return lower switch
             {
-                "not found" => Create(ApiErrorCodes.Common.NotFound, normalized, ErrorType.NotFound),
-                "forbidden" => Create(ApiErrorCodes.Auth.Forbidden, normalized, ErrorType.Forbidden),
-                "invalid credentials" => Create(ApiErrorCodes.Auth.InvalidCredentials, normalized, ErrorType.Unauthorized),
-                "current password required" => Create(ApiErrorCodes.Auth.CurrentPasswordRequired, normalized, ErrorType.Validation),
-                "current password incorrect" => Create(ApiErrorCodes.Auth.CurrentPasswordIncorrect, normalized, ErrorType.Validation),
-                "key is empty" => Create(ApiErrorCodes.SensorApiKey.EmptyKey, normalized, ErrorType.Unauthorized),
-                "invalid api key" => Create(ApiErrorCodes.SensorApiKey.InvalidKey, normalized, ErrorType.Unauthorized),
-                "apikey is not associated with a sensor" => Create(ApiErrorCodes.SensorApiKey.NotBoundToSensor, normalized, ErrorType.Unauthorized),
-                "sensor not found" => Create(ApiErrorCodes.Sensor.NotFound, normalized, ErrorType.NotFound),
-                "requester not found" => Create(ApiErrorCodes.Account.RequesterNotFound, normalized, ErrorType.NotFound),
-                "target user not found" => Create(ApiErrorCodes.Account.TargetUserNotFound, normalized, ErrorType.NotFound),
-                "admin cannot delete themselves" => Create(ApiErrorCodes.Account.CannotDeleteSelf, normalized, ErrorType.Conflict),
-                "cannot change roles of an admin" => Create(ApiErrorCodes.Account.CannotChangeAdminRoles, normalized, ErrorType.Conflict),
-                _ when lower.StartsWith("roles do not exist:") => Create(ApiErrorCodes.Account.RolesDoNotExist, normalized, ErrorType.Validation),
-                _ when lower.Contains("not found") => Create(ApiErrorCodes.Common.NotFound, normalized, ErrorType.NotFound),
-                _ when lower.Contains("forbidden") => Create(ApiErrorCodes.Auth.Forbidden, normalized, ErrorType.Forbidden),
-                _ when lower.Contains("invalid") => Create(ApiErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
-                _ when lower.Contains("cannot") => Create(ApiErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
-                _ when lower.Contains("must") => Create(ApiErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
-                _ when lower.Contains("required") => Create(ApiErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
-                _ when lower.Contains("out of range") => Create(ApiErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
-                _ => Create(ApiErrorCodes.Common.Unexpected, normalized, ErrorType.Unexpected)
+                "not found" => Create(ErrorCodes.Common.NotFound, normalized, ErrorType.NotFound),
+                "forbidden" => Create(ErrorCodes.Auth.Forbidden, normalized, ErrorType.Forbidden),
+                "invalid credentials" => Create(ErrorCodes.Auth.InvalidCredentials, normalized, ErrorType.Unauthorized),
+                "current password required" => Create(ErrorCodes.Auth.CurrentPasswordRequired, normalized, ErrorType.Validation),
+                "current password incorrect" => Create(ErrorCodes.Auth.CurrentPasswordIncorrect, normalized, ErrorType.Validation),
+                "key is empty" => Create(ErrorCodes.SensorApiKey.EmptyKey, normalized, ErrorType.Unauthorized),
+                "invalid api key" => Create(ErrorCodes.SensorApiKey.InvalidKey, normalized, ErrorType.Unauthorized),
+                "apikey is not associated with a sensor" => Create(ErrorCodes.SensorApiKey.NotBoundToSensor, normalized, ErrorType.Unauthorized),
+                "sensor not found" => Create(ErrorCodes.Sensor.NotFound, normalized, ErrorType.NotFound),
+                "requester not found" => Create(ErrorCodes.Account.RequesterNotFound, normalized, ErrorType.NotFound),
+                "target user not found" => Create(ErrorCodes.Account.TargetUserNotFound, normalized, ErrorType.NotFound),
+                "admin cannot delete themselves" => Create(ErrorCodes.Account.CannotDeleteSelf, normalized, ErrorType.Conflict),
+                "cannot change roles of an admin" => Create(ErrorCodes.Account.CannotChangeAdminRoles, normalized, ErrorType.Conflict),
+                _ when lower.StartsWith("roles do not exist:") => Create(ErrorCodes.Account.RolesDoNotExist, normalized, ErrorType.Validation),
+                _ when lower.Contains("not found") => Create(ErrorCodes.Common.NotFound, normalized, ErrorType.NotFound),
+                _ when lower.Contains("forbidden") => Create(ErrorCodes.Auth.Forbidden, normalized, ErrorType.Forbidden),
+                _ when lower.Contains("invalid") => Create(ErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
+                _ when lower.Contains("cannot") => Create(ErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
+                _ when lower.Contains("must") => Create(ErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
+                _ when lower.Contains("required") => Create(ErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
+                _ when lower.Contains("out of range") => Create(ErrorCodes.Common.ValidationError, normalized, ErrorType.Validation),
+                _ => Create(ErrorCodes.Common.Unexpected, normalized, ErrorType.Unexpected)
             };
         }
 
-        private static ErrorInfo Create(string code, string message, ErrorType type)
+        private static ErrorInfo Create(ErrorCode code, string message, ErrorType type)
         {
-            return new ErrorInfo
+            return type switch
             {
-                Code = code,
-                Message = message,
-                Type = type
+                ErrorType.Validation => Errors.Validation(code, message),
+                ErrorType.Unauthorized => Errors.Unauthorized(code, message),
+                ErrorType.Forbidden => Errors.Forbidden(code, message),
+                ErrorType.NotFound => Errors.NotFound(code, message),
+                ErrorType.Conflict => Errors.Conflict(code, message),
+                _ => Errors.Unexpected(code, message)
             };
         }
     }

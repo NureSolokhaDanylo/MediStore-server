@@ -27,13 +27,7 @@ public abstract class CrudService<T> : ReadOnlyService<T>, ICrudService<T> where
     {
         var entity = await _repository.GetAsync(id);
         if (entity is null)
-            return Result.Failure(new ErrorInfo
-            {
-                Code = "common.not_found",
-                Message = "Not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["id"] = id }
-            });
+            return Result.Failure(Errors.NotFound(ErrorCodes.Common.NotFound, "Not found", "id", id));
 
         await _repository.DeleteAsync(id);
         await _uow.SaveChangesAsync();
@@ -47,13 +41,7 @@ public abstract class CrudService<T> : ReadOnlyService<T>, ICrudService<T> where
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
-            return Result<T>.Failure(new ErrorInfo
-            {
-                Code = "common.not_found",
-                Message = "Not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["id"] = entity.Id }
-            });
+            return Result<T>.Failure(Errors.NotFound(ErrorCodes.Common.NotFound, "Not found", "id", entity.Id));
 
         _repository.Update(entity);
         await _uow.SaveChangesAsync();

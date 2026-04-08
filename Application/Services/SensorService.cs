@@ -24,13 +24,7 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         {
             var zone = await _uow.Zones.GetAsync((int)entity.ZoneId);
             if (zone is null)
-                return Result<Sensor>.Failure(new ErrorInfo
-                {
-                    Code = "sensor.zone_not_found",
-                    Message = "Zone not found",
-                    Type = ErrorType.NotFound,
-                    Details = new Dictionary<string, object?> { ["zoneId"] = entity.ZoneId }
-                });
+                return Result<Sensor>.Failure(Errors.NotFound(ErrorCodes.Sensor.ZoneNotFound, "Zone not found", "zoneId", entity.ZoneId));
         }
 
         await _repository.AddAsync(entity);
@@ -42,13 +36,7 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
     {
         var entity = await _repository.GetAsync(id);
         if (entity is null)
-            return Result.Failure(new ErrorInfo
-            {
-                Code = "sensor.not_found",
-                Message = "Not found",
-                Type = ErrorType.NotFound,
-                Details = new Dictionary<string, object?> { ["sensorId"] = id }
-            });
+            return Result.Failure(Errors.NotFound(ErrorCodes.Sensor.NotFound, "Not found", "sensorId", id));
 
         await _repository.DeleteAsync(id);
         await _uow.SaveChangesAsync();
@@ -58,13 +46,7 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
     public async Task<Result<Sensor>> UpdateFromAdmin(int id, string? serialNumber, bool? isOn, int? zoneId)
     {
         var existing = await _uow.Sensors.GetAsync(id);
-        if (existing is null) return Result<Sensor>.Failure(new ErrorInfo
-        {
-            Code = "sensor.not_found",
-            Message = "Not found",
-            Type = ErrorType.NotFound,
-            Details = new Dictionary<string, object?> { ["sensorId"] = id }
-        });
+        if (existing is null) return Result<Sensor>.Failure(Errors.NotFound(ErrorCodes.Sensor.NotFound, "Not found", "sensorId", id));
 
         if (serialNumber is not null) existing.SerialNumber = serialNumber;
         if (isOn.HasValue) existing.IsOn = isOn.Value;
@@ -92,12 +74,7 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         }
         catch (Exception ex)
         {
-            return Result<IEnumerable<Sensor>>.Failure(new ErrorInfo
-            {
-                Code = "sensor.retrieval_failed",
-                Message = $"Error retrieving sensors: {ex.Message}",
-                Type = ErrorType.Unexpected
-            });
+            return Result<IEnumerable<Sensor>>.Failure(Errors.Unexpected(ErrorCodes.Sensor.RetrievalFailed, $"Error retrieving sensors: {ex.Message}"));
         }
     }
 
@@ -114,24 +91,12 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         {
             if (take <= 0)
             {
-                return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(new ErrorInfo
-                {
-                    Code = "sensor.invalid_paging",
-                    Message = "take must be greater than 0",
-                    Type = ErrorType.Validation,
-                    Details = new Dictionary<string, object?> { ["field"] = "take" }
-                });
+                return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(PagingErrors.InvalidTake(ErrorCodes.Sensor.InvalidPaging, "take must be greater than 0"));
             }
 
             if (skip < 0)
             {
-                return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(new ErrorInfo
-                {
-                    Code = "sensor.invalid_paging",
-                    Message = "skip cannot be negative",
-                    Type = ErrorType.Validation,
-                    Details = new Dictionary<string, object?> { ["field"] = "skip" }
-                });
+                return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(PagingErrors.InvalidSkip(ErrorCodes.Sensor.InvalidPaging));
             }
 
             var result = await _sensorRepository.GetPagedAsync(skip, take, q, sensorType, isOn, zoneId);
@@ -139,12 +104,7 @@ public class SensorService : ReadOnlyService<Sensor>, ISensorService
         }
         catch (Exception ex)
         {
-            return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(new ErrorInfo
-            {
-                Code = "sensor.retrieval_failed",
-                Message = $"Error retrieving sensors: {ex.Message}",
-                Type = ErrorType.Unexpected
-            });
+            return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(Errors.Unexpected(ErrorCodes.Sensor.RetrievalFailed, $"Error retrieving sensors: {ex.Message}"));
         }
     }
 }
