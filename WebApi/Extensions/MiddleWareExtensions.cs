@@ -11,6 +11,7 @@ namespace WebApi.Extensions
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi("/openapi/{documentName}/openapi.json");
+                app.MapOpenApi("/openapi/{documentName}/openapi.yaml");
                 app.UseDeveloperExceptionPage();
             }
             return app;

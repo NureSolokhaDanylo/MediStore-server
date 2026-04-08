@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Components.Infrastructure;
 
 using WebApi.HealthChecks;
+using WebApi.OpenApi;
 using WebApi.Services;
 
 namespace WebApi.Extensions
@@ -17,7 +18,11 @@ namespace WebApi.Extensions
                 .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
             services.AddEndpointsApiExplorer();
 
-            services.AddOpenApi("v1");
+            services.AddOpenApi("v1", options =>
+            {
+                options.AddDocumentTransformer(AuthOpenApiTransformers.AddSecuritySchemesAsync);
+                options.AddOperationTransformer(AuthOpenApiTransformers.ApplyOperationSecurityAsync);
+            });
 
             services.AddCors(options =>
             {
