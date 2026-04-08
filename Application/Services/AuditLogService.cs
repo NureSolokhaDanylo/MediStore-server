@@ -35,12 +35,24 @@ public class AuditLogService : ReadOnlyService<AuditLog>, IAuditLogService
     {
         if (skip < 0)
         {
-            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure("skip cannot be negative");
+            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure(new ErrorInfo
+            {
+                Code = "audit_log.invalid_paging",
+                Message = "skip cannot be negative",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "skip" }
+            });
         }
 
         if (take <= 0)
         {
-            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure("take must be greater than 0");
+            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure(new ErrorInfo
+            {
+                Code = "audit_log.invalid_paging",
+                Message = "take must be greater than 0",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "take" }
+            });
         }
 
         var result = await _repo.GetPagedAsync(q, entityType, action, userId, from, to, skip, take);

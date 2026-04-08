@@ -18,7 +18,7 @@ namespace WebApi.Controllers
         public virtual async Task<ActionResult<IEnumerable<TDto>>> GetAll()
         {
             var res = await _service.GetAll();
-            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            if (!res.IsSucceed) return ApiErrorResult<IEnumerable<TDto>>(res);
             var list = res.Value ?? Enumerable.Empty<TEntity>();
             return Ok(list.Select(ToDto));
         }
@@ -27,7 +27,7 @@ namespace WebApi.Controllers
         public virtual async Task<ActionResult<TDto>> Get(int id)
         {
             var res = await _service.Get(id);
-            if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+            if (!res.IsSucceed) return ApiErrorResult<TDto>(res);
             var entity = res.Value;
             if (entity is null) return NotFound();
             return Ok(ToDto(entity));

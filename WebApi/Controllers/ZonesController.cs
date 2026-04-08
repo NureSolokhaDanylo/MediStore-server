@@ -43,7 +43,7 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
     public async Task<ActionResult<ZoneDto>> Update(int id, [FromBody] ZoneDto dto)
     {
         if (dto.Id != 0 && dto.Id != id)
-            return BadRequest("Route id and payload id must match.");
+            return ValidationErrorResult<ZoneDto>("Route id and payload id must match.");
 
         dto.Id = id;
         return await base.Update(dto);
@@ -62,13 +62,13 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
         [FromQuery] int? limit = null)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedSearchResultDto<ZoneSearchResultDto>>();
 
         var effectiveOffset = skip ?? offset ?? 0;
         var effectiveLimit = take ?? limit ?? 10;
 
         var result = await _service.Search(uid, q, effectiveLimit, effectiveOffset);
-        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+        if (!result.IsSucceed) return ApiErrorResult<PagedSearchResultDto<ZoneSearchResultDto>>(result);
 
         var (items, totalCount) = result.Value!;
         return Ok(new PagedSearchResultDto<ZoneSearchResultDto>
@@ -85,15 +85,15 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
     public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors(int id)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<IEnumerable<SensorDto>>();
 
         // First verify zone exists
         var zoneResult = await _service.Get(id);
-        if (!zoneResult.IsSucceed) return NotFound(zoneResult.ErrorMessage);
+        if (!zoneResult.IsSucceed) return ApiErrorResult<IEnumerable<SensorDto>>(zoneResult);
 
         // Get sensors for this zone
         var sensorsResult = await _sensorService.GetByZoneIdAsync(uid, id);
-        if (!sensorsResult.IsSucceed) return BadRequest(sensorsResult.ErrorMessage);
+        if (!sensorsResult.IsSucceed) return ApiErrorResult<IEnumerable<SensorDto>>(sensorsResult);
 
         var sensors = sensorsResult.Value ?? Enumerable.Empty<Sensor>();
         return Ok(sensors.Select(s => s.ToDto()));

@@ -21,22 +21,58 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
     private Result Validate(Medicine m)
     {
         if (m.TempMin < -50 || m.TempMin > 100)
-            return Result.Failure("TempMin must be between -50 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "medicine.validation_failed",
+                Message = "TempMin must be between -50 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempMin" }
+            });
 
         if (m.TempMax < -50 || m.TempMax > 100)
-            return Result.Failure("TempMax must be between -50 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "medicine.validation_failed",
+                Message = "TempMax must be between -50 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempMax" }
+            });
 
         if (m.TempMin > m.TempMax)
-            return Result.Failure("TempMin cannot be greater than TempMax");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "medicine.validation_failed",
+                Message = "TempMin cannot be greater than TempMax",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempMin" }
+            });
 
         if (m.HumidMin < 0 || m.HumidMin > 100)
-            return Result.Failure("HumidMin must be between 0 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "medicine.validation_failed",
+                Message = "HumidMin must be between 0 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidMin" }
+            });
 
         if (m.HumidMax < 0 || m.HumidMax > 100)
-            return Result.Failure("HumidMax must be between 0 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "medicine.validation_failed",
+                Message = "HumidMax must be between 0 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidMax" }
+            });
 
         if (m.HumidMin > m.HumidMax)
-            return Result.Failure("HumidMin cannot be greater than HumidMax");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "medicine.validation_failed",
+                Message = "HumidMin cannot be greater than HumidMax",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidMin" }
+            });
 
         return Result.Success();
     }
@@ -45,7 +81,7 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
-            return Result<Medicine>.Failure(check.ErrorMessage ?? "Validation failed");
+            return Result<Medicine>.Failure(check.Error!);
 
         return await base.Add(userId, entity);
     }
@@ -54,11 +90,17 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
-            return Result<Medicine>.Failure("Not found");
+            return Result<Medicine>.Failure(new ErrorInfo
+            {
+                Code = "medicine.not_found",
+                Message = "Not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["medicineId"] = entity.Id }
+            });
 
         var check = Validate(entity);
         if (!check.IsSucceed)
-            return Result<Medicine>.Failure(check.ErrorMessage ?? "Validation failed");
+            return Result<Medicine>.Failure(check.Error!);
 
         return await base.Update(userId, entity);
     }
@@ -66,10 +108,22 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
     public async Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
     {
         if (limit <= 0)
-            return Result<(IEnumerable<Medicine>, int)>.Failure("Limit must be greater than 0");
+            return Result<(IEnumerable<Medicine>, int)>.Failure(new ErrorInfo
+            {
+                Code = "medicine.invalid_search_paging",
+                Message = "Limit must be greater than 0",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "limit" }
+            });
 
         if (offset < 0)
-            return Result<(IEnumerable<Medicine>, int)>.Failure("Offset cannot be negative");
+            return Result<(IEnumerable<Medicine>, int)>.Failure(new ErrorInfo
+            {
+                Code = "medicine.invalid_search_paging",
+                Message = "Offset cannot be negative",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "offset" }
+            });
 
         var (items, totalCount) = await _medicineRepository.SearchAsync(query?.Trim() ?? "", limit, offset);
         return Result<(IEnumerable<Medicine>, int)>.Success((items, totalCount));

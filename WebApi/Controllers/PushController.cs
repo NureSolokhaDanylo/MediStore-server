@@ -4,6 +4,7 @@ using Application.Results.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using WebApi.DTOs;
 
 namespace WebApi.Controllers
 {
@@ -25,14 +26,19 @@ namespace WebApi.Controllers
             // Validate that the user ID in the body matches the authenticated user
             if (userId != dto.UserId)
             {
-                return Forbid();
+                return ApiErrorResult(new Application.Results.Base.ErrorInfo
+                {
+                    Code = ApiErrorCodes.Push.UserMismatch,
+                    Message = "User ID mismatch",
+                    Type = Application.Results.Base.ErrorType.Forbidden
+                });
             }
 
             var result = await _service.RegisterDeviceAsync(userId!, dto);
 
             if (!result.IsSucceed)
             {
-                return BadRequest(result.ErrorMessage);
+                return ApiErrorResult(result);
             }
 
             return Ok();

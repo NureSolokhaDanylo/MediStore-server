@@ -37,10 +37,10 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
         }
 
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<IEnumerable<SensorDto>>();
 
         var result = await _sensorService.GetByZoneIdAsync(uid, zoneId.Value);
-        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+        if (!result.IsSucceed) return ApiErrorResult<IEnumerable<SensorDto>>(result);
 
         var sensors = result.Value ?? Enumerable.Empty<Sensor>();
         return Ok(sensors.Select(ToDto));
@@ -56,14 +56,14 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
         [FromQuery] bool? isOn = null,
         [FromQuery] int? zoneId = null)
     {
-        if (skip < 0) return BadRequest("skip cannot be negative");
-        if (take <= 0) return BadRequest("take must be positive");
+        if (skip < 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("skip cannot be negative", ApiErrorCodes.Sensor.InvalidPaging);
+        if (take <= 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("take must be positive", ApiErrorCodes.Sensor.InvalidPaging);
 
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedResultDto<SensorDto>>();
 
         var result = await _sensorService.GetPagedAsync(uid, skip, take, q, sensorType, isOn, zoneId);
-        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+        if (!result.IsSucceed) return ApiErrorResult<PagedResultDto<SensorDto>>(result);
 
         var (items, totalCount) = result.Value!;
         return Ok(new PagedResultDto<SensorDto>
@@ -83,7 +83,7 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
     public async Task<IActionResult> Create([FromBody] SensorCreateDto dto)
     {
         var res = await _service.Add(dto.ToEntity());
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
         var created = res.Value!;
         var createdDto = ToDto(created);
         return CreatedAtAction(nameof(Get), new { id = GetId(createdDto) }, createdDto);
@@ -94,7 +94,7 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
     public async Task<IActionResult> Delete(int id)
     {
         var res = await _service.Delete(id);
-        if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
         return NoContent();
     }
 
@@ -103,7 +103,7 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
     public async Task<IActionResult> UpdateAllowedFields([FromBody] SensorUpdateDto dto)
     {
         var res = await _sensorService.UpdateFromAdmin(dto.Id, dto.SerialNumber, dto.IsOn, dto.ZoneId);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         return Ok(res.Value!.ToDto());
     }
@@ -113,7 +113,7 @@ public class SensorsController : ReadController<Sensor, SensorDto, ISensorServic
     public async Task<IActionResult> CreateApiKey(int id)
     {
         var res = await _apiKeyService.CreateNewApiKey(id);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
         return Ok(new { apiKey = res.Value });
     }
 }

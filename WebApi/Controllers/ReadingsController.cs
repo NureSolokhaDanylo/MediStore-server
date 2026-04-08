@@ -35,7 +35,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
     {
         var sid = sensorId;
         Console.WriteLine($"Request from SensorId: {sid}");
-        if (!sid.HasValue) return Unauthorized();
+        if (!sid.HasValue) return UnauthorizedErrorResult();
 
         var reading = dto.ToEntity();
 
@@ -51,7 +51,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
     public async Task<IActionResult> GetForSensor([FromRoute] int sensorId, [FromQuery] DateTime from, [FromQuery] DateTime to)
     {
         var res = await _readingService.GetReadingsForSensorAsync(sensorId, from.ToUniversalTime(), to.ToUniversalTime());
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         var list = res.Value!.Select(r => r.ToDto());
         return Ok(list);
@@ -62,7 +62,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
     public async Task<IActionResult> GetLastForSensor([FromRoute] int sensorId, [FromQuery] int count)
     {
         var res = await _readingService.GetLatestReadingsForSensorAsync(sensorId, count);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         var list = res.Value!.Select(r => r.ToDto());
         return Ok(list);
@@ -73,7 +73,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
     public async Task<IActionResult> GetForZone([FromRoute] int zoneId, [FromQuery] DateTime from, [FromQuery] DateTime to)
     {
         var res = await _readingService.GetReadingsForZoneAsync(zoneId, from.ToUniversalTime(), to.ToUniversalTime());
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         var list = res.Value!.Select(r => r.ToDto());
         return Ok(list);
@@ -84,7 +84,7 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
     public async Task<IActionResult> GetLastForZone([FromRoute] int zoneId, [FromQuery] int count)
     {
         var res = await _readingService.GetLatestReadingsForZoneAsync(zoneId, count);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         var list = res.Value!.Select(r => r.ToDto());
         return Ok(list);

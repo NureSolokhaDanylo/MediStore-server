@@ -23,7 +23,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> Get()
         {
             var res = await _settingsService.GetSingletonAsync();
-            if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+            if (!res.IsSucceed) return ApiErrorResult(res);
             return Ok(res.Value);
         }
 
@@ -41,7 +41,7 @@ namespace WebApi.Controllers
             };
 
             var res = await _settingsService.Update(entity);
-            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            if (!res.IsSucceed) return ApiErrorResult(res);
             return Ok(res.Value);
         }
     }

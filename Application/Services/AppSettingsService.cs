@@ -18,22 +18,52 @@ public class AppSettingsService : IAppSettingsService
     public async Task<Result<AppSettings>> GetSingletonAsync()
     {
         var existing = await _uow.AppSettings.GetAsync();
-        //если в репозиотрии нет записи то будет выкинута ошибка. Поэтому это как-то бессмысленно проверять на null
-        return existing is null ? Result<AppSettings>.Failure("Not found") : Result<AppSettings>.Success(existing);
+        //ГҐГ±Г«ГЁ Гў Г°ГҐГЇГ®Г§ГЁГ®ГІГ°ГЁГЁ Г­ГҐГІ Г§Г ГЇГЁГ±ГЁ ГІГ® ГЎГіГ¤ГҐГІ ГўГ»ГЄГЁГ­ГіГІГ  Г®ГёГЁГЎГЄГ . ГЏГ®ГЅГІГ®Г¬Гі ГЅГІГ® ГЄГ ГЄ-ГІГ® ГЎГҐГ±Г±Г¬Г»Г±Г«ГҐГ­Г­Г® ГЇГ°Г®ГўГҐГ°ГїГІГј Г­Г  null
+        return existing is null
+            ? Result<AppSettings>.Failure(new ErrorInfo
+            {
+                Code = "app_settings.not_found",
+                Message = "Not found",
+                Type = ErrorType.NotFound
+            })
+            : Result<AppSettings>.Success(existing);
     }
 
     public async Task<Result<AppSettings>> Update(AppSettings entity)
     {
         var existing = await _uow.AppSettings.GetAsync();
-        if (existing is null) return Result<AppSettings>.Failure("Not found");
+        if (existing is null) return Result<AppSettings>.Failure(new ErrorInfo
+        {
+            Code = "app_settings.not_found",
+            Message = "Not found",
+            Type = ErrorType.NotFound
+        });
 
         if (entity.TempAlertDeviation < 0 || entity.TempAlertDeviation > 100)
-            return Result<AppSettings>.Failure("TempAlertDeviation out of range");
+            return Result<AppSettings>.Failure(new ErrorInfo
+            {
+                Code = "app_settings.validation_failed",
+                Message = "TempAlertDeviation out of range",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempAlertDeviation" }
+            });
         if (entity.HumidityAlertDeviation < 0 || entity.HumidityAlertDeviation > 100)
-            return Result<AppSettings>.Failure("HumidityAlertDeviation out of range");
+            return Result<AppSettings>.Failure(new ErrorInfo
+            {
+                Code = "app_settings.validation_failed",
+                Message = "HumidityAlertDeviation out of range",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidityAlertDeviation" }
+            });
 
         if (entity.ReadingsRetentionDays < 1 || entity.ReadingsRetentionDays > 365 * 5)
-            return Result<AppSettings>.Failure("ReadingsRetentionDays out of allowed range (1..1825)");
+            return Result<AppSettings>.Failure(new ErrorInfo
+            {
+                Code = "app_settings.validation_failed",
+                Message = "ReadingsRetentionDays out of allowed range (1..1825)",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "readingsRetentionDays" }
+            });
 
         existing.AlertEnabled = entity.AlertEnabled;
         existing.TempAlertDeviation = entity.TempAlertDeviation;

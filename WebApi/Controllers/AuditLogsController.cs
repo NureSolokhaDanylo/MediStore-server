@@ -21,7 +21,7 @@ public class AuditLogsController : MyController
     public async Task<IActionResult> Get(int id)
     {
         var res = await _service.GetByIdAsync(id);
-        if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
         if (res.Value is null) return NotFound();
         return Ok(res.Value.ToDto());
     }
@@ -29,10 +29,10 @@ public class AuditLogsController : MyController
     [HttpGet("type/{entityType}")]
     public async Task<IActionResult> GetByTypeRange([FromRoute] string entityType, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        if (string.IsNullOrWhiteSpace(entityType)) return BadRequest("entityType is required");
+        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ApiErrorCodes.AuditLog.InvalidEntityType);
 
         var res = await _service.GetByTypeAsync(entityType, from?.ToUniversalTime(), to?.ToUniversalTime(), null);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         var list = res.Value ?? Enumerable.Empty<Domain.Models.AuditLog>();
         return Ok(list.ToDto());
@@ -46,12 +46,12 @@ public class AuditLogsController : MyController
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50)
     {
-        if (string.IsNullOrWhiteSpace(entityType)) return BadRequest("entityType is required");
-        if (skip < 0) return BadRequest("skip cannot be negative");
-        if (take <= 0) return BadRequest("take must be positive");
+        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("entityType is required", ApiErrorCodes.AuditLog.InvalidEntityType);
+        if (skip < 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("skip cannot be negative", ApiErrorCodes.AuditLog.InvalidPaging);
+        if (take <= 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("take must be positive", ApiErrorCodes.AuditLog.InvalidPaging);
 
         var res = await _service.GetByTypePagedAsync(entityType, from?.ToUniversalTime(), to?.ToUniversalTime(), skip, take);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult<PagedResultDto<AuditLogDto>>(res);
 
         var (items, totalCount) = res.Value!;
         return Ok(new PagedResultDto<AuditLogDto>
@@ -74,8 +74,8 @@ public class AuditLogsController : MyController
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50)
     {
-        if (skip < 0) return BadRequest("skip cannot be negative");
-        if (take <= 0) return BadRequest("take must be positive");
+        if (skip < 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("skip cannot be negative", ApiErrorCodes.AuditLog.InvalidPaging);
+        if (take <= 0) return ValidationErrorResult<PagedResultDto<AuditLogDto>>("take must be positive", ApiErrorCodes.AuditLog.InvalidPaging);
 
         var res = await _service.GetPagedAsync(
             q,
@@ -87,7 +87,7 @@ public class AuditLogsController : MyController
             skip,
             take);
 
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult<PagedResultDto<AuditLogDto>>(res);
 
         var (items, totalCount) = res.Value!;
         return Ok(new PagedResultDto<AuditLogDto>
@@ -102,11 +102,11 @@ public class AuditLogsController : MyController
     [HttpGet("type/{entityType}/last")]
     public async Task<IActionResult> GetByTypeLast([FromRoute] string entityType, [FromQuery] int count)
     {
-        if (string.IsNullOrWhiteSpace(entityType)) return BadRequest("entityType is required");
-        if (count <= 0) return BadRequest("count must be positive");
+        if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ApiErrorCodes.AuditLog.InvalidEntityType);
+        if (count <= 0) return ValidationErrorResult("count must be positive", ApiErrorCodes.AuditLog.InvalidCount);
 
         var res = await _service.GetByTypeAsync(entityType, null, null, count);
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
 
         var list = res.Value ?? Enumerable.Empty<Domain.Models.AuditLog>();
         return Ok(list.ToDto());

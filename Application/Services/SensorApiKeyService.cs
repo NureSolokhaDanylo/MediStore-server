@@ -31,7 +31,12 @@ namespace Application.Services
         public async Task<Result<int>> AuthenticationAsync(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
-                return Result<int>.Failure("Key is empty");
+                return Result<int>.Failure(new ErrorInfo
+                {
+                    Code = "sensor_api_key.empty_key",
+                    Message = "Key is empty",
+                    Type = ErrorType.Unauthorized
+                });
 
             var all = await _uow.SensorApiKeys.GetAllAsync();
             var active = all.Where(x => x.IsActive).ToList();
@@ -44,11 +49,21 @@ namespace Application.Services
                     if (entry.SensorId.HasValue)
                         return Result<int>.Success(entry.SensorId.Value);
 
-                    return Result<int>.Failure("ApiKey is not associated with a sensor");
+                    return Result<int>.Failure(new ErrorInfo
+                    {
+                        Code = "sensor_api_key.not_bound_to_sensor",
+                        Message = "ApiKey is not associated with a sensor",
+                        Type = ErrorType.Unauthorized
+                    });
                 }
             }
 
-            return Result<int>.Failure("Invalid api key");
+            return Result<int>.Failure(new ErrorInfo
+            {
+                Code = "sensor_api_key.invalid_key",
+                Message = "Invalid api key",
+                Type = ErrorType.Unauthorized
+            });
         }
 
         public async Task<Result<string>> CreateNewApiKey(int sensorId)
@@ -56,7 +71,13 @@ namespace Application.Services
             // ensure sensor exists
             var sensor = await _uow.Sensors.GetAsync(sensorId);
             if (sensor is null)
-                return Result<string>.Failure("Sensor not found");
+                return Result<string>.Failure(new ErrorInfo
+                {
+                    Code = "sensor_api_key.sensor_not_found",
+                    Message = "Sensor not found",
+                    Type = ErrorType.NotFound,
+                    Details = new Dictionary<string, object?> { ["sensorId"] = sensorId }
+                });
 
             // deactivate existing active keys for this sensor
             var all = await _uow.SensorApiKeys.GetAllAsync();

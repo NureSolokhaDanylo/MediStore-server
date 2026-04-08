@@ -19,10 +19,10 @@ public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : Read
     public virtual async Task<IActionResult> Create([FromBody] TCreateDto dto)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
 
         var res = await _service.Add(uid, ToEntity(dto));
-        if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
         var created = res.Value!;
         var createdDto = ToDto(created);
         return CreatedAtAction(nameof(Get), new { id = GetId(createdDto) }, createdDto);
@@ -32,10 +32,10 @@ public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : Read
     public virtual async Task<ActionResult<TDto>> Update([FromBody] TDto dto)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<TDto>();
 
         var res = await _service.Update(uid, ToEntity(dto));
-        if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult<TDto>(res);
         var updated = res.Value!;
         return Ok(ToDto(updated));
     }
@@ -44,10 +44,10 @@ public abstract class CrudController<TEntity, TDto, TCreateDto, TService> : Read
     public virtual async Task<IActionResult> Delete(int id)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
 
         var res = await _service.Delete(uid, id);
-        if (!res.IsSucceed) return NotFound(res.ErrorMessage);
+        if (!res.IsSucceed) return ApiErrorResult(res);
         return NoContent();
     }
 

@@ -1,30 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Application.Results.Base;
 
-namespace Application.Results.Base
+public class Result
 {
-    public class Result
+    public bool IsSucceed { get; private set; }
+    public string? ErrorMessage => Error?.Message;
+    public ErrorInfo? Error { get; private set; }
+
+    internal Result(bool isSucceed, ErrorInfo? error = null)
     {
-        public bool IsSucceed { get; private set; }
-        public string? ErrorMessage { get; private set; }
+        IsSucceed = isSucceed;
+        Error = error;
+    }
 
-        internal Result(bool isSucceed, string errorMessage)
-        {
-            IsSucceed = isSucceed;
+    public static Result Success()
+    {
+        return new Result(true);
+    }
 
-            ErrorMessage = errorMessage;
-        }
+    public static Result Failure(string errorMessage)
+    {
+        return new Result(false, new ErrorInfo
+        {
+            Code = "common.unexpected",
+            Message = errorMessage,
+            Type = ErrorType.Unexpected
+        });
+    }
 
-        public static Result Success()
-        {
-            return new Result(true, string.Empty);
-        }
-        public static Result Failure(string errorMessage)
-        {
-            return new Result(false, errorMessage);
-        }
+    public static Result Failure(ErrorInfo error)
+    {
+        return new Result(false, error);
     }
 }

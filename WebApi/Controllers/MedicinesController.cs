@@ -38,7 +38,7 @@ public class MedicinesController : CrudController<Medicine, MedicineDto, Medicin
     public async Task<ActionResult<MedicineDto>> Update(int id, [FromBody] MedicineDto dto)
     {
         if (dto.Id != 0 && dto.Id != id)
-            return BadRequest("Route id and payload id must match.");
+            return ValidationErrorResult<MedicineDto>("Route id and payload id must match.");
 
         dto.Id = id;
         return await base.Update(dto);
@@ -57,13 +57,13 @@ public class MedicinesController : CrudController<Medicine, MedicineDto, Medicin
         [FromQuery] int? limit = null)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedSearchResultDto<MedicineSearchResultDto>>();
 
         var effectiveOffset = skip ?? offset ?? 0;
         var effectiveLimit = take ?? limit ?? 10;
 
         var result = await _service.Search(uid, q, effectiveLimit, effectiveOffset);
-        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+        if (!result.IsSucceed) return ApiErrorResult<PagedSearchResultDto<MedicineSearchResultDto>>(result);
 
         var (items, totalCount) = result.Value!;
         return Ok(new PagedSearchResultDto<MedicineSearchResultDto>

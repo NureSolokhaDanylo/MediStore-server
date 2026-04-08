@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 using Application.Attributes;
 using Application.Interfaces;
+using Application.Results.Base;
 
 using Microsoft.AspNetCore.Http;
 
@@ -33,8 +30,12 @@ namespace Application.Middleware
 
             if (!context.Request.Headers.TryGetValue(HeaderName, out var key))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Missing API Key");
+                await WriteApiErrorAsync(context, new ErrorInfo
+                {
+                    Code = "sensor_api_key.empty_key",
+                    Message = "Missing API Key",
+                    Type = ErrorType.Unauthorized
+                });
                 return;
             }
 
@@ -42,8 +43,12 @@ namespace Application.Middleware
             var authResult = await sensorApiKeyService.AuthenticationAsync(keyString);
             if (!authResult.IsSucceed)
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Invalid API Key");
+                await WriteApiErrorAsync(context, authResult.Error ?? new ErrorInfo
+                {
+                    Code = "sensor_api_key.invalid_key",
+                    Message = "Invalid API Key",
+                    Type = ErrorType.Unauthorized
+                });
                 return;
             }
 
@@ -51,6 +56,32 @@ namespace Application.Middleware
             context.Items["SensorId"] = authResult.Value;
 
             await _next(context);
+        }
+
+        private static async Task WriteApiErrorAsync(HttpContext context, ErrorInfo error)
+        {
+            var status = error.Type switch
+            {
+                ErrorType.Validation => StatusCodes.Status400BadRequest,
+                ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+                ErrorType.Forbidden => StatusCodes.Status403Forbidden,
+                ErrorType.NotFound => StatusCodes.Status404NotFound,
+                ErrorType.Conflict => StatusCodes.Status409Conflict,
+                _ => StatusCodes.Status500InternalServerError
+            };
+
+            var payload = new
+            {
+                error.Code,
+                error.Message,
+                Status = status,
+                TraceId = context.TraceIdentifier,
+                error.Details
+            };
+
+            context.Response.StatusCode = status;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
         }
     }
 

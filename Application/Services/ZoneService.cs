@@ -19,22 +19,58 @@ public class ZoneService : CrudService<Zone>, IZoneService
     private Result Validate(Zone z)
     {
         if (z.TempMin < -50 || z.TempMin > 100)
-            return Result.Failure("TempMin must be between -50 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "zone.validation_failed",
+                Message = "TempMin must be between -50 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempMin" }
+            });
 
         if (z.TempMax < -50 || z.TempMax > 100)
-            return Result.Failure("TempMax must be between -50 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "zone.validation_failed",
+                Message = "TempMax must be between -50 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempMax" }
+            });
 
         if (z.TempMin > z.TempMax)
-            return Result.Failure("TempMin cannot be greater than TempMax");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "zone.validation_failed",
+                Message = "TempMin cannot be greater than TempMax",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "tempMin" }
+            });
 
         if (z.HumidMin < 0 || z.HumidMin > 100)
-            return Result.Failure("HumidMin must be between 0 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "zone.validation_failed",
+                Message = "HumidMin must be between 0 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidMin" }
+            });
 
         if (z.HumidMax < 0 || z.HumidMax > 100)
-            return Result.Failure("HumidMax must be between 0 and 100");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "zone.validation_failed",
+                Message = "HumidMax must be between 0 and 100",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidMax" }
+            });
 
         if (z.HumidMin > z.HumidMax)
-            return Result.Failure("HumidMin cannot be greater than HumidMax");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "zone.validation_failed",
+                Message = "HumidMin cannot be greater than HumidMax",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "humidMin" }
+            });
 
         return Result.Success();
     }
@@ -43,7 +79,7 @@ public class ZoneService : CrudService<Zone>, IZoneService
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
-            return Result<Zone>.Failure(check.ErrorMessage ?? "Validation failed");
+            return Result<Zone>.Failure(check.Error!);
 
         return await base.Add(userId, entity);
     }
@@ -52,11 +88,17 @@ public class ZoneService : CrudService<Zone>, IZoneService
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
-            return Result<Zone>.Failure("Not found");
+            return Result<Zone>.Failure(new ErrorInfo
+            {
+                Code = "zone.not_found",
+                Message = "Not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["zoneId"] = entity.Id }
+            });
 
         var check = Validate(entity);
         if (!check.IsSucceed)
-            return Result<Zone>.Failure(check.ErrorMessage ?? "Validation failed");
+            return Result<Zone>.Failure(check.Error!);
 
         return await base.Update(userId, entity);
     }
@@ -64,10 +106,22 @@ public class ZoneService : CrudService<Zone>, IZoneService
     public async Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
     {
         if (limit <= 0)
-            return Result<(IEnumerable<Zone>, int)>.Failure("Limit must be greater than 0");
+            return Result<(IEnumerable<Zone>, int)>.Failure(new ErrorInfo
+            {
+                Code = "zone.invalid_search_paging",
+                Message = "Limit must be greater than 0",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "limit" }
+            });
 
         if (offset < 0)
-            return Result<(IEnumerable<Zone>, int)>.Failure("Offset cannot be negative");
+            return Result<(IEnumerable<Zone>, int)>.Failure(new ErrorInfo
+            {
+                Code = "zone.invalid_search_paging",
+                Message = "Offset cannot be negative",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "offset" }
+            });
 
         var (items, totalCount) = await _zoneRepository.SearchAsync(query?.Trim() ?? "", limit, offset);
         return Result<(IEnumerable<Zone>, int)>.Success((items, totalCount));

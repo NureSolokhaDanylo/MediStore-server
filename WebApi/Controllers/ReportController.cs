@@ -26,7 +26,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> AlertsReport([FromQuery] DateTime from, [FromQuery] DateTime to)
         {
             var res = await _reportService.GetAlertsReportAsync(from, to);
-            if (!res.IsSucceed) return BadRequest(res.ErrorMessage);
+            if (!res.IsSucceed) return ApiErrorResult(res);
 
             var dto = res.Value!;
 

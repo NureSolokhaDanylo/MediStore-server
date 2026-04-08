@@ -38,7 +38,7 @@ public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto,
     public async Task<ActionResult<BatchDto>> Update(int id, [FromBody] BatchDto dto)
     {
         if (dto.Id != 0 && dto.Id != id)
-            return BadRequest("Route id and payload id must match.");
+            return ValidationErrorResult<BatchDto>("Route id and payload id must match.");
 
         dto.Id = id;
         return await base.Update(dto);
@@ -57,13 +57,13 @@ public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto,
         [FromQuery] int? limit = null)
     {
         var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return Unauthorized();
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedSearchResultDto<BatchSearchResultDto>>();
 
         var effectiveOffset = skip ?? offset ?? 0;
         var effectiveLimit = take ?? limit ?? 10;
 
         var result = await _service.SearchByBatchNumber(uid, q, effectiveLimit, effectiveOffset);
-        if (!result.IsSucceed) return BadRequest(result.ErrorMessage);
+        if (!result.IsSucceed) return ApiErrorResult<PagedSearchResultDto<BatchSearchResultDto>>(result);
 
         var (items, totalCount) = result.Value!;
         return Ok(new PagedSearchResultDto<BatchSearchResultDto>

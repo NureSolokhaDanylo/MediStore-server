@@ -19,14 +19,32 @@ public class BatchService : CrudService<Batch>, IBatchService
     private Result Validate(Batch b)
     {
         if (b.Quantity <= 0)
-            return Result.Failure("Quantity must be greater than 0");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "batch.validation_failed",
+                Message = "Quantity must be greater than 0",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "quantity" }
+            });
 
         var now = DateTime.UtcNow;
         if (b.DateAdded.ToUniversalTime() > now.AddMinutes(1))
-            return Result.Failure("DateAdded cannot be in the future");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "batch.validation_failed",
+                Message = "DateAdded cannot be in the future",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "dateAdded" }
+            });
 
         if (b.ExpireDate.ToUniversalTime() < b.DateAdded.ToUniversalTime())
-            return Result.Failure("ExpireDate must be after DateAdded");
+            return Result.Failure(new ErrorInfo
+            {
+                Code = "batch.validation_failed",
+                Message = "ExpireDate must be after DateAdded",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "expireDate" }
+            });
 
         return Result.Success();
     }
@@ -35,15 +53,27 @@ public class BatchService : CrudService<Batch>, IBatchService
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
-            return Result<Batch>.Failure(check.ErrorMessage ?? "Validation failed");
+            return Result<Batch>.Failure(check.Error!);
 
         var medicine = await _uow.Medicines.GetAsync(entity.MedicineId);
         if (medicine is null)
-            return Result<Batch>.Failure("Referenced medicine not found");
+            return Result<Batch>.Failure(new ErrorInfo
+            {
+                Code = "batch.medicine_not_found",
+                Message = "Referenced medicine not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["medicineId"] = entity.MedicineId }
+            });
 
         var zone = await _uow.Zones.GetAsync(entity.ZoneId);
         if (zone is null)
-            return Result<Batch>.Failure("Referenced zone not found");
+            return Result<Batch>.Failure(new ErrorInfo
+            {
+                Code = "batch.zone_not_found",
+                Message = "Referenced zone not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["zoneId"] = entity.ZoneId }
+            });
 
         return await base.Add(userId, entity);
     }
@@ -52,19 +82,37 @@ public class BatchService : CrudService<Batch>, IBatchService
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
-            return Result<Batch>.Failure("Not found");
+            return Result<Batch>.Failure(new ErrorInfo
+            {
+                Code = "batch.not_found",
+                Message = "Not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["batchId"] = entity.Id }
+            });
 
         var check = Validate(entity);
         if (!check.IsSucceed)
-            return Result<Batch>.Failure(check.ErrorMessage ?? "Validation failed");
+            return Result<Batch>.Failure(check.Error!);
 
         var medicine = await _uow.Medicines.GetAsync(entity.MedicineId);
         if (medicine is null)
-            return Result<Batch>.Failure("Referenced medicine not found");
+            return Result<Batch>.Failure(new ErrorInfo
+            {
+                Code = "batch.medicine_not_found",
+                Message = "Referenced medicine not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["medicineId"] = entity.MedicineId }
+            });
 
         var zone = await _uow.Zones.GetAsync(entity.ZoneId);
         if (zone is null)
-            return Result<Batch>.Failure("Referenced zone not found");
+            return Result<Batch>.Failure(new ErrorInfo
+            {
+                Code = "batch.zone_not_found",
+                Message = "Referenced zone not found",
+                Type = ErrorType.NotFound,
+                Details = new Dictionary<string, object?> { ["zoneId"] = entity.ZoneId }
+            });
 
         return await base.Update(userId, entity);
     }
@@ -72,10 +120,22 @@ public class BatchService : CrudService<Batch>, IBatchService
     public async Task<Result<(IEnumerable<Batch> items, int totalCount)>> SearchByBatchNumber(string userId, string query, int limit, int offset)
     {
         if (limit <= 0)
-            return Result<(IEnumerable<Batch>, int)>.Failure("Limit must be greater than 0");
+            return Result<(IEnumerable<Batch>, int)>.Failure(new ErrorInfo
+            {
+                Code = "batch.invalid_search_paging",
+                Message = "Limit must be greater than 0",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "limit" }
+            });
 
         if (offset < 0)
-            return Result<(IEnumerable<Batch>, int)>.Failure("Offset cannot be negative");
+            return Result<(IEnumerable<Batch>, int)>.Failure(new ErrorInfo
+            {
+                Code = "batch.invalid_search_paging",
+                Message = "Offset cannot be negative",
+                Type = ErrorType.Validation,
+                Details = new Dictionary<string, object?> { ["field"] = "offset" }
+            });
 
         var (items, totalCount) = await _batchRepository.SearchByBatchNumberAsync(query?.Trim() ?? "", limit, offset);
         return Result<(IEnumerable<Batch>, int)>.Success((items, totalCount));

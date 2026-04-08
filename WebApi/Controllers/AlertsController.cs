@@ -36,7 +36,7 @@ public class AlertsController : ReadController<Alert, AlertDto, IAlertService>
             filter.BatchId);
 
         if (!result.IsSucceed)
-            return BadRequest(result.ErrorMessage);
+            return ApiErrorResult<PagedResultDto<AlertDto>>(result);
 
         var (items, totalCount) = result.Value!;
 

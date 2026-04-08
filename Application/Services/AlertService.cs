@@ -131,7 +131,12 @@ public class AlertService : ReadOnlyService<Alert>, IAlertService
         }
         catch (Exception ex)
         {
-            return Result<(IEnumerable<Alert>, int)>.Failure($"Error retrieving alerts: {ex.Message}");
+            return Result<(IEnumerable<Alert>, int)>.Failure(new ErrorInfo
+            {
+                Code = "alert.retrieval_failed",
+                Message = $"Error retrieving alerts: {ex.Message}",
+                Type = ErrorType.Unexpected
+            });
         }
     }
 }
