@@ -10,18 +10,35 @@ namespace Application.Services;
 
 public class AlertService : IAlertService
 {
+    private static readonly string[] ReadRoles = ["Admin", "Operator", "Observer"];
     private readonly IReadOnlyService<Alert> _readService;
     private readonly IUnitOfWork _uow;
+    private readonly IAccessChecker _accessChecker;
 
-    public AlertService(IReadOnlyService<Alert> readService, IUnitOfWork uow)
+    public AlertService(IReadOnlyService<Alert> readService, IUnitOfWork uow, IAccessChecker accessChecker)
     {
         _readService = readService;
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
-    public Task<Result<Alert>> Get(int id) => _readService.Get(id);
+    public async Task<Result<Alert>> Get(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<Alert>.Failure(access.Error!);
 
-    public Task<Result<IEnumerable<Alert>>> GetAll() => _readService.GetAll();
+        return await _readService.Get(id);
+    }
+
+    public async Task<Result<IEnumerable<Alert>>> GetAll()
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<IEnumerable<Alert>>.Failure(access.Error!);
+
+        return await _readService.GetAll();
+    }
 
     public async Task<Result> CreateZoneConditionAlertAsync(int zoneId, string message)
     {
@@ -129,6 +146,10 @@ public class AlertService : IAlertService
         int? zoneId = null, 
         int? batchId = null)
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<(IEnumerable<Alert> Items, int TotalCount)>.Failure(access.Error!);
+
         try
         {
             var result = await _uow.Alerts.GetFilteredAlertsAsync(skip, take, isActive, zoneId, batchId);

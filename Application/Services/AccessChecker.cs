@@ -48,4 +48,23 @@ public class AccessChecker(ICurrentUser currentUser) : IAccessChecker
 
         return Result.Failure(failure ?? AuthErrors.Forbidden());
     }
+
+    public Result EnsureCurrentUserInAnyRole(IEnumerable<string> roles, ErrorInfo? failure = null)
+    {
+        var auth = EnsureAuthenticated();
+        if (!auth.IsSucceed)
+        {
+            return auth;
+        }
+
+        foreach (var role in roles)
+        {
+            if (_currentUser.IsInRole(role))
+            {
+                return Result.Success();
+            }
+        }
+
+        return Result.Failure(failure ?? AuthErrors.Forbidden());
+    }
 }

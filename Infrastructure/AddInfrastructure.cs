@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IUserDeviceRepository, UserDeviceRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDbExecutionStrategyProvider, DbExecutionStrategyProvider>();
 
         services.AddScoped<IUnitOfWork>(sp => new UnitOfWork(

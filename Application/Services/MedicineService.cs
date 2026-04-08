@@ -9,24 +9,28 @@ namespace Application.Services;
 
 public class MedicineService : IMedicineService
 {
+    private static readonly string[] ReadRoles = ["Admin", "Operator", "Observer"];
     private readonly IReadOnlyService<Medicine> _readService;
     private readonly ICreateService<Medicine> _createService;
     private readonly IUpdateService<Medicine> _updateService;
     private readonly IDeleteService<Medicine> _deleteService;
     private readonly IUnitOfWork _uow;
+    private readonly IAccessChecker _accessChecker;
 
     public MedicineService(
         IReadOnlyService<Medicine> readService,
         ICreateService<Medicine> createService,
         IUpdateService<Medicine> updateService,
         IDeleteService<Medicine> deleteService,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IAccessChecker accessChecker)
     {
         _readService = readService;
         _createService = createService;
         _updateService = updateService;
         _deleteService = deleteService;
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
     private Result Validate(Medicine m)
@@ -54,6 +58,10 @@ public class MedicineService : IMedicineService
 
     public async Task<Result<Medicine>> Add(Medicine entity)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<Medicine>.Failure(access.Error!);
+
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.Error!);
@@ -63,6 +71,10 @@ public class MedicineService : IMedicineService
 
     public async Task<Result<Medicine>> Update(Medicine entity)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<Medicine>.Failure(access.Error!);
+
         var existing = await _uow.Medicines.GetAsync(entity.Id);
         if (existing is null)
             return Result<Medicine>.Failure(Errors.NotFound(ErrorCodes.Medicine.NotFound, "Not found", "medicineId", entity.Id));
@@ -74,14 +86,39 @@ public class MedicineService : IMedicineService
         return await _updateService.Update(entity);
     }
 
-    public Task<Result<Medicine>> Get(int id) => _readService.Get(id);
+    public async Task<Result<Medicine>> Get(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<Medicine>.Failure(access.Error!);
 
-    public Task<Result<IEnumerable<Medicine>>> GetAll() => _readService.GetAll();
+        return await _readService.Get(id);
+    }
 
-    public Task<Result> Delete(int id) => _deleteService.Delete(id);
+    public async Task<Result<IEnumerable<Medicine>>> GetAll()
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<IEnumerable<Medicine>>.Failure(access.Error!);
+
+        return await _readService.GetAll();
+    }
+
+    public async Task<Result> Delete(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return access;
+
+        return await _deleteService.Delete(id);
+    }
 
     public async Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string query, int limit, int offset)
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<(IEnumerable<Medicine> items, int totalCount)>.Failure(access.Error!);
+
         if (limit <= 0)
             return Result<(IEnumerable<Medicine>, int)>.Failure(PagingErrors.InvalidLimit(ErrorCodes.Medicine.InvalidSearchPaging));
 

@@ -21,11 +21,13 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _uow;
         private readonly IPasswordHasher<SensorApiKey> _hasher;
+        private readonly IAccessChecker _accessChecker;
 
-        public SensorApiKeyService(IPasswordHasher<SensorApiKey> hasher, IUnitOfWork uow)
+        public SensorApiKeyService(IPasswordHasher<SensorApiKey> hasher, IUnitOfWork uow, IAccessChecker accessChecker)
         {
             _hasher = hasher;
             _uow = uow;
+            _accessChecker = accessChecker;
         }
 
         public async Task<Result<int>> AuthenticationAsync(string key)
@@ -53,6 +55,10 @@ namespace Application.Services
 
         public async Task<Result<string>> CreateNewApiKey(int sensorId)
         {
+            var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+            if (!access.IsSucceed)
+                return Result<string>.Failure(access.Error!);
+
             // ensure sensor exists
             var sensor = await _uow.Sensors.GetAsync(sensorId);
             if (sensor is null)

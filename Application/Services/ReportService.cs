@@ -8,14 +8,20 @@ namespace Application.Services;
 public class ReportService : IReportService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IAccessChecker _accessChecker;
 
-    public ReportService(IUnitOfWork uow)
+    public ReportService(IUnitOfWork uow, IAccessChecker accessChecker)
     {
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
     public async Task<Result<AlertsReportDto>> GetAlertsReportAsync(DateTime from, DateTime to)
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(["Admin", "Observer"]);
+        if (!access.IsSucceed)
+            return Result<AlertsReportDto>.Failure(access.Error!);
+
         if (from >= to) return Result<AlertsReportDto>.Failure(Errors.Validation(ErrorCodes.Report.InvalidTimeRange, "Invalid time range"));
 
         var alerts = (await _uow.Alerts.GetAllAsync())

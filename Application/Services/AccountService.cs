@@ -12,9 +12,9 @@ using Infrastructure;
 using Infrastructure.UOW;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 using Domain.Models;
+using Infrastructure.Interfaces;
 
 namespace Application.Services
 {
@@ -24,7 +24,7 @@ namespace Application.Services
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly AppDbContext _dbContext;
+        private readonly IUserRepository _userRepository;
         private readonly ICurrentUser _currentUser;
         private readonly IAccessChecker _accessChecker;
 
@@ -33,7 +33,7 @@ namespace Application.Services
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IJwtTokenGenerator jwtTokenGenerator,
-            AppDbContext dbContext,
+            IUserRepository userRepository,
             ICurrentUser currentUser,
             IAccessChecker accessChecker)
         {
@@ -41,7 +41,7 @@ namespace Application.Services
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtTokenGenerator = jwtTokenGenerator;
-            _dbContext = dbContext;
+            _userRepository = userRepository;
             _currentUser = currentUser;
             _accessChecker = accessChecker;
         }
@@ -61,14 +61,12 @@ namespace Application.Services
 
         public async Task<Result> CreateAccountAsync(string userName, string password, IEnumerable<string>? roles)
         {
-            var auth = _accessChecker.EnsureAuthenticated();
+            var auth = _accessChecker.EnsureCurrentUserInRole("Admin");
             if (!auth.IsSucceed) return auth;
 
             var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
-            var requesterRoles = await _userManager.GetRolesAsync(requester);
-            if (!requesterRoles.Contains("Admin")) return Result.Failure(AuthErrors.Forbidden());
 
             var user = new IdentityUser { UserName = userName };
             var res = await _userManager.CreateAsync(user, password);
@@ -113,8 +111,7 @@ namespace Application.Services
             var target = await _userManager.FindByIdAsync(effectiveTargetUserId);
             if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", effectiveTargetUserId));
 
-            var requesterRoles = await _userManager.GetRolesAsync(requester);
-            var isAdmin = requesterRoles.Contains("Admin");
+            var isAdmin = _currentUser.IsInRole("Admin");
 
             if (!isAdmin)
             {
@@ -136,15 +133,12 @@ namespace Application.Services
 
         public async Task<Result> ChangeRolesAsync(string targetUserId, IEnumerable<string> roles)
         {
-            var auth = _accessChecker.EnsureAuthenticated();
+            var auth = _accessChecker.EnsureCurrentUserInRole("Admin");
             if (!auth.IsSucceed) return auth;
 
             var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
-
-            var requesterRoles = await _userManager.GetRolesAsync(requester);
-            if (!requesterRoles.Contains("Admin")) return Result.Failure(AuthErrors.Forbidden());
 
             var target = await _userManager.FindByIdAsync(targetUserId);
             if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", targetUserId));
@@ -183,15 +177,12 @@ namespace Application.Services
 
         public async Task<Result> DeleteUserAsync(string targetUserId)
         {
-            var auth = _accessChecker.EnsureAuthenticated();
+            var auth = _accessChecker.EnsureCurrentUserInRole("Admin");
             if (!auth.IsSucceed) return auth;
 
             var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
-
-            var requesterRoles = await _userManager.GetRolesAsync(requester);
-            if (!requesterRoles.Contains("Admin")) return Result.Failure(AuthErrors.Forbidden());
 
             if (requesterId == targetUserId) return Result.Failure(Errors.Conflict(ErrorCodes.Account.CannotDeleteSelf, "Admin cannot delete themselves"));
 
@@ -208,62 +199,20 @@ namespace Application.Services
 
         public async Task<Result<(IEnumerable<UserDto> Items, int TotalCount)>> GetUsersAsync(int skip, int take, string? q = null, string? role = null)
         {
+            var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+            if (!access.IsSucceed) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(access.Error!);
+
             if (skip < 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(PagingErrors.InvalidSkip(ErrorCodes.Account.InvalidPaging));
             if (take <= 0) return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Failure(PagingErrors.InvalidTake(ErrorCodes.Account.InvalidPaging));
 
-            var query = _userManager.Users.AsNoTracking().AsQueryable();
-
-            var search = q?.Trim();
-            if (!string.IsNullOrWhiteSpace(search))
+            var (items, totalCount) = await _userRepository.GetUsersAsync(skip, take, q, role);
+            var list = items.Select(u => new UserDto
             {
-                query = query.Where(u =>
-                    u.UserName!.Contains(search) ||
-                    (u.Email != null && u.Email.Contains(search)));
-            }
-
-            var roleFilter = role?.Trim();
-            if (!string.IsNullOrWhiteSpace(roleFilter))
-            {
-                var roleUserIds = from userRole in _dbContext.UserRoles
-                                  join identityRole in _dbContext.Roles on userRole.RoleId equals identityRole.Id
-                                  where identityRole.Name == roleFilter
-                                  select userRole.UserId;
-
-                query = query.Where(u => roleUserIds.Contains(u.Id));
-            }
-
-            var totalCount = await query.CountAsync();
-
-            var users = await query
-                .OrderBy(u => u.UserName)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync();
-
-            var userIds = users.Select(u => u.Id).ToList();
-            var rolePairs = await (
-                from userRole in _dbContext.UserRoles
-                join identityRole in _dbContext.Roles on userRole.RoleId equals identityRole.Id
-                where userIds.Contains(userRole.UserId)
-                select new { userRole.UserId, RoleName = identityRole.Name! }
-            ).ToListAsync();
-
-            var rolesByUser = rolePairs
-                .GroupBy(x => x.UserId)
-                .ToDictionary(g => g.Key, g => g.Select(x => x.RoleName).ToArray());
-
-            var list = new List<UserDto>();
-            foreach (var u in users)
-            {
-                rolesByUser.TryGetValue(u.Id, out var roles);
-                list.Add(new UserDto
-                {
-                    Id = u.Id,
-                    UserName = u.UserName ?? string.Empty,
-                    Email = u.Email,
-                    Roles = roles ?? Array.Empty<string>()
-                });
-            }
+                Id = u.Id,
+                UserName = u.UserName,
+                Email = u.Email,
+                Roles = u.Roles
+            }).ToList();
 
             return Result<(IEnumerable<UserDto> Items, int TotalCount)>.Success((list, totalCount));
         }

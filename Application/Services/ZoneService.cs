@@ -7,24 +7,28 @@ namespace Application.Services;
 
 public class ZoneService : IZoneService
 {
+    private static readonly string[] ReadRoles = ["Admin", "Operator", "Observer"];
     private readonly IReadOnlyService<Zone> _readService;
     private readonly ICreateService<Zone> _createService;
     private readonly IUpdateService<Zone> _updateService;
     private readonly IDeleteService<Zone> _deleteService;
     private readonly IUnitOfWork _uow;
+    private readonly IAccessChecker _accessChecker;
 
     public ZoneService(
         IReadOnlyService<Zone> readService,
         ICreateService<Zone> createService,
         IUpdateService<Zone> updateService,
         IDeleteService<Zone> deleteService,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IAccessChecker accessChecker)
     {
         _readService = readService;
         _createService = createService;
         _updateService = updateService;
         _deleteService = deleteService;
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
     private Result Validate(Zone z)
@@ -52,6 +56,10 @@ public class ZoneService : IZoneService
 
     public async Task<Result<Zone>> Add(Zone entity)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<Zone>.Failure(access.Error!);
+
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.Error!);
@@ -61,6 +69,10 @@ public class ZoneService : IZoneService
 
     public async Task<Result<Zone>> Update(Zone entity)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<Zone>.Failure(access.Error!);
+
         var existing = await _uow.Zones.GetAsync(entity.Id);
         if (existing is null)
             return Result<Zone>.Failure(Errors.NotFound(ErrorCodes.Zone.NotFound, "Not found", "zoneId", entity.Id));
@@ -72,14 +84,39 @@ public class ZoneService : IZoneService
         return await _updateService.Update(entity);
     }
 
-    public Task<Result<Zone>> Get(int id) => _readService.Get(id);
+    public async Task<Result<Zone>> Get(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<Zone>.Failure(access.Error!);
 
-    public Task<Result<IEnumerable<Zone>>> GetAll() => _readService.GetAll();
+        return await _readService.Get(id);
+    }
 
-    public Task<Result> Delete(int id) => _deleteService.Delete(id);
+    public async Task<Result<IEnumerable<Zone>>> GetAll()
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<IEnumerable<Zone>>.Failure(access.Error!);
+
+        return await _readService.GetAll();
+    }
+
+    public async Task<Result> Delete(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return access;
+
+        return await _deleteService.Delete(id);
+    }
 
     public async Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string query, int limit, int offset)
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<(IEnumerable<Zone> items, int totalCount)>.Failure(access.Error!);
+
         if (limit <= 0)
             return Result<(IEnumerable<Zone>, int)>.Failure(PagingErrors.InvalidLimit(ErrorCodes.Zone.InvalidSearchPaging));
 

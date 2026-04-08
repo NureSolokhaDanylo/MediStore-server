@@ -48,13 +48,9 @@ public class ReadingsController : MyController
     [RequireSensorApiKey]
     public async Task<IActionResult> CreateForSensor([FromBody] ReadingCreateDto dto)
     {
-        var sid = sensorId;
-        Console.WriteLine($"Request from SensorId: {sid}");
-        if (!sid.HasValue) return UnauthorizedErrorResult();
-
         var reading = dto.ToEntity();
 
-        var res = await _readingService.CreateForSensorAsync(sid.Value, reading);
+        var res = await _readingService.CreateForSensorAsync(reading);
         if (!res.IsSucceed) return NoContent(); // if sensor off or similar, do nothing
 
         var created = res.Value!;

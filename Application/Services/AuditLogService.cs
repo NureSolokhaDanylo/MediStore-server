@@ -9,21 +9,41 @@ public class AuditLogService : IAuditLogService
 {
     private readonly IReadOnlyService<AuditLog> _readService;
     private readonly IUnitOfWork _uow;
+    private readonly IAccessChecker _accessChecker;
 
-    public AuditLogService(IReadOnlyService<AuditLog> readService, IUnitOfWork uow)
+    public AuditLogService(IReadOnlyService<AuditLog> readService, IUnitOfWork uow, IAccessChecker accessChecker)
     {
         _readService = readService;
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
-    public Task<Result<AuditLog>> Get(int id) => _readService.Get(id);
+    public async Task<Result<AuditLog>> Get(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<AuditLog>.Failure(access.Error!);
 
-    public Task<Result<IEnumerable<AuditLog>>> GetAll() => _readService.GetAll();
+        return await _readService.Get(id);
+    }
+
+    public async Task<Result<IEnumerable<AuditLog>>> GetAll()
+    {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<IEnumerable<AuditLog>>.Failure(access.Error!);
+
+        return await _readService.GetAll();
+    }
 
     public Task<Result<AuditLog>> GetByIdAsync(int id) => Get(id);
 
     public async Task<Result<IEnumerable<AuditLog>>> GetByTypeAsync(string entityType, DateTime? from, DateTime? to, int? take)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<IEnumerable<AuditLog>>.Failure(access.Error!);
+
         var list = await _uow.AuditLogs.GetByTypeAsync(entityType, from, to, take);
         return Result<IEnumerable<AuditLog>>.Success(list);
     }
@@ -38,6 +58,10 @@ public class AuditLogService : IAuditLogService
         int skip,
         int take)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure(access.Error!);
+
         if (skip < 0)
         {
             return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure(PagingErrors.InvalidSkip(ErrorCodes.AuditLog.InvalidPaging));

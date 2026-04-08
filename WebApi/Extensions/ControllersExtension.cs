@@ -51,6 +51,7 @@ namespace WebApi.Extensions
 
             // register web-specific services
             services.AddScoped<ICurrentUser, HttpCurrentUser>();
+            services.AddScoped<ICurrentSensor, HttpCurrentSensor>();
             services.AddScoped<IReportDocumentService, ReportDocumentService>();
 
             return services;

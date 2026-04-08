@@ -10,21 +10,42 @@ namespace Application.Services;
 
 public class SensorService : ISensorService
 {
+    private static readonly string[] ReadRoles = ["Admin", "Operator", "Observer"];
     private readonly IReadOnlyService<Sensor> _readService;
     private readonly IUnitOfWork _uow;
+    private readonly IAccessChecker _accessChecker;
     
-    public SensorService(IReadOnlyService<Sensor> readService, IUnitOfWork uow)
+    public SensorService(IReadOnlyService<Sensor> readService, IUnitOfWork uow, IAccessChecker accessChecker)
     {
         _readService = readService;
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
-    public Task<Result<Sensor>> Get(int id) => _readService.Get(id);
+    public async Task<Result<Sensor>> Get(int id)
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<Sensor>.Failure(access.Error!);
 
-    public Task<Result<IEnumerable<Sensor>>> GetAll() => _readService.GetAll();
+        return await _readService.Get(id);
+    }
+
+    public async Task<Result<IEnumerable<Sensor>>> GetAll()
+    {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<IEnumerable<Sensor>>.Failure(access.Error!);
+
+        return await _readService.GetAll();
+    }
 
     public virtual async Task<Result<Sensor>> Add(Sensor entity)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<Sensor>.Failure(access.Error!);
+
         if (entity.ZoneId is not null)
         {
             var zone = await _uow.Zones.GetAsync((int)entity.ZoneId);
@@ -39,6 +60,10 @@ public class SensorService : ISensorService
 
     public async Task<Result> Delete(int id)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return access;
+
         var entity = await _uow.Sensors.GetAsync(id);
         if (entity is null)
             return Result.Failure(Errors.NotFound(ErrorCodes.Sensor.NotFound, "Not found", "sensorId", id));
@@ -50,6 +75,10 @@ public class SensorService : ISensorService
 
     public async Task<Result<Sensor>> UpdateFromAdmin(int id, string? serialNumber, bool? isOn, int? zoneId)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<Sensor>.Failure(access.Error!);
+
         var existing = await _uow.Sensors.GetAsync(id);
         if (existing is null) return Result<Sensor>.Failure(Errors.NotFound(ErrorCodes.Sensor.NotFound, "Not found", "sensorId", id));
 
@@ -72,6 +101,10 @@ public class SensorService : ISensorService
 
     public async Task<Result<IEnumerable<Sensor>>> GetByZoneIdAsync(int zoneId)
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<IEnumerable<Sensor>>.Failure(access.Error!);
+
         try
         {
             var sensors = await _uow.Sensors.GetByZoneIdAsync(zoneId);
@@ -91,6 +124,10 @@ public class SensorService : ISensorService
         bool? isOn = null,
         int? zoneId = null)
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(ReadRoles);
+        if (!access.IsSucceed)
+            return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(access.Error!);
+
         try
         {
             if (take <= 0)

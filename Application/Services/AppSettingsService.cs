@@ -9,14 +9,21 @@ namespace Application.Services;
 public class AppSettingsService : IAppSettingsService
 {
     private readonly IUnitOfWork _uow;
-    public AppSettingsService(IUnitOfWork uow)
+    private readonly IAccessChecker _accessChecker;
+
+    public AppSettingsService(IUnitOfWork uow, IAccessChecker accessChecker)
     {
         _uow = uow;
+        _accessChecker = accessChecker;
     }
 
     // convenience: get single settings (assumes single row)
     public async Task<Result<AppSettings>> GetSingletonAsync()
     {
+        var access = _accessChecker.EnsureCurrentUserInAnyRole(["Admin", "Operator"]);
+        if (!access.IsSucceed)
+            return Result<AppSettings>.Failure(access.Error!);
+
         var existing = await _uow.AppSettings.GetAsync();
         //åñëè â ðåïîçèîòðèè íåò çàïèñè òî áóäåò âûêèíóòà îøèáêà. Ïîýòîìó ýòî êàê-òî áåññìûñëåííî ïðîâåðÿòü íà null
         return existing is null
@@ -26,6 +33,10 @@ public class AppSettingsService : IAppSettingsService
 
     public async Task<Result<AppSettings>> Update(AppSettings entity)
     {
+        var access = _accessChecker.EnsureCurrentUserInRole("Admin");
+        if (!access.IsSucceed)
+            return Result<AppSettings>.Failure(access.Error!);
+
         var existing = await _uow.AppSettings.GetAsync();
         if (existing is null) return Result<AppSettings>.Failure(Errors.NotFound(ErrorCodes.AppSettings.NotFound, "Not found"));
 
