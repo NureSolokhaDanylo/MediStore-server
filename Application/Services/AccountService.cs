@@ -25,19 +25,25 @@ namespace Application.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly AppDbContext _dbContext;
+        private readonly ICurrentUser _currentUser;
+        private readonly IAccessChecker _accessChecker;
 
         public AccountService(
             IUnitOfWork uow,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IJwtTokenGenerator jwtTokenGenerator,
-            AppDbContext dbContext)
+            AppDbContext dbContext,
+            ICurrentUser currentUser,
+            IAccessChecker accessChecker)
         {
             _uow = uow;
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtTokenGenerator = jwtTokenGenerator;
             _dbContext = dbContext;
+            _currentUser = currentUser;
+            _accessChecker = accessChecker;
         }
 
         public async Task<Result<string>> LoginAsync(string login, string password)
@@ -53,8 +59,12 @@ namespace Application.Services
             return Result<string>.Success(token);
         }
 
-        public async Task<Result> CreateAccountAsync(string requesterId, string userName, string password, IEnumerable<string>? roles)
+        public async Task<Result> CreateAccountAsync(string userName, string password, IEnumerable<string>? roles)
         {
+            var auth = _accessChecker.EnsureAuthenticated();
+            if (!auth.IsSucceed) return auth;
+
+            var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
             var requesterRoles = await _userManager.GetRolesAsync(requester);
@@ -90,20 +100,26 @@ namespace Application.Services
             return Result.Success();
         }
 
-        public async Task<Result> ChangePasswordAsync(string requesterId, string targetUserId, string? currentPassword, string newPassword)
+        public async Task<Result> ChangePasswordAsync(string? targetUserId, string? currentPassword, string newPassword)
         {
+            var auth = _accessChecker.EnsureAuthenticated();
+            if (!auth.IsSucceed) return auth;
+
+            var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
 
-            var target = await _userManager.FindByIdAsync(targetUserId);
-            if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", targetUserId));
+            var effectiveTargetUserId = string.IsNullOrWhiteSpace(targetUserId) ? requesterId : targetUserId;
+            var target = await _userManager.FindByIdAsync(effectiveTargetUserId);
+            if (target is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.TargetUserNotFound, "Target user not found", "targetUserId", effectiveTargetUserId));
 
             var requesterRoles = await _userManager.GetRolesAsync(requester);
             var isAdmin = requesterRoles.Contains("Admin");
 
             if (!isAdmin)
             {
-                if (requesterId != targetUserId) return Result.Failure(AuthErrors.Forbidden());
+                var access = _accessChecker.EnsureCurrentUserMatches(effectiveTargetUserId, AuthErrors.Forbidden());
+                if (!access.IsSucceed) return access;
                 if (string.IsNullOrEmpty(currentPassword)) return Result.Failure(AuthErrors.CurrentPasswordRequired());
                 var ok = await _userManager.CheckPasswordAsync(target, currentPassword);
                 if (!ok) return Result.Failure(AuthErrors.CurrentPasswordIncorrect());
@@ -118,8 +134,12 @@ namespace Application.Services
             return Result.Success();
         }
 
-        public async Task<Result> ChangeRolesAsync(string requesterId, string targetUserId, IEnumerable<string> roles)
+        public async Task<Result> ChangeRolesAsync(string targetUserId, IEnumerable<string> roles)
         {
+            var auth = _accessChecker.EnsureAuthenticated();
+            if (!auth.IsSucceed) return auth;
+
+            var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
 
@@ -161,8 +181,12 @@ namespace Application.Services
             return Result.Success();
         }
 
-        public async Task<Result> DeleteUserAsync(string requesterId, string targetUserId)
+        public async Task<Result> DeleteUserAsync(string targetUserId)
         {
+            var auth = _accessChecker.EnsureAuthenticated();
+            if (!auth.IsSucceed) return auth;
+
+            var requesterId = _currentUser.UserId!;
             var requester = await _userManager.FindByIdAsync(requesterId);
             if (requester is null) return Result.Failure(Errors.NotFound(ErrorCodes.Account.RequesterNotFound, "Requester not found", "requesterId", requesterId));
 

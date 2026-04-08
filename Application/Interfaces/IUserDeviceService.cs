@@ -6,6 +6,6 @@ namespace Application.Interfaces
 {
     public interface IUserDeviceService
     {
-        Task<Result> RegisterDeviceAsync(string userId, CreateUserDeviceDto dto);
+        Task<Result> RegisterDeviceAsync(CreateUserDeviceDto dto);
     }
 }

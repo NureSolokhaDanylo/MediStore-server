@@ -1,19 +1,19 @@
 using Application.Interfaces;
 using Application.Results.Base;
 using Domain.Models;
-using Infrastructure.Interfaces;
+using Infrastructure.UOW;
 
 namespace Application.Services;
 
 public class AuditLogService : IAuditLogService
 {
     private readonly IReadOnlyService<AuditLog> _readService;
-    private readonly IAuditLogRepository _repo;
+    private readonly IUnitOfWork _uow;
 
-    public AuditLogService(IReadOnlyService<AuditLog> readService, IAuditLogRepository repository)
+    public AuditLogService(IReadOnlyService<AuditLog> readService, IUnitOfWork uow)
     {
         _readService = readService;
-        _repo = repository;
+        _uow = uow;
     }
 
     public Task<Result<AuditLog>> Get(int id) => _readService.Get(id);
@@ -24,7 +24,7 @@ public class AuditLogService : IAuditLogService
 
     public async Task<Result<IEnumerable<AuditLog>>> GetByTypeAsync(string entityType, DateTime? from, DateTime? to, int? take)
     {
-        var list = await _repo.GetByTypeAsync(entityType, from, to, take);
+        var list = await _uow.AuditLogs.GetByTypeAsync(entityType, from, to, take);
         return Result<IEnumerable<AuditLog>>.Success(list);
     }
 
@@ -48,7 +48,7 @@ public class AuditLogService : IAuditLogService
             return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Failure(PagingErrors.InvalidTake(ErrorCodes.AuditLog.InvalidPaging, "take must be greater than 0"));
         }
 
-        var result = await _repo.GetPagedAsync(q, entityType, action, userId, from, to, skip, take);
+        var result = await _uow.AuditLogs.GetPagedAsync(q, entityType, action, userId, from, to, skip, take);
         return Result<(IEnumerable<AuditLog> Items, int TotalCount)>.Success(result);
     }
 

@@ -6,5 +6,5 @@ namespace Application.Interfaces;
 
 public interface IZoneService : IReadOnlyService<Zone>, ICreateService<Zone>, IUpdateService<Zone>, IDeleteService<Zone>
 {
-    Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string userId, string query, int limit, int offset);
+    Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string query, int limit, int offset);
 }

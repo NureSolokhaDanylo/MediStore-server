@@ -4,7 +4,6 @@ using Application.Results.Base;
 using Domain.Enums;
 using Domain.Models;
 
-using Infrastructure.Interfaces;
 using Infrastructure.UOW;
 
 namespace Application.Services;
@@ -12,13 +11,11 @@ namespace Application.Services;
 public class AlertService : IAlertService
 {
     private readonly IReadOnlyService<Alert> _readService;
-    private readonly IAlertRepository _alertRepo;
     private readonly IUnitOfWork _uow;
 
-    public AlertService(IReadOnlyService<Alert> readService, IAlertRepository repository, IUnitOfWork uow)
+    public AlertService(IReadOnlyService<Alert> readService, IUnitOfWork uow)
     {
         _readService = readService;
-        _alertRepo = repository;
         _uow = uow;
     }
 
@@ -37,28 +34,28 @@ public class AlertService : IAlertService
             Message = message
         };
 
-        await _alertRepo.AddAsync(alert);
+        await _uow.Alerts.AddAsync(alert);
         await _uow.SaveChangesAsync();
 
         return Result.Success();
     }
 
     public Task<bool> HasActiveZoneConditionAlertAsync(int zoneId)
-        => _alertRepo.HasActiveZoneConditionAlertAsync(zoneId);
+        => _uow.Alerts.HasActiveZoneConditionAlertAsync(zoneId);
 
     public Task<bool> HasActiveBatchConditionAlertAsync(int batchId)
-        => _alertRepo.HasActiveBatchConditionAlertAsync(batchId);
+        => _uow.Alerts.HasActiveBatchConditionAlertAsync(batchId);
 
     public Task<Alert?> GetActiveZoneConditionAlertAsync(int zoneId)
-        => _alertRepo.GetActiveZoneConditionAlertAsync(zoneId);
+        => _uow.Alerts.GetActiveZoneConditionAlertAsync(zoneId);
 
     public Task<Alert?> GetActiveBatchConditionAlertAsync(int batchId)
-        => _alertRepo.GetActiveBatchConditionAlertAsync(batchId);
+        => _uow.Alerts.GetActiveBatchConditionAlertAsync(batchId);
 
     public async Task<Result> AppendToZoneConditionAlertAsync(Alert alert, string message)
     {
         alert.Message = string.Concat(alert.Message, " | ", message);
-        _alertRepo.Update(alert);
+        _uow.Alerts.Update(alert);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
@@ -67,7 +64,7 @@ public class AlertService : IAlertService
     {
         alert.IsActive = false;
         alert.ResolvedAt = DateTime.UtcNow;
-        _alertRepo.Update(alert);
+        _uow.Alerts.Update(alert);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
@@ -84,7 +81,7 @@ public class AlertService : IAlertService
             Message = message
         };
 
-        await _alertRepo.AddAsync(alert);
+        await _uow.Alerts.AddAsync(alert);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
@@ -92,7 +89,7 @@ public class AlertService : IAlertService
     public async Task<Result> AppendToBatchConditionAlertAsync(Alert alert, string message)
     {
         alert.Message = string.Concat(alert.Message, " | ", message);
-        _alertRepo.Update(alert);
+        _uow.Alerts.Update(alert);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
@@ -101,13 +98,13 @@ public class AlertService : IAlertService
     {
         alert.IsActive = false;
         alert.ResolvedAt = DateTime.UtcNow;
-        _alertRepo.Update(alert);
+        _uow.Alerts.Update(alert);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
 
     public Task<bool> HasAlertForBatchAsync(int batchId, AlertType alertType)
-        => _alertRepo.HasAlertForBatchAsync(batchId, alertType);
+        => _uow.Alerts.HasAlertForBatchAsync(batchId, alertType);
 
     public async Task<Result> CreateBatchAlertAsync(int batchId, AlertType alertType, string message)
     {
@@ -120,7 +117,7 @@ public class AlertService : IAlertService
             Message = message
         };
 
-        await _alertRepo.AddAsync(alert);
+        await _uow.Alerts.AddAsync(alert);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
@@ -134,7 +131,7 @@ public class AlertService : IAlertService
     {
         try
         {
-            var result = await _alertRepo.GetFilteredAlertsAsync(skip, take, isActive, zoneId, batchId);
+            var result = await _uow.Alerts.GetFilteredAlertsAsync(skip, take, isActive, zoneId, batchId);
             return Result<(IEnumerable<Alert>, int)>.Success(result);
         }
         catch (Exception ex)

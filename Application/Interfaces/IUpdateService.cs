@@ -5,5 +5,5 @@ namespace Application.Interfaces;
 
 public interface IUpdateService<T> where T : EntityBase
 {
-    Task<Result<T>> Update(string userId, T entity);
+    Task<Result<T>> Update(T entity);
 }

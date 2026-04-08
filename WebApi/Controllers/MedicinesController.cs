@@ -47,10 +47,7 @@ public class MedicinesController : MyController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] MedicineCreateDto dto)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
-
-        var res = await _service.Add(uid, dto.ToEntity());
+        var res = await _service.Add(dto.ToEntity());
         if (!res.IsSucceed) return ApiErrorResult(res);
 
         var createdDto = ToDto(res.Value!);
@@ -61,10 +58,7 @@ public class MedicinesController : MyController
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<MedicineDto>> Update([FromBody] MedicineDto dto)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<MedicineDto>();
-
-        var res = await _service.Update(uid, dto.ToEntity());
+        var res = await _service.Update(dto.ToEntity());
         if (!res.IsSucceed) return ApiErrorResult<MedicineDto>(res);
 
         return Ok(ToDto(res.Value!));
@@ -85,10 +79,7 @@ public class MedicinesController : MyController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
-
-        var res = await _service.Delete(uid, id);
+        var res = await _service.Delete(id);
         if (!res.IsSucceed) return ApiErrorResult(res);
 
         return NoContent();
@@ -103,13 +94,10 @@ public class MedicinesController : MyController
         [FromQuery] int? offset = null,
         [FromQuery] int? limit = null)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedSearchResultDto<MedicineSearchResultDto>>();
-
         var effectiveOffset = skip ?? offset ?? 0;
         var effectiveLimit = take ?? limit ?? 10;
 
-        var result = await _service.Search(uid, q, effectiveLimit, effectiveOffset);
+        var result = await _service.Search(q, effectiveLimit, effectiveOffset);
         if (!result.IsSucceed) return ApiErrorResult<PagedSearchResultDto<MedicineSearchResultDto>>(result);
 
         var (items, totalCount) = result.Value!;

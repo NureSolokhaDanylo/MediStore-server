@@ -3,7 +3,7 @@ using Application.Results.Base;
 
 using Domain.Models;
 
-using Infrastructure.Interfaces;
+using Infrastructure.UOW;
 
 namespace Application.Services;
 
@@ -13,22 +13,20 @@ public class MedicineService : IMedicineService
     private readonly ICreateService<Medicine> _createService;
     private readonly IUpdateService<Medicine> _updateService;
     private readonly IDeleteService<Medicine> _deleteService;
-    private readonly IMedicineRepository _medicineRepository;
-    private readonly IRepository<Medicine> _repository;
+    private readonly IUnitOfWork _uow;
 
     public MedicineService(
         IReadOnlyService<Medicine> readService,
         ICreateService<Medicine> createService,
         IUpdateService<Medicine> updateService,
         IDeleteService<Medicine> deleteService,
-        IMedicineRepository repository)
+        IUnitOfWork uow)
     {
         _readService = readService;
         _createService = createService;
         _updateService = updateService;
         _deleteService = deleteService;
-        _medicineRepository = repository;
-        _repository = repository;
+        _uow = uow;
     }
 
     private Result Validate(Medicine m)
@@ -54,18 +52,18 @@ public class MedicineService : IMedicineService
         return Result.Success();
     }
 
-    public async Task<Result<Medicine>> Add(string userId, Medicine entity)
+    public async Task<Result<Medicine>> Add(Medicine entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.Error!);
 
-        return await _createService.Add(userId, entity);
+        return await _createService.Add(entity);
     }
 
-    public async Task<Result<Medicine>> Update(string userId, Medicine entity)
+    public async Task<Result<Medicine>> Update(Medicine entity)
     {
-        var existing = await _repository.GetAsync(entity.Id);
+        var existing = await _uow.Medicines.GetAsync(entity.Id);
         if (existing is null)
             return Result<Medicine>.Failure(Errors.NotFound(ErrorCodes.Medicine.NotFound, "Not found", "medicineId", entity.Id));
 
@@ -73,16 +71,16 @@ public class MedicineService : IMedicineService
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.Error!);
 
-        return await _updateService.Update(userId, entity);
+        return await _updateService.Update(entity);
     }
 
     public Task<Result<Medicine>> Get(int id) => _readService.Get(id);
 
     public Task<Result<IEnumerable<Medicine>>> GetAll() => _readService.GetAll();
 
-    public Task<Result> Delete(string userId, int id) => _deleteService.Delete(userId, id);
+    public Task<Result> Delete(int id) => _deleteService.Delete(id);
 
-    public async Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
+    public async Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string query, int limit, int offset)
     {
         if (limit <= 0)
             return Result<(IEnumerable<Medicine>, int)>.Failure(PagingErrors.InvalidLimit(ErrorCodes.Medicine.InvalidSearchPaging));
@@ -90,7 +88,7 @@ public class MedicineService : IMedicineService
         if (offset < 0)
             return Result<(IEnumerable<Medicine>, int)>.Failure(PagingErrors.InvalidOffset(ErrorCodes.Medicine.InvalidSearchPaging));
 
-        var (items, totalCount) = await _medicineRepository.SearchAsync(query?.Trim() ?? "", limit, offset);
+        var (items, totalCount) = await _uow.Medicines.SearchAsync(query?.Trim() ?? "", limit, offset);
         return Result<(IEnumerable<Medicine>, int)>.Success((items, totalCount));
     }
 

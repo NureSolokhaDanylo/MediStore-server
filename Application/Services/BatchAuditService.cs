@@ -5,17 +5,18 @@ using System.Text.Json;
 
 namespace Application.Services;
 
-public class BatchAuditService(IUnitOfWork uow) : IEntityAuditService<Batch>
+public class BatchAuditService(IUnitOfWork uow, ICurrentUser currentUser) : IEntityAuditService<Batch>
 {
     private readonly IUnitOfWork _uow = uow;
+    private readonly ICurrentUser _currentUser = currentUser;
 
-    public Task LogCreateAsync(string userId, Batch entity) => LogAsync(userId, "Create", null, entity);
+    public Task LogCreateAsync(Batch entity) => LogAsync("Create", null, entity);
 
-    public Task LogUpdateAsync(string userId, Batch before, Batch after) => LogAsync(userId, "Update", before, after);
+    public Task LogUpdateAsync(Batch before, Batch after) => LogAsync("Update", before, after);
 
-    public Task LogDeleteAsync(string userId, Batch entity) => LogAsync(userId, "Delete", entity, null);
+    public Task LogDeleteAsync(Batch entity) => LogAsync("Delete", entity, null);
 
-    private async Task LogAsync(string userId, string action, Batch? before, Batch? after)
+    private async Task LogAsync(string action, Batch? before, Batch? after)
     {
         var id = after?.Id ?? before?.Id ?? 0;
         var beforeSnapshot = before is null
@@ -50,7 +51,7 @@ public class BatchAuditService(IUnitOfWork uow) : IEntityAuditService<Batch>
             EntityType = "Batch",
             EntityId = id,
             Action = action,
-            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
+            UserId = string.IsNullOrWhiteSpace(_currentUser.UserId) ? null : _currentUser.UserId,
             Summary = $"Batch {action} (Id={id})",
             OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
             NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)

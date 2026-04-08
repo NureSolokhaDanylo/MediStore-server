@@ -46,10 +46,7 @@ namespace WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
         {
-            var requester = userId;
-            if (string.IsNullOrEmpty(requester)) return UnauthorizedErrorResult();
-
-            var res = await _accountService.CreateAccountAsync(requester, dto.UserName, dto.Password, dto.Roles);
+            var res = await _accountService.CreateAccountAsync(dto.UserName, dto.Password, dto.Roles);
             if (!res.IsSucceed) return ApiErrorResult(res);
             return NoContent();
         }
@@ -58,11 +55,7 @@ namespace WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
-            var requester = userId;
-            if (string.IsNullOrEmpty(requester)) return UnauthorizedErrorResult();
-
-            var target = string.IsNullOrEmpty(dto.TargetUserId) ? requester : dto.TargetUserId;
-            var res = await _accountService.ChangePasswordAsync(requester, target, dto.CurrentPassword, dto.NewPassword);
+            var res = await _accountService.ChangePasswordAsync(dto.TargetUserId, dto.CurrentPassword, dto.NewPassword);
             if (!res.IsSucceed) return ApiErrorResult(res);
             return NoContent();
         }
@@ -71,10 +64,7 @@ namespace WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeRoles([FromBody] ChangeRolesDto dto)
         {
-            var requester = userId;
-            if (string.IsNullOrEmpty(requester)) return UnauthorizedErrorResult();
-
-            var res = await _accountService.ChangeRolesAsync(requester, dto.TargetUserId, dto.Roles);
+            var res = await _accountService.ChangeRolesAsync(dto.TargetUserId, dto.Roles);
             if (!res.IsSucceed) return ApiErrorResult(res);
             return NoContent();
         }
@@ -83,10 +73,7 @@ namespace WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
-            var requester = userId;
-            if (string.IsNullOrEmpty(requester)) return UnauthorizedErrorResult();
-
-            var res = await _accountService.DeleteUserAsync(requester, id);
+            var res = await _accountService.DeleteUserAsync(id);
             if (!res.IsSucceed) return ApiErrorResult(res);
             return NoContent();
         }

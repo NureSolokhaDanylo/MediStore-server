@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Components.Infrastructure;
+﻿using Application.Interfaces;
+
+using Microsoft.AspNetCore.Components.Infrastructure;
+
 using WebApi.HealthChecks;
 using WebApi.Services;
 
@@ -8,6 +11,7 @@ namespace WebApi.Extensions
     {
         public static IServiceCollection AddAppControllers(this IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
             services.AddControllers();
             services.AddHealthChecks()
                 .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
@@ -46,6 +50,7 @@ namespace WebApi.Extensions
             });
 
             // register web-specific services
+            services.AddScoped<ICurrentUser, HttpCurrentUser>();
             services.AddScoped<IReportDocumentService, ReportDocumentService>();
 
             return services;

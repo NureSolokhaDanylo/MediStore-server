@@ -35,10 +35,7 @@ public class SensorsController : MyController
             return Ok(allSensors.Select(ToDto));
         }
 
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<IEnumerable<SensorDto>>();
-
-        var result = await _sensorService.GetByZoneIdAsync(uid, zoneId.Value);
+        var result = await _sensorService.GetByZoneIdAsync(zoneId.Value);
         if (!result.IsSucceed) return ApiErrorResult<IEnumerable<SensorDto>>(result);
 
         var sensors = result.Value ?? Enumerable.Empty<Domain.Models.Sensor>();
@@ -58,10 +55,7 @@ public class SensorsController : MyController
         if (skip < 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("skip cannot be negative", ErrorCodes.Sensor.InvalidPaging);
         if (take <= 0) return ValidationErrorResult<PagedResultDto<SensorDto>>("take must be positive", ErrorCodes.Sensor.InvalidPaging);
 
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedResultDto<SensorDto>>();
-
-        var result = await _sensorService.GetPagedAsync(uid, skip, take, q, sensorType, isOn, zoneId);
+        var result = await _sensorService.GetPagedAsync(skip, take, q, sensorType, isOn, zoneId);
         if (!result.IsSucceed) return ApiErrorResult<PagedResultDto<SensorDto>>(result);
 
         var (items, totalCount) = result.Value!;

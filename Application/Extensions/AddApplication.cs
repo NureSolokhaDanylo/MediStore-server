@@ -13,9 +13,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddHttpContextAccessor();
-
         services
+            .AddScoped<IAccessChecker, AccessChecker>()
             .AddScoped(typeof(IReadOnlyService<>), typeof(ReadEntityService<>))
             .AddScoped(typeof(ICreateService<>), typeof(CreateEntityService<>))
             .AddScoped(typeof(IUpdateService<>), typeof(UpdateEntityService<>))

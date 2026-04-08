@@ -5,5 +5,5 @@ namespace Application.Interfaces;
 
 public interface IDeleteService<T> where T : EntityBase
 {
-    Task<Result> Delete(string userId, int id);
+    Task<Result> Delete(int id);
 }

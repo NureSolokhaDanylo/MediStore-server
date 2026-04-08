@@ -8,10 +8,10 @@ namespace Application.Interfaces
     public interface IAccountService
     {
         Task<Result<string>> LoginAsync(string login, string password);
-        Task<Result> CreateAccountAsync(string requesterId, string userName, string password, IEnumerable<string>? roles);
-        Task<Result> ChangePasswordAsync(string requesterId, string targetUserId, string? currentPassword, string newPassword);
-        Task<Result> ChangeRolesAsync(string requesterId, string targetUserId, IEnumerable<string> roles);
-        Task<Result> DeleteUserAsync(string requesterId, string targetUserId);
+        Task<Result> CreateAccountAsync(string userName, string password, IEnumerable<string>? roles);
+        Task<Result> ChangePasswordAsync(string? targetUserId, string? currentPassword, string newPassword);
+        Task<Result> ChangeRolesAsync(string targetUserId, IEnumerable<string> roles);
+        Task<Result> DeleteUserAsync(string targetUserId);
         Task<Result<(IEnumerable<UserDto> Items, int TotalCount)>> GetUsersAsync(int skip, int take, string? q = null, string? role = null);
     }
 }

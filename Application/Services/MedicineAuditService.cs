@@ -5,17 +5,18 @@ using System.Text.Json;
 
 namespace Application.Services;
 
-public class MedicineAuditService(IUnitOfWork uow) : IEntityAuditService<Medicine>
+public class MedicineAuditService(IUnitOfWork uow, ICurrentUser currentUser) : IEntityAuditService<Medicine>
 {
     private readonly IUnitOfWork _uow = uow;
+    private readonly ICurrentUser _currentUser = currentUser;
 
-    public Task LogCreateAsync(string userId, Medicine entity) => LogAsync(userId, "Create", null, entity);
+    public Task LogCreateAsync(Medicine entity) => LogAsync("Create", null, entity);
 
-    public Task LogUpdateAsync(string userId, Medicine before, Medicine after) => LogAsync(userId, "Update", before, after);
+    public Task LogUpdateAsync(Medicine before, Medicine after) => LogAsync("Update", before, after);
 
-    public Task LogDeleteAsync(string userId, Medicine entity) => LogAsync(userId, "Delete", entity, null);
+    public Task LogDeleteAsync(Medicine entity) => LogAsync("Delete", entity, null);
 
-    private async Task LogAsync(string userId, string action, Medicine? before, Medicine? after)
+    private async Task LogAsync(string action, Medicine? before, Medicine? after)
     {
         var beforeSnapshot = before is null
             ? null
@@ -51,7 +52,7 @@ public class MedicineAuditService(IUnitOfWork uow) : IEntityAuditService<Medicin
             EntityType = "Medicine",
             EntityId = after?.Id ?? before?.Id ?? 0,
             Action = action,
-            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
+            UserId = string.IsNullOrWhiteSpace(_currentUser.UserId) ? null : _currentUser.UserId,
             Summary = $"Medicine {action} (Id={after?.Id ?? before?.Id})",
             OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
             NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)

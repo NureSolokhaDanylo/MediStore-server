@@ -5,17 +5,18 @@ using System.Text.Json;
 
 namespace Application.Services;
 
-public class ZoneAuditService(IUnitOfWork uow) : IEntityAuditService<Zone>
+public class ZoneAuditService(IUnitOfWork uow, ICurrentUser currentUser) : IEntityAuditService<Zone>
 {
     private readonly IUnitOfWork _uow = uow;
+    private readonly ICurrentUser _currentUser = currentUser;
 
-    public Task LogCreateAsync(string userId, Zone entity) => LogAsync(userId, "Create", null, entity);
+    public Task LogCreateAsync(Zone entity) => LogAsync("Create", null, entity);
 
-    public Task LogUpdateAsync(string userId, Zone before, Zone after) => LogAsync(userId, "Update", before, after);
+    public Task LogUpdateAsync(Zone before, Zone after) => LogAsync("Update", before, after);
 
-    public Task LogDeleteAsync(string userId, Zone entity) => LogAsync(userId, "Delete", entity, null);
+    public Task LogDeleteAsync(Zone entity) => LogAsync("Delete", entity, null);
 
-    private async Task LogAsync(string userId, string action, Zone? before, Zone? after)
+    private async Task LogAsync(string action, Zone? before, Zone? after)
     {
         var id = after?.Id ?? before?.Id ?? 0;
         var beforeSnapshot = before is null
@@ -50,7 +51,7 @@ public class ZoneAuditService(IUnitOfWork uow) : IEntityAuditService<Zone>
             EntityType = "Zone",
             EntityId = id,
             Action = action,
-            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
+            UserId = string.IsNullOrWhiteSpace(_currentUser.UserId) ? null : _currentUser.UserId,
             Summary = $"Zone {action} (Id={id})",
             OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
             NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)

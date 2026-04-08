@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks;
+﻿using Domain.Models;
 
 using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
@@ -53,5 +48,22 @@ namespace Infrastructure.UOW
         }
 
         public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
+
+        public IRepository<T> GetRepository<T>() where T : EntityBase
+        {
+            return typeof(T).Name switch
+            {
+                nameof(Medicine) => (IRepository<T>)Medicines,
+                nameof(Sensor) => (IRepository<T>)Sensors,
+                nameof(Batch) => (IRepository<T>)Batches,
+                nameof(Reading) => (IRepository<T>)Readings,
+                nameof(Zone) => (IRepository<T>)Zones,
+                nameof(Alert) => (IRepository<T>)Alerts,
+                nameof(SensorApiKey) => (IRepository<T>)SensorApiKeys,
+                nameof(AuditLog) => (IRepository<T>)AuditLogs,
+                nameof(UserDevice) => (IRepository<T>)UserDevices,
+                _ => throw new InvalidOperationException($"No repository registered in unit of work for entity type {typeof(T).FullName}.")
+            };
+        }
     }
 }

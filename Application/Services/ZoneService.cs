@@ -1,7 +1,7 @@
 using Application.Interfaces;
 using Application.Results.Base;
 using Domain.Models;
-using Infrastructure.Interfaces;
+using Infrastructure.UOW;
 
 namespace Application.Services;
 
@@ -11,22 +11,20 @@ public class ZoneService : IZoneService
     private readonly ICreateService<Zone> _createService;
     private readonly IUpdateService<Zone> _updateService;
     private readonly IDeleteService<Zone> _deleteService;
-    private readonly IZoneRepository _zoneRepository;
-    private readonly IRepository<Zone> _repository;
+    private readonly IUnitOfWork _uow;
 
     public ZoneService(
         IReadOnlyService<Zone> readService,
         ICreateService<Zone> createService,
         IUpdateService<Zone> updateService,
         IDeleteService<Zone> deleteService,
-        IZoneRepository repository)
+        IUnitOfWork uow)
     {
         _readService = readService;
         _createService = createService;
         _updateService = updateService;
         _deleteService = deleteService;
-        _zoneRepository = repository;
-        _repository = repository;
+        _uow = uow;
     }
 
     private Result Validate(Zone z)
@@ -52,18 +50,18 @@ public class ZoneService : IZoneService
         return Result.Success();
     }
 
-    public async Task<Result<Zone>> Add(string userId, Zone entity)
+    public async Task<Result<Zone>> Add(Zone entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.Error!);
 
-        return await _createService.Add(userId, entity);
+        return await _createService.Add(entity);
     }
 
-    public async Task<Result<Zone>> Update(string userId, Zone entity)
+    public async Task<Result<Zone>> Update(Zone entity)
     {
-        var existing = await _repository.GetAsync(entity.Id);
+        var existing = await _uow.Zones.GetAsync(entity.Id);
         if (existing is null)
             return Result<Zone>.Failure(Errors.NotFound(ErrorCodes.Zone.NotFound, "Not found", "zoneId", entity.Id));
 
@@ -71,16 +69,16 @@ public class ZoneService : IZoneService
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.Error!);
 
-        return await _updateService.Update(userId, entity);
+        return await _updateService.Update(entity);
     }
 
     public Task<Result<Zone>> Get(int id) => _readService.Get(id);
 
     public Task<Result<IEnumerable<Zone>>> GetAll() => _readService.GetAll();
 
-    public Task<Result> Delete(string userId, int id) => _deleteService.Delete(userId, id);
+    public Task<Result> Delete(int id) => _deleteService.Delete(id);
 
-    public async Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
+    public async Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string query, int limit, int offset)
     {
         if (limit <= 0)
             return Result<(IEnumerable<Zone>, int)>.Failure(PagingErrors.InvalidLimit(ErrorCodes.Zone.InvalidSearchPaging));
@@ -88,7 +86,7 @@ public class ZoneService : IZoneService
         if (offset < 0)
             return Result<(IEnumerable<Zone>, int)>.Failure(PagingErrors.InvalidOffset(ErrorCodes.Zone.InvalidSearchPaging));
 
-        var (items, totalCount) = await _zoneRepository.SearchAsync(query?.Trim() ?? "", limit, offset);
+        var (items, totalCount) = await _uow.Zones.SearchAsync(query?.Trim() ?? "", limit, offset);
         return Result<(IEnumerable<Zone>, int)>.Success((items, totalCount));
     }
 

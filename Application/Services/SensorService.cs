@@ -4,7 +4,6 @@ using Application.Results.Base;
 using Domain.Enums;
 using Domain.Models;
 
-using Infrastructure.Interfaces;
 using Infrastructure.UOW;
 
 namespace Application.Services;
@@ -12,15 +11,11 @@ namespace Application.Services;
 public class SensorService : ISensorService
 {
     private readonly IReadOnlyService<Sensor> _readService;
-    private readonly ISensorRepository _sensorRepository;
-    private readonly IRepository<Sensor> _repository;
     private readonly IUnitOfWork _uow;
     
-    public SensorService(IReadOnlyService<Sensor> readService, ISensorRepository repository, IUnitOfWork uow)
+    public SensorService(IReadOnlyService<Sensor> readService, IUnitOfWork uow)
     {
         _readService = readService;
-        _sensorRepository = repository;
-        _repository = repository;
         _uow = uow;
     }
 
@@ -37,18 +32,18 @@ public class SensorService : ISensorService
                 return Result<Sensor>.Failure(Errors.NotFound(ErrorCodes.Sensor.ZoneNotFound, "Zone not found", "zoneId", entity.ZoneId));
         }
 
-        await _repository.AddAsync(entity);
+        await _uow.Sensors.AddAsync(entity);
         await _uow.SaveChangesAsync();   // <-- CRUD SaveChanges
         return Result<Sensor>.Success(entity);
     }
 
     public async Task<Result> Delete(int id)
     {
-        var entity = await _repository.GetAsync(id);
+        var entity = await _uow.Sensors.GetAsync(id);
         if (entity is null)
             return Result.Failure(Errors.NotFound(ErrorCodes.Sensor.NotFound, "Not found", "sensorId", id));
 
-        await _repository.DeleteAsync(id);
+        await _uow.Sensors.DeleteAsync(id);
         await _uow.SaveChangesAsync();
         return Result.Success();
     }
@@ -75,11 +70,11 @@ public class SensorService : ISensorService
         return Result<Sensor>.Success(existing);
     }
 
-    public async Task<Result<IEnumerable<Sensor>>> GetByZoneIdAsync(string userId, int zoneId)
+    public async Task<Result<IEnumerable<Sensor>>> GetByZoneIdAsync(int zoneId)
     {
         try
         {
-            var sensors = await _sensorRepository.GetByZoneIdAsync(zoneId);
+            var sensors = await _uow.Sensors.GetByZoneIdAsync(zoneId);
             return Result<IEnumerable<Sensor>>.Success(sensors);
         }
         catch (Exception ex)
@@ -89,7 +84,6 @@ public class SensorService : ISensorService
     }
 
     public async Task<Result<(IEnumerable<Sensor> Items, int TotalCount)>> GetPagedAsync(
-        string userId,
         int skip,
         int take,
         string? q = null,
@@ -109,7 +103,7 @@ public class SensorService : ISensorService
                 return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Failure(PagingErrors.InvalidSkip(ErrorCodes.Sensor.InvalidPaging));
             }
 
-            var result = await _sensorRepository.GetPagedAsync(skip, take, q, sensorType, isOn, zoneId);
+            var result = await _uow.Sensors.GetPagedAsync(skip, take, q, sensorType, isOn, zoneId);
             return Result<(IEnumerable<Sensor> Items, int TotalCount)>.Success(result);
         }
         catch (Exception ex)

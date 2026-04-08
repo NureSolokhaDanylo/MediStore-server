@@ -3,7 +3,6 @@ using Application.Results.Base;
 
 using Domain.Models;
 
-using Infrastructure.Interfaces;
 using Infrastructure.UOW;
 
 namespace Application.Services;
@@ -11,13 +10,11 @@ namespace Application.Services;
 public class ReadingService : IReadingService
 {
     private readonly IReadOnlyService<Reading> _readService;
-    private readonly IReadingRepository _readingRepo;
     private readonly IUnitOfWork _uow;
 
-    public ReadingService(IReadOnlyService<Reading> readService, IReadingRepository repository, IUnitOfWork uow)
+    public ReadingService(IReadOnlyService<Reading> readService, IUnitOfWork uow)
     {
         _readService = readService;
-        _readingRepo = repository;
         _uow = uow;
     }
 
@@ -55,28 +52,28 @@ public class ReadingService : IReadingService
     {
         if (from >= to) return Result<IEnumerable<Reading>>.Failure(Errors.Validation(ErrorCodes.Reading.InvalidTimeRange, "Invalid time range"));
 
-        var readings = await _readingRepo.GetReadingsForSensorAsync(sensorId, from, to);
+        var readings = await _uow.Readings.GetReadingsForSensorAsync(sensorId, from, to);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
 
     public async Task<Result<IEnumerable<Reading>>> GetLatestReadingsForSensorAsync(int sensorId, int count)
     {
         if (count <= 0) return Result<IEnumerable<Reading>>.Failure(PagingErrors.InvalidCount(ErrorCodes.Reading.InvalidCount));
-        var readings = await _readingRepo.GetLatestForSensorAsync(sensorId, count);
+        var readings = await _uow.Readings.GetLatestForSensorAsync(sensorId, count);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
 
     public async Task<Result<IEnumerable<Reading>>> GetReadingsForZoneAsync(int zoneId, DateTime from, DateTime to)
     {
         if (from >= to) return Result<IEnumerable<Reading>>.Failure(Errors.Validation(ErrorCodes.Reading.InvalidTimeRange, "Invalid time range"));
-        var readings = await _readingRepo.GetReadingsForZoneAsync(zoneId, from, to);
+        var readings = await _uow.Readings.GetReadingsForZoneAsync(zoneId, from, to);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
 
     public async Task<Result<IEnumerable<Reading>>> GetLatestReadingsForZoneAsync(int zoneId, int count)
     {
         if (count <= 0) return Result<IEnumerable<Reading>>.Failure(PagingErrors.InvalidCount(ErrorCodes.Reading.InvalidCount));
-        var readings = await _readingRepo.GetLatestForZoneAsync(zoneId, count);
+        var readings = await _uow.Readings.GetLatestForZoneAsync(zoneId, count);
         return Result<IEnumerable<Reading>>.Success(readings);
     }
 }

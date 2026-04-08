@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using Domain.Models;
+
 using Infrastructure.Interfaces;
 
 namespace Infrastructure.UOW
@@ -16,6 +18,8 @@ namespace Infrastructure.UOW
         IAppSettingsRepository AppSettings { get; }
         IAuditLogRepository AuditLogs { get; }
         IUserDeviceRepository UserDevices { get; }
+
+        IRepository<T> GetRepository<T>() where T : EntityBase;
 
         Task<int> SaveChangesAsync();
     }

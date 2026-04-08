@@ -23,18 +23,7 @@ namespace WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> RegisterDevice([FromBody] CreateUserDeviceDto dto)
         {
-            // Validate that the user ID in the body matches the authenticated user
-            if (userId != dto.UserId)
-            {
-                return ApiErrorResult(new Application.Results.Base.ErrorInfo
-                {
-                    Code = ErrorCodes.Push.UserMismatch,
-                    Message = "User ID mismatch",
-                    Type = Application.Results.Base.ErrorType.Forbidden
-                });
-            }
-
-            var result = await _service.RegisterDeviceAsync(userId!, dto);
+            var result = await _service.RegisterDeviceAsync(dto);
 
             if (!result.IsSucceed)
             {

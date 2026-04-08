@@ -11,19 +11,22 @@ namespace Application.Services
     public class UserDeviceService : IUserDeviceService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAuditLogService _auditLogService;
+        private readonly IAccessChecker _accessChecker;
 
-        public UserDeviceService(IUnitOfWork unitOfWork, IAuditLogService auditLogService)
+        public UserDeviceService(IUnitOfWork unitOfWork, IAccessChecker accessChecker)
         {
             _unitOfWork = unitOfWork;
-            _auditLogService = auditLogService;
+            _accessChecker = accessChecker;
         }
 
-        public async Task<Result> RegisterDeviceAsync(string userId, CreateUserDeviceDto dto)
+        public async Task<Result> RegisterDeviceAsync(CreateUserDeviceDto dto)
         {
-            if (userId != dto.UserId)
+            var access = _accessChecker.EnsureCurrentUserMatches(
+                dto.UserId,
+                Errors.Forbidden(ErrorCodes.Push.UserMismatch, "User ID mismatch"));
+            if (!access.IsSucceed)
             {
-                return Result.Failure(Errors.Forbidden(ErrorCodes.Push.UserMismatch, "User ID mismatch"));
+                return access;
             }
 
             var existingDevice = await _unitOfWork.UserDevices.GetByUserIdAsync(dto.UserId);

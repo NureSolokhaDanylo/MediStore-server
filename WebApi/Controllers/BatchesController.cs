@@ -47,10 +47,7 @@ public class BatchesController : MyController
     [Authorize(Roles = "Operator")]
     public async Task<IActionResult> Create([FromBody] BatchCreateDto dto)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
-
-        var res = await _service.Add(uid, dto.ToEntity());
+        var res = await _service.Add(dto.ToEntity());
         if (!res.IsSucceed) return ApiErrorResult(res);
 
         var createdDto = ToDto(res.Value!);
@@ -61,10 +58,7 @@ public class BatchesController : MyController
     [Authorize(Roles = "Operator")]
     public async Task<ActionResult<BatchDto>> Update([FromBody] BatchDto dto)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<BatchDto>();
-
-        var res = await _service.Update(uid, dto.ToEntity());
+        var res = await _service.Update(dto.ToEntity());
         if (!res.IsSucceed) return ApiErrorResult<BatchDto>(res);
 
         return Ok(ToDto(res.Value!));
@@ -85,10 +79,7 @@ public class BatchesController : MyController
     [Authorize(Roles = "Operator")]
     public async Task<IActionResult> Delete(int id)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
-
-        var res = await _service.Delete(uid, id);
+        var res = await _service.Delete(id);
         if (!res.IsSucceed) return ApiErrorResult(res);
 
         return NoContent();
@@ -103,13 +94,10 @@ public class BatchesController : MyController
         [FromQuery] int? offset = null,
         [FromQuery] int? limit = null)
     {
-        var uid = userId;
-        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<PagedSearchResultDto<BatchSearchResultDto>>();
-
         var effectiveOffset = skip ?? offset ?? 0;
         var effectiveLimit = take ?? limit ?? 10;
 
-        var result = await _service.SearchByBatchNumber(uid, q, effectiveLimit, effectiveOffset);
+        var result = await _service.SearchByBatchNumber(q, effectiveLimit, effectiveOffset);
         if (!result.IsSucceed) return ApiErrorResult<PagedSearchResultDto<BatchSearchResultDto>>(result);
 
         var (items, totalCount) = result.Value!;

@@ -6,5 +6,5 @@ namespace Application.Interfaces;
 
 public interface IMedicineService : IReadOnlyService<Medicine>, ICreateService<Medicine>, IUpdateService<Medicine>, IDeleteService<Medicine>
 {
-    Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string userId, string query, int limit, int offset);
+    Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string query, int limit, int offset);
 }
