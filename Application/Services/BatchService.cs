@@ -3,17 +3,34 @@ using Application.Results.Base;
 using Domain.Models;
 using Infrastructure.Interfaces;
 using Infrastructure.UOW;
-using System.Text.Json;
 
 namespace Application.Services;
 
-public class BatchService : CrudService<Batch>, IBatchService
+public class BatchService : IBatchService
 {
+    private readonly IReadOnlyService<Batch> _readService;
+    private readonly ICreateService<Batch> _createService;
+    private readonly IUpdateService<Batch> _updateService;
+    private readonly IDeleteService<Batch> _deleteService;
     private readonly IBatchRepository _batchRepository;
+    private readonly IRepository<Batch> _repository;
+    private readonly IUnitOfWork _uow;
 
-    public BatchService(IBatchRepository repository, IUnitOfWork uow) : base(repository, uow) 
-    { 
+    public BatchService(
+        IReadOnlyService<Batch> readService,
+        ICreateService<Batch> createService,
+        IUpdateService<Batch> updateService,
+        IDeleteService<Batch> deleteService,
+        IBatchRepository repository,
+        IUnitOfWork uow)
+    {
+        _readService = readService;
+        _createService = createService;
+        _updateService = updateService;
+        _deleteService = deleteService;
         _batchRepository = repository;
+        _repository = repository;
+        _uow = uow;
     }
 
     private Result Validate(Batch b)
@@ -31,7 +48,7 @@ public class BatchService : CrudService<Batch>, IBatchService
         return Result.Success();
     }
 
-    public override async Task<Result<Batch>> Add(string userId, Batch entity)
+    public async Task<Result<Batch>> Add(string userId, Batch entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
@@ -45,10 +62,10 @@ public class BatchService : CrudService<Batch>, IBatchService
         if (zone is null)
             return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.ZoneNotFound, "Referenced zone not found", "zoneId", entity.ZoneId));
 
-        return await base.Add(userId, entity);
+        return await _createService.Add(userId, entity);
     }
 
-    public override async Task<Result<Batch>> Update(string userId, Batch entity)
+    public async Task<Result<Batch>> Update(string userId, Batch entity)
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
@@ -66,8 +83,14 @@ public class BatchService : CrudService<Batch>, IBatchService
         if (zone is null)
             return Result<Batch>.Failure(Errors.NotFound(ErrorCodes.Batch.ZoneNotFound, "Referenced zone not found", "zoneId", entity.ZoneId));
 
-        return await base.Update(userId, entity);
+        return await _updateService.Update(userId, entity);
     }
+
+    public Task<Result<Batch>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<Batch>>> GetAll() => _readService.GetAll();
+
+    public Task<Result> Delete(string userId, int id) => _deleteService.Delete(userId, id);
 
     public async Task<Result<(IEnumerable<Batch> items, int totalCount)>> SearchByBatchNumber(string userId, string query, int limit, int offset)
     {
@@ -81,48 +104,4 @@ public class BatchService : CrudService<Batch>, IBatchService
         return Result<(IEnumerable<Batch>, int)>.Success((items, totalCount));
     }
 
-    protected override async Task LogAsync(string userId, string action, Batch? before, Batch? after)
-    {
-        var id = after?.Id ?? before?.Id ?? 0;
-        var beforeSnapshot = before is null
-            ? null
-            : new
-            {
-                before.Id,
-                before.BatchNumber,
-                before.Quantity,
-                before.ExpireDate,
-                before.DateAdded,
-                before.MedicineId,
-                before.ZoneId
-            };
-
-        var afterSnapshot = after is null
-            ? null
-            : new
-            {
-                after.Id,
-                after.BatchNumber,
-                after.Quantity,
-                after.ExpireDate,
-                after.DateAdded,
-                after.MedicineId,
-                after.ZoneId
-            };
-
-        var log = new AuditLog
-        {
-            OccurredAt = DateTime.UtcNow,
-            EntityType = "Batch",
-            EntityId = id,
-            Action = action,
-            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
-            Summary = $"Batch {action} (Id={id})",
-            OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
-            NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)
-        };
-
-        await _uow.AuditLogs.AddAsync(log);
-        await _uow.SaveChangesAsync();
-    }
 }

@@ -9,14 +9,22 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class AlertService : ReadOnlyService<Alert>, IAlertService
+public class AlertService : IAlertService
 {
+    private readonly IReadOnlyService<Alert> _readService;
     private readonly IAlertRepository _alertRepo;
+    private readonly IUnitOfWork _uow;
 
-    public AlertService(IAlertRepository repository, IUnitOfWork uow) : base(repository, uow)
+    public AlertService(IReadOnlyService<Alert> readService, IAlertRepository repository, IUnitOfWork uow)
     {
+        _readService = readService;
         _alertRepo = repository;
+        _uow = uow;
     }
+
+    public Task<Result<Alert>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<Alert>>> GetAll() => _readService.GetAll();
 
     public async Task<Result> CreateZoneConditionAlertAsync(int zoneId, string message)
     {

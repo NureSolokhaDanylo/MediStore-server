@@ -1,7 +1,5 @@
 using Application.Interfaces;
 
-using Domain.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,31 +10,67 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/zones")]
-public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZoneService>
+public class ZonesController : MyController
 {
+    private readonly IZoneService _service;
     private readonly ISensorService _sensorService;
 
-    public ZonesController(IZoneService service, ISensorService sensorService) : base(service) 
+    public ZonesController(IZoneService service, ISensorService sensorService)
     {
+        _service = service;
         _sensorService = sensorService;
     }
 
-    protected override ZoneDto ToDto(Zone entity) => entity.ToDto();
-    protected override Zone ToEntity(ZoneDto dto) => dto.ToEntity();
-    protected override Zone ToEntity(ZoneCreateDto dto) => dto.ToEntity();
-    protected override int GetId(ZoneDto dto) => dto.Id;
-
+    [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<IEnumerable<ZoneDto>>> GetAll() => base.GetAll();
+    public async Task<ActionResult<IEnumerable<ZoneDto>>> GetAll()
+    {
+        var res = await _service.GetAll();
+        if (!res.IsSucceed) return ApiErrorResult<IEnumerable<ZoneDto>>(res);
 
+        var list = res.Value ?? Enumerable.Empty<Domain.Models.Zone>();
+        return Ok(list.Select(ToDto));
+    }
+
+    [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<ZoneDto>> Get(int id) => base.Get(id);
+    public async Task<ActionResult<ZoneDto>> Get(int id)
+    {
+        var res = await _service.Get(id);
+        if (!res.IsSucceed) return ApiErrorResult<ZoneDto>(res);
 
-    [Authorize(Roles = "Admin")]
-    public override Task<IActionResult> Create([FromBody] ZoneCreateDto dto) => base.Create(dto);
+        var entity = res.Value;
+        if (entity is null) return NotFound();
 
+        return Ok(ToDto(entity));
+    }
+
+    [HttpPost]
     [Authorize(Roles = "Admin")]
-    public override Task<ActionResult<ZoneDto>> Update([FromBody] ZoneDto dto) => base.Update(dto);
+    public async Task<IActionResult> Create([FromBody] ZoneCreateDto dto)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
+
+        var res = await _service.Add(uid, dto.ToEntity());
+        if (!res.IsSucceed) return ApiErrorResult(res);
+
+        var createdDto = ToDto(res.Value!);
+        return CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
+    }
+
+    [HttpPut]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ZoneDto>> Update([FromBody] ZoneDto dto)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<ZoneDto>();
+
+        var res = await _service.Update(uid, dto.ToEntity());
+        if (!res.IsSucceed) return ApiErrorResult<ZoneDto>(res);
+
+        return Ok(ToDto(res.Value!));
+    }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
@@ -46,11 +80,21 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
             return ValidationErrorResult<ZoneDto>("Route id and payload id must match.");
 
         dto.Id = id;
-        return await base.Update(dto);
+        return await Update(dto);
     }
 
+    [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
-    public override Task<IActionResult> Delete(int id) => base.Delete(id);
+    public async Task<IActionResult> Delete(int id)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
+
+        var res = await _service.Delete(uid, id);
+        if (!res.IsSucceed) return ApiErrorResult(res);
+
+        return NoContent();
+    }
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
@@ -95,7 +139,9 @@ public class ZonesController : CrudController<Zone, ZoneDto, ZoneCreateDto, IZon
         var sensorsResult = await _sensorService.GetByZoneIdAsync(uid, id);
         if (!sensorsResult.IsSucceed) return ApiErrorResult<IEnumerable<SensorDto>>(sensorsResult);
 
-        var sensors = sensorsResult.Value ?? Enumerable.Empty<Sensor>();
+        var sensors = sensorsResult.Value ?? Enumerable.Empty<Domain.Models.Sensor>();
         return Ok(sensors.Select(s => s.ToDto()));
     }
+
+    private static ZoneDto ToDto(Domain.Models.Zone entity) => entity.ToDto();
 }

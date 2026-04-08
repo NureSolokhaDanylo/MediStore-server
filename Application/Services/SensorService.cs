@@ -9,14 +9,24 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class SensorService : ReadOnlyService<Sensor>, ISensorService
+public class SensorService : ISensorService
 {
+    private readonly IReadOnlyService<Sensor> _readService;
     private readonly ISensorRepository _sensorRepository;
+    private readonly IRepository<Sensor> _repository;
+    private readonly IUnitOfWork _uow;
     
-    public SensorService(ISensorRepository repository, IUnitOfWork uow) : base(repository, uow) 
+    public SensorService(IReadOnlyService<Sensor> readService, ISensorRepository repository, IUnitOfWork uow)
     {
+        _readService = readService;
         _sensorRepository = repository;
+        _repository = repository;
+        _uow = uow;
     }
+
+    public Task<Result<Sensor>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<Sensor>>> GetAll() => _readService.GetAll();
 
     public virtual async Task<Result<Sensor>> Add(Sensor entity)
     {

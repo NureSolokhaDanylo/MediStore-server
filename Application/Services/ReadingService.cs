@@ -8,11 +8,22 @@ using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class ReadingService : ReadOnlyService<Reading>, IReadingService
+public class ReadingService : IReadingService
 {
+    private readonly IReadOnlyService<Reading> _readService;
     private readonly IReadingRepository _readingRepo;
+    private readonly IUnitOfWork _uow;
 
-    public ReadingService(IReadingRepository repository, IUnitOfWork uow) : base(repository, uow) { _readingRepo = repository; }
+    public ReadingService(IReadOnlyService<Reading> readService, IReadingRepository repository, IUnitOfWork uow)
+    {
+        _readService = readService;
+        _readingRepo = repository;
+        _uow = uow;
+    }
+
+    public Task<Result<Reading>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<Reading>>> GetAll() => _readService.GetAll();
 
     public async Task<Result<Reading>> CreateForSensorAsync(int sensorId, Reading reading)
     {

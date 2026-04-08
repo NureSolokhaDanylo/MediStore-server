@@ -1,5 +1,4 @@
 using Application.Interfaces;
-using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.DTOs;
@@ -9,20 +8,38 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/alerts")]
-public class AlertsController : ReadController<Alert, AlertDto, IAlertService>
+public class AlertsController : MyController
 {
     private readonly IAlertService _alertService;
 
-    public AlertsController(IAlertService service) : base(service) { _alertService = service; }
+    public AlertsController(IAlertService service)
+    {
+        _alertService = service;
+    }
 
-    protected override AlertDto ToDto(Alert entity) => entity.ToDto();
-    protected override int GetId(AlertDto dto) => dto.Id;
-
+    [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<IEnumerable<AlertDto>>> GetAll() => base.GetAll();
+    public async Task<ActionResult<IEnumerable<AlertDto>>> GetAll()
+    {
+        var res = await _alertService.GetAll();
+        if (!res.IsSucceed) return ApiErrorResult<IEnumerable<AlertDto>>(res);
 
+        var list = res.Value ?? Enumerable.Empty<Domain.Models.Alert>();
+        return Ok(list.Select(ToDto));
+    }
+
+    [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<AlertDto>> Get(int id) => base.Get(id);
+    public async Task<ActionResult<AlertDto>> Get(int id)
+    {
+        var res = await _alertService.Get(id);
+        if (!res.IsSucceed) return ApiErrorResult<AlertDto>(res);
+
+        var entity = res.Value;
+        if (entity is null) return NotFound();
+
+        return Ok(ToDto(entity));
+    }
 
     [HttpGet("filtered")]
     [Authorize(Roles = "Admin,Operator,Observer")]
@@ -50,4 +67,6 @@ public class AlertsController : ReadController<Alert, AlertDto, IAlertService>
 
         return Ok(response);
     }
+
+    private static AlertDto ToDto(Domain.Models.Alert entity) => entity.ToDto();
 }

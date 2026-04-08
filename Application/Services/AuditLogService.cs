@@ -2,18 +2,23 @@ using Application.Interfaces;
 using Application.Results.Base;
 using Domain.Models;
 using Infrastructure.Interfaces;
-using Infrastructure.UOW;
 
 namespace Application.Services;
 
-public class AuditLogService : ReadOnlyService<AuditLog>, IAuditLogService
+public class AuditLogService : IAuditLogService
 {
+    private readonly IReadOnlyService<AuditLog> _readService;
     private readonly IAuditLogRepository _repo;
 
-    public AuditLogService(IAuditLogRepository repository, IUnitOfWork uow) : base(repository, uow)
+    public AuditLogService(IReadOnlyService<AuditLog> readService, IAuditLogRepository repository)
     {
+        _readService = readService;
         _repo = repository;
     }
+
+    public Task<Result<AuditLog>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<AuditLog>>> GetAll() => _readService.GetAll();
 
     public Task<Result<AuditLog>> GetByIdAsync(int id) => Get(id);
 

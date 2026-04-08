@@ -1,7 +1,5 @@
 using Application.Interfaces;
 
-using Domain.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,26 +10,65 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/medicines")]
-public class MedicinesController : CrudController<Medicine, MedicineDto, MedicineCreateDto, IMedicineService>
+public class MedicinesController : MyController
 {
-    public MedicinesController(IMedicineService service) : base(service) { }
+    private readonly IMedicineService _service;
 
-    protected override MedicineDto ToDto(Medicine entity) => entity.ToDto();
-    protected override Medicine ToEntity(MedicineDto dto) => dto.ToEntity();
-    protected override Medicine ToEntity(MedicineCreateDto dto) => dto.ToEntity();
-    protected override int GetId(MedicineDto dto) => dto.Id;
+    public MedicinesController(IMedicineService service)
+    {
+        _service = service;
+    }
 
+    [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<IEnumerable<MedicineDto>>> GetAll() => base.GetAll();
+    public async Task<ActionResult<IEnumerable<MedicineDto>>> GetAll()
+    {
+        var res = await _service.GetAll();
+        if (!res.IsSucceed) return ApiErrorResult<IEnumerable<MedicineDto>>(res);
 
+        var list = res.Value ?? Enumerable.Empty<Domain.Models.Medicine>();
+        return Ok(list.Select(ToDto));
+    }
+
+    [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<MedicineDto>> Get(int id) => base.Get(id);
+    public async Task<ActionResult<MedicineDto>> Get(int id)
+    {
+        var res = await _service.Get(id);
+        if (!res.IsSucceed) return ApiErrorResult<MedicineDto>(res);
 
-    [Authorize(Roles = "Admin")]
-    public override Task<IActionResult> Create([FromBody] MedicineCreateDto dto) => base.Create(dto);
+        var entity = res.Value;
+        if (entity is null) return NotFound();
 
+        return Ok(ToDto(entity));
+    }
+
+    [HttpPost]
     [Authorize(Roles = "Admin")]
-    public override Task<ActionResult<MedicineDto>> Update([FromBody] MedicineDto dto) => base.Update(dto);
+    public async Task<IActionResult> Create([FromBody] MedicineCreateDto dto)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
+
+        var res = await _service.Add(uid, dto.ToEntity());
+        if (!res.IsSucceed) return ApiErrorResult(res);
+
+        var createdDto = ToDto(res.Value!);
+        return CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
+    }
+
+    [HttpPut]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<MedicineDto>> Update([FromBody] MedicineDto dto)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<MedicineDto>();
+
+        var res = await _service.Update(uid, dto.ToEntity());
+        if (!res.IsSucceed) return ApiErrorResult<MedicineDto>(res);
+
+        return Ok(ToDto(res.Value!));
+    }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
@@ -41,11 +78,21 @@ public class MedicinesController : CrudController<Medicine, MedicineDto, Medicin
             return ValidationErrorResult<MedicineDto>("Route id and payload id must match.");
 
         dto.Id = id;
-        return await base.Update(dto);
+        return await Update(dto);
     }
 
+    [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
-    public override Task<IActionResult> Delete(int id) => base.Delete(id);
+    public async Task<IActionResult> Delete(int id)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
+
+        var res = await _service.Delete(uid, id);
+        if (!res.IsSucceed) return ApiErrorResult(res);
+
+        return NoContent();
+    }
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
@@ -74,4 +121,6 @@ public class MedicinesController : CrudController<Medicine, MedicineDto, Medicin
             Offset = effectiveOffset
         });
     }
+
+    private static MedicineDto ToDto(Domain.Models.Medicine entity) => entity.ToDto();
 }

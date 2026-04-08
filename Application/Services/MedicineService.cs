@@ -4,18 +4,31 @@ using Application.Results.Base;
 using Domain.Models;
 
 using Infrastructure.Interfaces;
-using Infrastructure.UOW;
-using System.Text.Json;
 
 namespace Application.Services;
 
-public class MedicineService : CrudService<Medicine>, IMedicineService
+public class MedicineService : IMedicineService
 {
+    private readonly IReadOnlyService<Medicine> _readService;
+    private readonly ICreateService<Medicine> _createService;
+    private readonly IUpdateService<Medicine> _updateService;
+    private readonly IDeleteService<Medicine> _deleteService;
     private readonly IMedicineRepository _medicineRepository;
+    private readonly IRepository<Medicine> _repository;
 
-    public MedicineService(IMedicineRepository repository, IUnitOfWork uow) : base(repository, uow) 
-    { 
+    public MedicineService(
+        IReadOnlyService<Medicine> readService,
+        ICreateService<Medicine> createService,
+        IUpdateService<Medicine> updateService,
+        IDeleteService<Medicine> deleteService,
+        IMedicineRepository repository)
+    {
+        _readService = readService;
+        _createService = createService;
+        _updateService = updateService;
+        _deleteService = deleteService;
         _medicineRepository = repository;
+        _repository = repository;
     }
 
     private Result Validate(Medicine m)
@@ -41,16 +54,16 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
         return Result.Success();
     }
 
-    public override async Task<Result<Medicine>> Add(string userId, Medicine entity)
+    public async Task<Result<Medicine>> Add(string userId, Medicine entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.Error!);
 
-        return await base.Add(userId, entity);
+        return await _createService.Add(userId, entity);
     }
 
-    public override async Task<Result<Medicine>> Update(string userId, Medicine entity)
+    public async Task<Result<Medicine>> Update(string userId, Medicine entity)
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
@@ -60,8 +73,14 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
         if (!check.IsSucceed)
             return Result<Medicine>.Failure(check.Error!);
 
-        return await base.Update(userId, entity);
+        return await _updateService.Update(userId, entity);
     }
+
+    public Task<Result<Medicine>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<Medicine>>> GetAll() => _readService.GetAll();
+
+    public Task<Result> Delete(string userId, int id) => _deleteService.Delete(userId, id);
 
     public async Task<Result<(IEnumerable<Medicine> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
     {
@@ -75,49 +94,4 @@ public class MedicineService : CrudService<Medicine>, IMedicineService
         return Result<(IEnumerable<Medicine>, int)>.Success((items, totalCount));
     }
 
-    protected override async Task LogAsync(string userId, string action, Medicine? before, Medicine? after)
-    {
-        var beforeSnapshot = before is null
-            ? null
-            : new
-            {
-                before.Id,
-                before.Name,
-                before.Description,
-                before.TempMax,
-                before.TempMin,
-                before.HumidMax,
-                before.HumidMin,
-                before.WarningThresholdDays
-            };
-
-        var afterSnapshot = after is null
-            ? null
-            : new
-            {
-                after.Id,
-                after.Name,
-                after.Description,
-                after.TempMax,
-                after.TempMin,
-                after.HumidMax,
-                after.HumidMin,
-                after.WarningThresholdDays
-            };
-
-        var log = new AuditLog
-        {
-            OccurredAt = DateTime.UtcNow,
-            EntityType = "Medicine",
-            EntityId = after?.Id ?? before?.Id ?? 0,
-            Action = action,
-            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
-            Summary = $"Medicine {action} (Id={after?.Id ?? before?.Id})",
-            OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
-            NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)
-        };
-
-        await _uow.AuditLogs.AddAsync(log);
-        await _uow.SaveChangesAsync();
-    }
 }

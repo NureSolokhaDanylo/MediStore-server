@@ -1,8 +1,6 @@
 using Application.Attributes;
 using Application.Interfaces;
 
-using Domain.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,21 +11,38 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/readings")]
-public class ReadingsController : ReadController<Reading, ReadingDto, IReadingService>
+public class ReadingsController : MyController
 {
     private readonly IReadingService _readingService;
 
-    public ReadingsController(IReadingService service) : base(service) { _readingService = service; }
+    public ReadingsController(IReadingService service)
+    {
+        _readingService = service;
+    }
 
-    protected override ReadingDto ToDto(Reading entity) => entity.ToDto();
-    protected override int GetId(ReadingDto dto) => dto.Id;
-
+    [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<IEnumerable<ReadingDto>>> GetAll() => base.GetAll();
+    public async Task<ActionResult<IEnumerable<ReadingDto>>> GetAll()
+    {
+        var res = await _readingService.GetAll();
+        if (!res.IsSucceed) return ApiErrorResult<IEnumerable<ReadingDto>>(res);
 
+        var list = res.Value ?? Enumerable.Empty<Domain.Models.Reading>();
+        return Ok(list.Select(ToDto));
+    }
+
+    [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<ReadingDto>> Get(int id) => base.Get(id);
+    public async Task<ActionResult<ReadingDto>> Get(int id)
+    {
+        var res = await _readingService.Get(id);
+        if (!res.IsSucceed) return ApiErrorResult<ReadingDto>(res);
 
+        var entity = res.Value;
+        if (entity is null) return NotFound();
+
+        return Ok(ToDto(entity));
+    }
 
     [HttpPost]
     [RequireSensorApiKey]
@@ -89,4 +104,6 @@ public class ReadingsController : ReadController<Reading, ReadingDto, IReadingSe
         var list = res.Value!.Select(r => r.ToDto());
         return Ok(list);
     }
+
+    private static ReadingDto ToDto(Domain.Models.Reading entity) => entity.ToDto();
 }

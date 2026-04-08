@@ -2,18 +2,31 @@ using Application.Interfaces;
 using Application.Results.Base;
 using Domain.Models;
 using Infrastructure.Interfaces;
-using Infrastructure.UOW;
-using System.Text.Json;
 
 namespace Application.Services;
 
-public class ZoneService : CrudService<Zone>, IZoneService
+public class ZoneService : IZoneService
 {
+    private readonly IReadOnlyService<Zone> _readService;
+    private readonly ICreateService<Zone> _createService;
+    private readonly IUpdateService<Zone> _updateService;
+    private readonly IDeleteService<Zone> _deleteService;
     private readonly IZoneRepository _zoneRepository;
+    private readonly IRepository<Zone> _repository;
 
-    public ZoneService(IZoneRepository repository, IUnitOfWork uow) : base(repository, uow) 
-    { 
+    public ZoneService(
+        IReadOnlyService<Zone> readService,
+        ICreateService<Zone> createService,
+        IUpdateService<Zone> updateService,
+        IDeleteService<Zone> deleteService,
+        IZoneRepository repository)
+    {
+        _readService = readService;
+        _createService = createService;
+        _updateService = updateService;
+        _deleteService = deleteService;
         _zoneRepository = repository;
+        _repository = repository;
     }
 
     private Result Validate(Zone z)
@@ -39,16 +52,16 @@ public class ZoneService : CrudService<Zone>, IZoneService
         return Result.Success();
     }
 
-    public override async Task<Result<Zone>> Add(string userId, Zone entity)
+    public async Task<Result<Zone>> Add(string userId, Zone entity)
     {
         var check = Validate(entity);
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.Error!);
 
-        return await base.Add(userId, entity);
+        return await _createService.Add(userId, entity);
     }
 
-    public override async Task<Result<Zone>> Update(string userId, Zone entity)
+    public async Task<Result<Zone>> Update(string userId, Zone entity)
     {
         var existing = await _repository.GetAsync(entity.Id);
         if (existing is null)
@@ -58,8 +71,14 @@ public class ZoneService : CrudService<Zone>, IZoneService
         if (!check.IsSucceed)
             return Result<Zone>.Failure(check.Error!);
 
-        return await base.Update(userId, entity);
+        return await _updateService.Update(userId, entity);
     }
+
+    public Task<Result<Zone>> Get(int id) => _readService.Get(id);
+
+    public Task<Result<IEnumerable<Zone>>> GetAll() => _readService.GetAll();
+
+    public Task<Result> Delete(string userId, int id) => _deleteService.Delete(userId, id);
 
     public async Task<Result<(IEnumerable<Zone> items, int totalCount)>> Search(string userId, string query, int limit, int offset)
     {
@@ -73,48 +92,4 @@ public class ZoneService : CrudService<Zone>, IZoneService
         return Result<(IEnumerable<Zone>, int)>.Success((items, totalCount));
     }
 
-    protected override async Task LogAsync(string userId, string action, Zone? before, Zone? after)
-    {
-        var id = after?.Id ?? before?.Id ?? 0;
-        var beforeSnapshot = before is null
-            ? null
-            : new
-            {
-                before.Id,
-                before.Name,
-                before.Description,
-                before.TempMax,
-                before.TempMin,
-                before.HumidMax,
-                before.HumidMin
-            };
-
-        var afterSnapshot = after is null
-            ? null
-            : new
-            {
-                after.Id,
-                after.Name,
-                after.Description,
-                after.TempMax,
-                after.TempMin,
-                after.HumidMax,
-                after.HumidMin
-            };
-
-        var log = new AuditLog
-        {
-            OccurredAt = DateTime.UtcNow,
-            EntityType = "Zone",
-            EntityId = id,
-            Action = action,
-            UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
-            Summary = $"Zone {action} (Id={id})",
-            OldValues = beforeSnapshot is null ? null : JsonSerializer.Serialize(beforeSnapshot),
-            NewValues = afterSnapshot is null ? null : JsonSerializer.Serialize(afterSnapshot)
-        };
-
-        await _uow.AuditLogs.AddAsync(log);
-        await _uow.SaveChangesAsync();
-    }
 }

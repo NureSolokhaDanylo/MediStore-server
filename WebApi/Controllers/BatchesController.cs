@@ -1,7 +1,5 @@
 using Application.Interfaces;
 
-using Domain.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,26 +10,65 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/batches")]
-public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto, IBatchService>
+public class BatchesController : MyController
 {
-    public BatchesController(IBatchService service) : base(service) { }
+    private readonly IBatchService _service;
 
-    protected override BatchDto ToDto(Batch entity) => entity.ToDto();
-    protected override Batch ToEntity(BatchDto dto) => dto.ToEntity();
-    protected override Batch ToEntity(BatchCreateDto dto) => dto.ToEntity();
-    protected override int GetId(BatchDto dto) => dto.Id;
+    public BatchesController(IBatchService service)
+    {
+        _service = service;
+    }
 
+    [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<IEnumerable<BatchDto>>> GetAll() => base.GetAll();
+    public async Task<ActionResult<IEnumerable<BatchDto>>> GetAll()
+    {
+        var res = await _service.GetAll();
+        if (!res.IsSucceed) return ApiErrorResult<IEnumerable<BatchDto>>(res);
 
+        var list = res.Value ?? Enumerable.Empty<Domain.Models.Batch>();
+        return Ok(list.Select(ToDto));
+    }
+
+    [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    public override Task<ActionResult<BatchDto>> Get(int id) => base.Get(id);
+    public async Task<ActionResult<BatchDto>> Get(int id)
+    {
+        var res = await _service.Get(id);
+        if (!res.IsSucceed) return ApiErrorResult<BatchDto>(res);
 
-    [Authorize(Roles = "Operator")]
-    public override Task<IActionResult> Create([FromBody] BatchCreateDto dto) => base.Create(dto);
+        var entity = res.Value;
+        if (entity is null) return NotFound();
 
+        return Ok(ToDto(entity));
+    }
+
+    [HttpPost]
     [Authorize(Roles = "Operator")]
-    public override Task<ActionResult<BatchDto>> Update([FromBody] BatchDto dto) => base.Update(dto);
+    public async Task<IActionResult> Create([FromBody] BatchCreateDto dto)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
+
+        var res = await _service.Add(uid, dto.ToEntity());
+        if (!res.IsSucceed) return ApiErrorResult(res);
+
+        var createdDto = ToDto(res.Value!);
+        return CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
+    }
+
+    [HttpPut]
+    [Authorize(Roles = "Operator")]
+    public async Task<ActionResult<BatchDto>> Update([FromBody] BatchDto dto)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult<BatchDto>();
+
+        var res = await _service.Update(uid, dto.ToEntity());
+        if (!res.IsSucceed) return ApiErrorResult<BatchDto>(res);
+
+        return Ok(ToDto(res.Value!));
+    }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Operator")]
@@ -41,11 +78,21 @@ public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto,
             return ValidationErrorResult<BatchDto>("Route id and payload id must match.");
 
         dto.Id = id;
-        return await base.Update(dto);
+        return await Update(dto);
     }
 
+    [HttpDelete("{id:int}")]
     [Authorize(Roles = "Operator")]
-    public override Task<IActionResult> Delete(int id) => base.Delete(id);
+    public async Task<IActionResult> Delete(int id)
+    {
+        var uid = userId;
+        if (string.IsNullOrEmpty(uid)) return UnauthorizedErrorResult();
+
+        var res = await _service.Delete(uid, id);
+        if (!res.IsSucceed) return ApiErrorResult(res);
+
+        return NoContent();
+    }
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
@@ -74,4 +121,6 @@ public class BatchesController : CrudController<Batch, BatchDto, BatchCreateDto,
             Offset = effectiveOffset
         });
     }
+
+    private static BatchDto ToDto(Domain.Models.Batch entity) => entity.ToDto();
 }

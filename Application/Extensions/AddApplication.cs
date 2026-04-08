@@ -16,6 +16,14 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
 
         services
+            .AddScoped(typeof(IReadOnlyService<>), typeof(ReadEntityService<>))
+            .AddScoped(typeof(ICreateService<>), typeof(CreateEntityService<>))
+            .AddScoped(typeof(IUpdateService<>), typeof(UpdateEntityService<>))
+            .AddScoped(typeof(IDeleteService<>), typeof(DeleteEntityService<>))
+            .AddScoped(typeof(IEntityAuditService<>), typeof(NullEntityAuditService<>))
+            .AddScoped<IEntityAuditService<Zone>, ZoneAuditService>()
+            .AddScoped<IEntityAuditService<Batch>, BatchAuditService>()
+            .AddScoped<IEntityAuditService<Medicine>, MedicineAuditService>()
             .AddScoped<IAccountService, AccountService>()
             .AddScoped<IZoneService, ZoneService>()
             .AddScoped<IBatchService, BatchService>()

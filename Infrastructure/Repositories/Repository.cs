@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-    internal class Repository<T> : IRepository<T> where T : EntityBase
+    public class Repository<T> : IRepository<T> where T : EntityBase
     {
         protected readonly AppDbContext _context;
         protected readonly DbSet<T> _set;
 
-        internal Repository(AppDbContext context)
+        public Repository(AppDbContext context)
         {
             _context = context;
             _set = _context.Set<T>();
