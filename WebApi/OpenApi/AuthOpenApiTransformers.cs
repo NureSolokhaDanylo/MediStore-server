@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using System.Reflection;
 
 using WebApi.Controllers;
 
@@ -39,12 +40,15 @@ public static class AuthOpenApiTransformers
         };
 
         document.Components.Schemas[ApiErrorSchemaName] = CreateApiErrorSchema();
+        NormalizeDocumentSchemas(document);
 
         return Task.CompletedTask;
     }
 
     public static Task ApplyOperationSecurityAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
+        ApplyOperationId(operation, context.Description.ActionDescriptor);
+
         var metadata = GetEndpointMetadata(context.Description.ActionDescriptor);
         if (metadata.Count == 0)
         {
@@ -53,6 +57,8 @@ public static class AuthOpenApiTransformers
 
         ApplyDeclaredErrorResponses(operation, metadata, context.Document);
         NormalizeOperationResponses(operation, metadata);
+        NormalizeOperationSchemas(operation);
+        ApplyAuthorizationDescription(operation, metadata);
 
         if (metadata.OfType<IAllowAnonymous>().Any())
         {
@@ -82,6 +88,37 @@ public static class AuthOpenApiTransformers
         }
 
         return actionDescriptor.EndpointMetadata ?? [];
+    }
+
+    private static void ApplyOperationId(OpenApiOperation operation, Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor actionDescriptor)
+    {
+        if (!string.IsNullOrWhiteSpace(operation.OperationId))
+        {
+            return;
+        }
+
+        if (actionDescriptor is not ControllerActionDescriptor controllerActionDescriptor)
+        {
+            return;
+        }
+
+        var controllerName = controllerActionDescriptor.ControllerName;
+        if (string.IsNullOrWhiteSpace(controllerName))
+        {
+            return;
+        }
+
+        var actionName = controllerActionDescriptor.MethodInfo.Name;
+        if (string.IsNullOrWhiteSpace(actionName))
+        {
+            return;
+        }
+
+        var suffix = RequiresRouteSuffix(controllerActionDescriptor)
+            ? BuildRouteSuffix(controllerActionDescriptor.AttributeRouteInfo?.Template)
+            : string.Empty;
+
+        operation.OperationId = ToCamelCase($"{controllerName}{actionName}{suffix}");
     }
 
     private static OpenApiSecurityRequirement CreateSecurityRequirement(string schemeName, OpenApiDocument document)
@@ -130,6 +167,25 @@ public static class AuthOpenApiTransformers
         }
     }
 
+    private static void ApplyAuthorizationDescription(OpenApiOperation operation, IList<object> metadata)
+    {
+        var roles = metadata
+            .OfType<IAuthorizeData>()
+            .SelectMany(static auth => SplitRoles(auth.Roles))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (roles.Length == 0)
+        {
+            return;
+        }
+
+        var rolesLine = $"Required roles: {string.Join(", ", roles)}";
+        operation.Description = string.IsNullOrWhiteSpace(operation.Description)
+            ? rolesLine
+            : $"{operation.Description.Trim()}{Environment.NewLine}{Environment.NewLine}{rolesLine}";
+    }
+
     private static void NormalizeOperationResponses(OpenApiOperation operation, IList<object> metadata)
     {
         RemoveContentFromBodylessResponses(operation);
@@ -160,6 +216,144 @@ public static class AuthOpenApiTransformers
         if (contentTypes.Length == 1 && string.Equals(contentTypes[0], "application/json", StringComparison.OrdinalIgnoreCase))
         {
             KeepOnlyJsonContent(operation);
+        }
+    }
+
+    private static void NormalizeDocumentSchemas(OpenApiDocument document)
+    {
+        if (document.Components?.Schemas is null)
+        {
+            return;
+        }
+
+        foreach (var schema in document.Components.Schemas.Values)
+        {
+            NormalizeSchema(schema);
+        }
+    }
+
+    private static void NormalizeOperationSchemas(OpenApiOperation operation)
+    {
+        if (operation.Parameters is not null)
+        {
+            foreach (var parameter in operation.Parameters)
+            {
+                if (parameter.Schema is not null)
+                {
+                    NormalizeSchema(parameter.Schema);
+                }
+            }
+        }
+
+        if (operation.RequestBody?.Content is not null)
+        {
+            foreach (var mediaType in operation.RequestBody.Content.Values)
+            {
+                if (mediaType.Schema is not null)
+                {
+                    NormalizeSchema(mediaType.Schema);
+                }
+            }
+        }
+
+        if (operation.Responses is null)
+        {
+            return;
+        }
+
+        foreach (var response in operation.Responses.Values)
+        {
+            if (response.Content is null)
+            {
+                continue;
+            }
+
+            foreach (var mediaType in response.Content.Values)
+            {
+                if (mediaType.Schema is not null)
+                {
+                    NormalizeSchema(mediaType.Schema);
+                }
+            }
+        }
+    }
+
+    private static void NormalizeSchema(IOpenApiSchema schema)
+    {
+        if (schema is OpenApiSchema openApiSchema)
+        {
+            NormalizeSchemaType(openApiSchema);
+        }
+
+        if (schema.Properties is not null)
+        {
+            foreach (var property in schema.Properties.Values)
+            {
+                NormalizeSchema(property);
+            }
+        }
+
+        if (schema.Items is not null)
+        {
+            NormalizeSchema(schema.Items);
+        }
+
+        if (schema.AdditionalProperties is not null)
+        {
+            NormalizeSchema(schema.AdditionalProperties);
+        }
+
+        if (schema.AnyOf is not null)
+        {
+            foreach (var nested in schema.AnyOf)
+            {
+                NormalizeSchema(nested);
+            }
+        }
+
+        if (schema.OneOf is not null)
+        {
+            foreach (var nested in schema.OneOf)
+            {
+                NormalizeSchema(nested);
+            }
+        }
+
+        if (schema.AllOf is not null)
+        {
+            foreach (var nested in schema.AllOf)
+            {
+                NormalizeSchema(nested);
+            }
+        }
+
+        if (schema.Not is not null)
+        {
+            NormalizeSchema(schema.Not);
+        }
+    }
+
+    private static void NormalizeSchemaType(OpenApiSchema schema)
+    {
+        var type = schema.Type;
+        if (type is null)
+        {
+            return;
+        }
+
+        if (type.Value.HasFlag(JsonSchemaType.Integer) && type.Value.HasFlag(JsonSchemaType.String))
+        {
+            schema.Type = type.Value.HasFlag(JsonSchemaType.Null)
+                ? JsonSchemaType.Integer | JsonSchemaType.Null
+                : JsonSchemaType.Integer;
+            return;
+        }
+
+        if (type.Value.HasFlag(JsonSchemaType.Number) && type.Value.HasFlag(JsonSchemaType.String))
+        {
+            schema.Type = type.Value.HasFlag(JsonSchemaType.Null)
+                ? JsonSchemaType.Number | JsonSchemaType.Null
+                : JsonSchemaType.Number;
         }
     }
 
@@ -316,5 +510,107 @@ public static class AuthOpenApiTransformers
         }
 
         return $"{description}. Possible internal codes: {string.Join(", ", codes)}";
+    }
+
+    private static IEnumerable<string> SplitRoles(string? roles)
+    {
+        if (string.IsNullOrWhiteSpace(roles))
+        {
+            return [];
+        }
+
+        return roles
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static role => !string.IsNullOrWhiteSpace(role));
+    }
+
+    private static bool RequiresRouteSuffix(ControllerActionDescriptor actionDescriptor)
+    {
+        var declaringType = actionDescriptor.MethodInfo.DeclaringType;
+        if (declaringType is null)
+        {
+            return false;
+        }
+
+        return declaringType
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+            .Count(m => string.Equals(m.Name, actionDescriptor.MethodInfo.Name, StringComparison.Ordinal)) > 1;
+    }
+
+    private static string BuildRouteSuffix(string? template)
+    {
+        if (string.IsNullOrWhiteSpace(template))
+        {
+            return string.Empty;
+        }
+
+        var routeParts = template
+            .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToArray();
+
+        var parameterParts = routeParts
+            .Where(static part => part.StartsWith('{') && part.EndsWith('}'))
+            .Select(ToRoutePartSuffix)
+            .Where(static part => !string.IsNullOrEmpty(part))
+            .ToArray();
+
+        if (parameterParts.Length > 0)
+        {
+            return string.Concat(parameterParts);
+        }
+
+        var literalParts = routeParts
+            .Select(ToRoutePartSuffix)
+            .Where(static part => !string.IsNullOrEmpty(part))
+            .ToArray();
+
+        if (literalParts.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return literalParts[^1];
+    }
+
+    private static string ToRoutePartSuffix(string routePart)
+    {
+        if (routePart.StartsWith('{') && routePart.EndsWith('}'))
+        {
+            var parameterName = routePart[1..^1];
+            var colonIndex = parameterName.IndexOf(':');
+            if (colonIndex >= 0)
+            {
+                parameterName = parameterName[..colonIndex];
+            }
+
+            return $"By{ToPascalCase(parameterName)}";
+        }
+
+        return ToPascalCase(routePart);
+    }
+
+    private static string ToCamelCase(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        return char.ToLowerInvariant(value[0]) + value[1..];
+    }
+
+    private static string ToPascalCase(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var parts = value
+            .Split(['-', '_'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static part => !string.IsNullOrWhiteSpace(part))
+            .Select(static part => char.ToUpperInvariant(part[0]) + part[1..]);
+
+        return string.Concat(parts);
     }
 }

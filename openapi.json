@@ -15,6 +15,7 @@
         "tags": [
           "Account"
         ],
+        "operationId": "accountLogin",
         "requestBody": {
           "content": {
             "application/json": {
@@ -60,6 +61,7 @@
         "tags": [
           "Account"
         ],
+        "operationId": "accountMe",
         "responses": {
           "200": {
             "description": "OK",
@@ -94,6 +96,8 @@
         "tags": [
           "Account"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "accountCreateAccount",
         "requestBody": {
           "content": {
             "application/json": {
@@ -166,6 +170,7 @@
         "tags": [
           "Account"
         ],
+        "operationId": "accountChangePassword",
         "requestBody": {
           "content": {
             "application/json": {
@@ -238,6 +243,8 @@
         "tags": [
           "Account"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "accountChangeRoles",
         "requestBody": {
           "content": {
             "application/json": {
@@ -320,6 +327,8 @@
         "tags": [
           "Account"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "accountDelete",
         "parameters": [
           {
             "name": "id",
@@ -397,16 +406,15 @@
         "tags": [
           "Account"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "accountGetUsers",
         "parameters": [
           {
             "name": "skip",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 0
             }
@@ -416,10 +424,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 50
             }
@@ -493,6 +498,8 @@
         "tags": [
           "Alerts"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "alertsGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -540,6 +547,8 @@
         "tags": [
           "Alerts"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "alertsGet",
         "parameters": [
           {
             "name": "id",
@@ -606,16 +615,15 @@
         "tags": [
           "Alerts"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "alertsGetFiltered",
         "parameters": [
           {
             "name": "Skip",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -624,10 +632,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -643,10 +648,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -655,10 +657,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -717,6 +716,8 @@
         "tags": [
           "AppSettings"
         ],
+        "description": "Required roles: Admin, Operator",
+        "operationId": "appSettingsGet",
         "responses": {
           "200": {
             "description": "OK",
@@ -769,6 +770,8 @@
         "tags": [
           "AppSettings"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "appSettingsUpdate",
         "requestBody": {
           "content": {
             "application/json": {
@@ -848,6 +851,8 @@
         "tags": [
           "AuditLogs"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "auditLogsGet",
         "parameters": [
           {
             "name": "id",
@@ -914,6 +919,8 @@
         "tags": [
           "AuditLogs"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "auditLogsGetByTypeRange",
         "parameters": [
           {
             "name": "entityType",
@@ -997,6 +1004,8 @@
         "tags": [
           "AuditLogs"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "auditLogsGetByTypePaged",
         "parameters": [
           {
             "name": "entityType",
@@ -1027,10 +1036,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 0
             }
@@ -1040,10 +1046,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 50
             }
@@ -1103,6 +1106,8 @@
         "tags": [
           "AuditLogs"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "auditLogsGetPaged",
         "parameters": [
           {
             "name": "q",
@@ -1153,10 +1158,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 0
             }
@@ -1166,10 +1168,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 50
             }
@@ -1229,6 +1228,8 @@
         "tags": [
           "AuditLogs"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "auditLogsGetByTypeLast",
         "parameters": [
           {
             "name": "entityType",
@@ -1243,10 +1244,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -1308,6 +1306,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "batchesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -1353,6 +1353,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Operator",
+        "operationId": "batchesCreate",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1430,6 +1432,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Operator",
+        "operationId": "batchesUpdateBatches",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1509,6 +1513,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "batchesGet",
         "parameters": [
           {
             "name": "id",
@@ -1573,6 +1579,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Operator",
+        "operationId": "batchesUpdateById",
         "parameters": [
           {
             "name": "id",
@@ -1662,6 +1670,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Operator",
+        "operationId": "batchesDelete",
         "parameters": [
           {
             "name": "id",
@@ -1721,6 +1731,8 @@
         "tags": [
           "Batches"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "batchesSearch",
         "parameters": [
           {
             "name": "q",
@@ -1734,10 +1746,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -1746,10 +1755,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -1758,10 +1764,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -1770,10 +1773,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -1832,6 +1832,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "medicinesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -1877,6 +1879,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "medicinesCreate",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1944,6 +1948,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "medicinesUpdateMedicines",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2023,6 +2029,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "medicinesGet",
         "parameters": [
           {
             "name": "id",
@@ -2087,6 +2095,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "medicinesUpdateById",
         "parameters": [
           {
             "name": "id",
@@ -2176,6 +2186,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "medicinesDelete",
         "parameters": [
           {
             "name": "id",
@@ -2235,6 +2247,8 @@
         "tags": [
           "Medicines"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "medicinesSearch",
         "parameters": [
           {
             "name": "q",
@@ -2248,10 +2262,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2260,10 +2271,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2272,10 +2280,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2284,10 +2289,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -2346,6 +2348,7 @@
         "tags": [
           "Ping"
         ],
+        "operationId": "pingPing",
         "responses": {
           "200": {
             "description": "OK",
@@ -2366,6 +2369,7 @@
         "tags": [
           "Push"
         ],
+        "operationId": "pushRegisterDevice",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2418,6 +2422,8 @@
         "tags": [
           "Readings"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "readingsGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -2463,6 +2469,7 @@
         "tags": [
           "Readings"
         ],
+        "operationId": "readingsCreateForSensor",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2505,6 +2512,8 @@
         "tags": [
           "Readings"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "readingsGet",
         "parameters": [
           {
             "name": "id",
@@ -2571,6 +2580,8 @@
         "tags": [
           "Readings"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "readingsGetForSensor",
         "parameters": [
           {
             "name": "sensorId",
@@ -2578,10 +2589,7 @@
             "required": true,
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2659,6 +2667,8 @@
         "tags": [
           "Readings"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "readingsGetLastForSensor",
         "parameters": [
           {
             "name": "sensorId",
@@ -2666,10 +2676,7 @@
             "required": true,
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2678,10 +2685,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -2743,6 +2747,8 @@
         "tags": [
           "Readings"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "readingsGetForZone",
         "parameters": [
           {
             "name": "zoneId",
@@ -2750,10 +2756,7 @@
             "required": true,
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2831,6 +2834,8 @@
         "tags": [
           "Readings"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "readingsGetLastForZone",
         "parameters": [
           {
             "name": "zoneId",
@@ -2838,10 +2843,7 @@
             "required": true,
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -2850,10 +2852,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -2915,6 +2914,8 @@
         "tags": [
           "Report"
         ],
+        "description": "Required roles: Admin, Observer",
+        "operationId": "reportAlertsReport",
         "parameters": [
           {
             "name": "from",
@@ -2988,16 +2989,15 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "sensorsGetSensors",
         "parameters": [
           {
             "name": "zoneId",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -3057,6 +3057,8 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "sensorsCreate",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3124,16 +3126,15 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "sensorsDelete",
         "parameters": [
           {
             "name": "id",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -3183,6 +3184,8 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "sensorsUpdateAllowedFields",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3252,16 +3255,15 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "sensorsGetSensorsPaged",
         "parameters": [
           {
             "name": "skip",
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 0
             }
@@ -3271,10 +3273,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32",
               "default": 50
             }
@@ -3305,10 +3304,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -3377,6 +3373,8 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "sensorsGet",
         "parameters": [
           {
             "name": "id",
@@ -3443,6 +3441,8 @@
         "tags": [
           "Sensors"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "sensorsCreateApiKey",
         "parameters": [
           {
             "name": "id",
@@ -3509,6 +3509,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "zonesGetAll",
         "responses": {
           "200": {
             "description": "OK",
@@ -3554,6 +3556,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "zonesCreate",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3621,6 +3625,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "zonesUpdateZones",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3700,6 +3706,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "zonesGet",
         "parameters": [
           {
             "name": "id",
@@ -3764,6 +3772,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "zonesUpdateById",
         "parameters": [
           {
             "name": "id",
@@ -3853,6 +3863,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin",
+        "operationId": "zonesDelete",
         "parameters": [
           {
             "name": "id",
@@ -3912,6 +3924,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "zonesSearch",
         "parameters": [
           {
             "name": "q",
@@ -3925,10 +3939,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -3937,10 +3948,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -3949,10 +3957,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           },
@@ -3961,10 +3966,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -4023,6 +4025,8 @@
         "tags": [
           "Zones"
         ],
+        "description": "Required roles: Admin, Operator, Observer",
+        "operationId": "zonesGetSensors",
         "parameters": [
           {
             "name": "id",
@@ -4111,10 +4115,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "message": {
@@ -4141,8 +4142,7 @@
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           },
@@ -4150,8 +4150,7 @@
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           }
@@ -4195,18 +4194,12 @@
           },
           "tempAlertDeviation": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidityAlertDeviation": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "checkDeviationInterval": {
@@ -4215,18 +4208,12 @@
           },
           "readingsRetentionDays": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4246,18 +4233,12 @@
           },
           "tempAlertDeviation": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidityAlertDeviation": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "checkDeviationInterval": {
@@ -4266,10 +4247,7 @@
           },
           "readingsRetentionDays": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4279,10 +4257,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "occurredAt": {
@@ -4294,10 +4269,7 @@
           },
           "entityId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "action": {
@@ -4345,10 +4317,7 @@
           },
           "quantity": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "expireDate": {
@@ -4361,18 +4330,12 @@
           },
           "medicineId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "zoneId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4391,10 +4354,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "batchNumber": {
@@ -4402,10 +4362,7 @@
           },
           "quantity": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "expireDate": {
@@ -4418,18 +4375,12 @@
           },
           "medicineId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "zoneId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4439,10 +4390,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "batchNumber": {
@@ -4450,18 +4398,12 @@
           },
           "medicineId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "zoneId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4617,34 +4559,22 @@
           },
           "tempMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "tempMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           }
         }
@@ -4662,10 +4592,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "name": {
@@ -4679,34 +4606,22 @@
           },
           "tempMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "tempMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           }
         }
@@ -4716,10 +4631,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "name": {
@@ -4750,26 +4662,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "skip": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "take": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "hasMore": {
@@ -4794,26 +4697,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "skip": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "take": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "hasMore": {
@@ -4838,26 +4732,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "skip": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "take": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "hasMore": {
@@ -4882,26 +4767,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "skip": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "take": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "hasMore": {
@@ -4920,26 +4796,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "limit": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "offset": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4955,26 +4822,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "limit": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "offset": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -4990,26 +4848,17 @@
           },
           "totalCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "limit": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "offset": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           }
         }
@@ -5027,10 +4876,7 @@
           },
           "value": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           }
         }
@@ -5045,10 +4891,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "timeStamp": {
@@ -5057,10 +4900,7 @@
           },
           "value": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           }
         }
@@ -5097,8 +4937,7 @@
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           }
@@ -5115,10 +4954,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "serialNumber": {
@@ -5128,8 +4964,7 @@
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
             "type": [
               "null",
-              "number",
-              "string"
+              "number"
             ],
             "format": "double"
           },
@@ -5150,8 +4985,7 @@
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           }
@@ -5165,10 +4999,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "serialNumber": {
@@ -5187,8 +5018,7 @@
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
-              "integer",
-              "string"
+              "integer"
             ],
             "format": "int32"
           }
@@ -5245,34 +5075,22 @@
           },
           "tempMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "tempMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           }
         }
@@ -5290,10 +5108,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "name": {
@@ -5307,34 +5122,22 @@
           },
           "tempMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "tempMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMax": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           },
           "humidMin": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
-            "type": [
-              "number",
-              "string"
-            ],
+            "type": "number",
             "format": "double"
           }
         }
@@ -5344,10 +5147,7 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": "integer",
             "format": "int32"
           },
           "name": {
