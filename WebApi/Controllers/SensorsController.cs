@@ -11,6 +11,8 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/sensors")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class SensorsController : MyController
 {
     private readonly ISensorApiKeyService _apiKeyService;
@@ -24,6 +26,7 @@ public class SensorsController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<SensorDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors([FromQuery] int? zoneId)
     {
         if (!zoneId.HasValue)
@@ -44,6 +47,7 @@ public class SensorsController : MyController
 
     [HttpGet("paged")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(PagedResultDto<SensorDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<SensorDto>>> GetSensorsPaged(
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50,
@@ -70,6 +74,7 @@ public class SensorsController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(SensorDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SensorDto>> Get(int id)
     {
         var res = await _sensorService.Get(id);
@@ -83,6 +88,7 @@ public class SensorsController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SensorDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] SensorCreateDto dto)
     {
         var res = await _sensorService.Add(dto.ToEntity());
@@ -94,6 +100,7 @@ public class SensorsController : MyController
 
     [HttpDelete]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete([FromQuery] int id)
     {
         var res = await _sensorService.Delete(id);
@@ -103,6 +110,7 @@ public class SensorsController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SensorDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAllowedFields([FromBody] SensorUpdateDto dto)
     {
         var res = await _sensorService.UpdateFromAdmin(dto.Id, dto.SerialNumber, dto.IsOn, dto.ZoneId);
@@ -111,13 +119,18 @@ public class SensorsController : MyController
         return Ok(res.Value!.ToDto());
     }
 
+    // NOTE: API response contract changed from an anonymous object to SensorApiKeyResponseDto.
     [HttpPost("{id:int}/apikey")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SensorApiKeyResponseDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateApiKey(int id)
     {
         var res = await _apiKeyService.CreateNewApiKey(id);
         if (!res.IsSucceed) return ApiErrorResult(res);
-        return Ok(new { apiKey = res.Value });
+        return Ok(new SensorApiKeyResponseDto
+        {
+            ApiKey = res.Value!
+        });
     }
 
     private static SensorDto ToDto(Domain.Models.Sensor entity) => entity.ToDto();

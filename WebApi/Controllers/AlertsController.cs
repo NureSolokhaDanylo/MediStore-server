@@ -8,6 +8,8 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/alerts")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class AlertsController : MyController
 {
     private readonly IAlertService _alertService;
@@ -19,6 +21,7 @@ public class AlertsController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<AlertDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AlertDto>>> GetAll()
     {
         var res = await _alertService.GetAll();
@@ -30,6 +33,7 @@ public class AlertsController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(AlertDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<AlertDto>> Get(int id)
     {
         var res = await _alertService.Get(id);
@@ -43,6 +47,7 @@ public class AlertsController : MyController
 
     [HttpGet("filtered")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(PagedResultDto<AlertDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<AlertDto>>> GetFiltered([FromQuery] AlertFilterDto filter)
     {
         var result = await _alertService.GetFilteredAlertsAsync(

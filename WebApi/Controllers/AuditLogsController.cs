@@ -10,6 +10,8 @@ namespace WebApi.Controllers;
 [ApiController]
 [Route("api/v1/audit-logs")]
 [Authorize(Roles = "Admin")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class AuditLogsController : MyController
 {
     private readonly IAuditLogService _service;
@@ -19,6 +21,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(AuditLogDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(int id)
     {
         var res = await _service.GetByIdAsync(id);
@@ -28,6 +31,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("type/{entityType}")]
+    [ProducesResponseType(typeof(IEnumerable<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByTypeRange([FromRoute] string entityType, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
         if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ErrorCodes.AuditLog.InvalidEntityType);
@@ -40,6 +44,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("type/{entityType}/paged")]
+    [ProducesResponseType(typeof(PagedResultDto<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<AuditLogDto>>> GetByTypePaged(
         [FromRoute] string entityType,
         [FromQuery] DateTime? from,
@@ -65,6 +70,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("paged")]
+    [ProducesResponseType(typeof(PagedResultDto<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<AuditLogDto>>> GetPaged(
         [FromQuery] string? q = null,
         [FromQuery] string? entityType = null,
@@ -101,6 +107,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("type/{entityType}/last")]
+    [ProducesResponseType(typeof(IEnumerable<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByTypeLast([FromRoute] string entityType, [FromQuery] int count)
     {
         if (string.IsNullOrWhiteSpace(entityType)) return ValidationErrorResult("entityType is required", ErrorCodes.AuditLog.InvalidEntityType);

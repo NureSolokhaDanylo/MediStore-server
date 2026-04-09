@@ -10,6 +10,8 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/batches")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class BatchesController : MyController
 {
     private readonly IBatchService _service;
@@ -21,6 +23,7 @@ public class BatchesController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<BatchDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BatchDto>>> GetAll()
     {
         var res = await _service.GetAll();
@@ -32,6 +35,7 @@ public class BatchesController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(BatchDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BatchDto>> Get(int id)
     {
         var res = await _service.Get(id);
@@ -45,6 +49,7 @@ public class BatchesController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Operator")]
+    [ProducesResponseType(typeof(BatchDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] BatchCreateDto dto)
     {
         var res = await _service.Add(dto.ToEntity());
@@ -56,6 +61,7 @@ public class BatchesController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Operator")]
+    [ProducesResponseType(typeof(BatchDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BatchDto>> Update([FromBody] BatchDto dto)
     {
         var res = await _service.Update(dto.ToEntity());
@@ -66,6 +72,7 @@ public class BatchesController : MyController
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Operator")]
+    [ProducesResponseType(typeof(BatchDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BatchDto>> Update(int id, [FromBody] BatchDto dto)
     {
         if (dto.Id != 0 && dto.Id != id)
@@ -77,6 +84,7 @@ public class BatchesController : MyController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Operator")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {
         var res = await _service.Delete(id);
@@ -87,6 +95,7 @@ public class BatchesController : MyController
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(PagedSearchResultDto<BatchSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedSearchResultDto<BatchSearchResultDto>>> Search(
         [FromQuery] string q,
         [FromQuery] int? skip = null,

@@ -15,6 +15,8 @@ namespace WebApi.Controllers
 {
     [ApiController]
     [Route("api/v1/account")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     public class AccountController : MyController
     {
         private readonly IAccountService _accountService;
@@ -24,26 +26,39 @@ namespace WebApi.Controllers
             _accountService = accountService;
         }
 
+        // NOTE: API response contract changed from an anonymous object to LoginResponseDto.
         [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
             var res = await _accountService.LoginAsync(dto.Login, dto.Password);
             if (!res.IsSucceed) return ApiErrorResult(res);
-            return Ok(new { token = res.Value });
+            return Ok(new LoginResponseDto
+            {
+                Token = res.Value!
+            });
         }
 
+        // NOTE: API response contract changed from an anonymous object to CurrentUserDto.
         [HttpGet("me")]
         [Authorize]
+        [ProducesResponseType(typeof(CurrentUserDto), StatusCodes.Status200OK)]
         public IActionResult Me()
         {
             var id = userId;
             var name = login;
             if (string.IsNullOrEmpty(id)) return UnauthorizedErrorResult();
-            return Ok(new { Id = id, Login = name, Roles = roles });
+            return Ok(new CurrentUserDto
+            {
+                Id = id,
+                Login = name,
+                Roles = roles
+            });
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
         {
             var res = await _accountService.CreateAccountAsync(dto.UserName, dto.Password, dto.Roles);
@@ -53,6 +68,7 @@ namespace WebApi.Controllers
 
         [HttpPost("change-password")]
         [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             var res = await _accountService.ChangePasswordAsync(dto.TargetUserId, dto.CurrentPassword, dto.NewPassword);
@@ -62,6 +78,7 @@ namespace WebApi.Controllers
 
         [HttpPost("roles")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ChangeRoles([FromBody] ChangeRolesDto dto)
         {
             var res = await _accountService.ChangeRolesAsync(dto.TargetUserId, dto.Roles);
@@ -71,6 +88,7 @@ namespace WebApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(string id)
         {
             var res = await _accountService.DeleteUserAsync(id);
@@ -80,6 +98,7 @@ namespace WebApi.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(PagedResultDto<UserDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResultDto<UserDto>>> GetUsers(
             [FromQuery] int skip = 0,
             [FromQuery] int take = 50,

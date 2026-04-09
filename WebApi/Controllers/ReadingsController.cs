@@ -11,6 +11,8 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/readings")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class ReadingsController : MyController
 {
     private readonly IReadingService _readingService;
@@ -22,6 +24,7 @@ public class ReadingsController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ReadingDto>>> GetAll()
     {
         var res = await _readingService.GetAll();
@@ -33,6 +36,7 @@ public class ReadingsController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(ReadingDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ReadingDto>> Get(int id)
     {
         var res = await _readingService.Get(id);
@@ -46,6 +50,7 @@ public class ReadingsController : MyController
 
     [HttpPost]
     [RequireSensorApiKey]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> CreateForSensor([FromBody] ReadingCreateDto dto)
     {
         var reading = dto.ToEntity();
@@ -53,12 +58,12 @@ public class ReadingsController : MyController
         var res = await _readingService.CreateForSensorAsync(reading);
         if (!res.IsSucceed) return NoContent(); // if sensor off or similar, do nothing
 
-        var created = res.Value!;
-        return Ok();
+        return NoContent();
     }
 
     [HttpGet("sensor/{sensorId}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetForSensor([FromRoute] int sensorId, [FromQuery] DateTime from, [FromQuery] DateTime to)
     {
         var res = await _readingService.GetReadingsForSensorAsync(sensorId, from.ToUniversalTime(), to.ToUniversalTime());
@@ -70,6 +75,7 @@ public class ReadingsController : MyController
 
     [HttpGet("sensor/{sensorId}/last")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLastForSensor([FromRoute] int sensorId, [FromQuery] int count)
     {
         var res = await _readingService.GetLatestReadingsForSensorAsync(sensorId, count);
@@ -81,6 +87,7 @@ public class ReadingsController : MyController
 
     [HttpGet("zone/{zoneId}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetForZone([FromRoute] int zoneId, [FromQuery] DateTime from, [FromQuery] DateTime to)
     {
         var res = await _readingService.GetReadingsForZoneAsync(zoneId, from.ToUniversalTime(), to.ToUniversalTime());
@@ -92,6 +99,7 @@ public class ReadingsController : MyController
 
     [HttpGet("zone/{zoneId}/last")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLastForZone([FromRoute] int zoneId, [FromQuery] int count)
     {
         var res = await _readingService.GetLatestReadingsForZoneAsync(zoneId, count);

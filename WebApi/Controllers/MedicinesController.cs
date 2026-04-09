@@ -10,6 +10,8 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/medicines")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class MedicinesController : MyController
 {
     private readonly IMedicineService _service;
@@ -21,6 +23,7 @@ public class MedicinesController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<MedicineDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<MedicineDto>>> GetAll()
     {
         var res = await _service.GetAll();
@@ -32,6 +35,7 @@ public class MedicinesController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(MedicineDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<MedicineDto>> Get(int id)
     {
         var res = await _service.Get(id);
@@ -45,6 +49,7 @@ public class MedicinesController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(MedicineDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] MedicineCreateDto dto)
     {
         var res = await _service.Add(dto.ToEntity());
@@ -56,6 +61,7 @@ public class MedicinesController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(MedicineDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<MedicineDto>> Update([FromBody] MedicineDto dto)
     {
         var res = await _service.Update(dto.ToEntity());
@@ -66,6 +72,7 @@ public class MedicinesController : MyController
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(MedicineDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<MedicineDto>> Update(int id, [FromBody] MedicineDto dto)
     {
         if (dto.Id != 0 && dto.Id != id)
@@ -77,6 +84,7 @@ public class MedicinesController : MyController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {
         var res = await _service.Delete(id);
@@ -87,6 +95,7 @@ public class MedicinesController : MyController
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(PagedSearchResultDto<MedicineSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedSearchResultDto<MedicineSearchResultDto>>> Search(
         [FromQuery] string q,
         [FromQuery] int? skip = null,

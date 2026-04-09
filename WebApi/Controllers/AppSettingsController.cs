@@ -9,6 +9,8 @@ namespace WebApi.Controllers
 {
     [ApiController]
     [Route("api/v1/settings")]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     public class AppSettingsController : MyController
     {
         private readonly IAppSettingsService _settingsService;
@@ -20,6 +22,7 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Operator")]
+        [ProducesResponseType(typeof(AppSettings), StatusCodes.Status200OK)]
         public async Task<IActionResult> Get()
         {
             var res = await _settingsService.GetSingletonAsync();
@@ -29,6 +32,7 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(AppSettings), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] AppSettingsDto dto)
         {
             var entity = new AppSettings

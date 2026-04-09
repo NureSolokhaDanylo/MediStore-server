@@ -23,6 +23,8 @@ namespace WebApi.Controllers
         // GET /api/v1/reports/alerts?from=2025-12-01T00:00:00Z&to=2025-12-02T00:00:00Z
         [HttpGet("alerts")]
         [Authorize(Roles = "Admin,Observer")]
+        [Produces("application/pdf")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AlertsReport([FromQuery] DateTime from, [FromQuery] DateTime to)
         {
             var res = await _reportService.GetAlertsReportAsync(from, to);

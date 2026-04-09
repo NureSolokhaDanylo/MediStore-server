@@ -10,6 +10,8 @@ namespace WebApi.Controllers;
 
 [ApiController]
 [Route("api/v1/zones")]
+[Consumes("application/json")]
+[Produces("application/json")]
 public class ZonesController : MyController
 {
     private readonly IZoneService _service;
@@ -23,6 +25,7 @@ public class ZonesController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<ZoneDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZoneDto>>> GetAll()
     {
         var res = await _service.GetAll();
@@ -34,6 +37,7 @@ public class ZonesController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZoneDto>> Get(int id)
     {
         var res = await _service.Get(id);
@@ -47,6 +51,7 @@ public class ZonesController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] ZoneCreateDto dto)
     {
         var res = await _service.Add(dto.ToEntity());
@@ -58,6 +63,7 @@ public class ZonesController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZoneDto>> Update([FromBody] ZoneDto dto)
     {
         var res = await _service.Update(dto.ToEntity());
@@ -68,6 +74,7 @@ public class ZonesController : MyController
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZoneDto>> Update(int id, [FromBody] ZoneDto dto)
     {
         if (dto.Id != 0 && dto.Id != id)
@@ -79,6 +86,7 @@ public class ZonesController : MyController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {
         var res = await _service.Delete(id);
@@ -89,6 +97,7 @@ public class ZonesController : MyController
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(PagedSearchResultDto<ZoneSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedSearchResultDto<ZoneSearchResultDto>>> Search(
         [FromQuery] string q,
         [FromQuery] int? skip = null,
@@ -114,6 +123,7 @@ public class ZonesController : MyController
 
     [HttpGet("{id:int}/sensors")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ProducesResponseType(typeof(IEnumerable<SensorDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors(int id)
     {
         // First verify zone exists

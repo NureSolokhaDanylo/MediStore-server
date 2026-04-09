@@ -10,6 +10,8 @@ namespace WebApi.Controllers
 {
     [Route("api/v1/push/devices")]
     [ApiController]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     public class PushController : MyController
     {
         private readonly IUserDeviceService _service;
@@ -21,6 +23,7 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> RegisterDevice([FromBody] CreateUserDeviceDto dto)
         {
             var result = await _service.RegisterDeviceAsync(dto);
@@ -30,7 +33,7 @@ namespace WebApi.Controllers
                 return ApiErrorResult(result);
             }
 
-            return Ok();
+            return NoContent();
         }
     }
 }
