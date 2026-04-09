@@ -36,22 +36,22 @@ public class MedicineService : IMedicineService
     private Result Validate(Medicine m)
     {
         if (m.TempMin < -50 || m.TempMin > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.ValidationFailed, "TempMin must be between -50 and 100", "tempMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.TempMinOutOfRange, "TempMin must be between -50 and 100", "tempMin"));
 
         if (m.TempMax < -50 || m.TempMax > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.ValidationFailed, "TempMax must be between -50 and 100", "tempMax"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.TempMaxOutOfRange, "TempMax must be between -50 and 100", "tempMax"));
 
         if (m.TempMin > m.TempMax)
-            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.ValidationFailed, "TempMin cannot be greater than TempMax", "tempMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.TempRangeInvalid, "TempMin cannot be greater than TempMax", "tempMin"));
 
         if (m.HumidMin < 0 || m.HumidMin > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.ValidationFailed, "HumidMin must be between 0 and 100", "humidMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.HumidMinOutOfRange, "HumidMin must be between 0 and 100", "humidMin"));
 
         if (m.HumidMax < 0 || m.HumidMax > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.ValidationFailed, "HumidMax must be between 0 and 100", "humidMax"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.HumidMaxOutOfRange, "HumidMax must be between 0 and 100", "humidMax"));
 
         if (m.HumidMin > m.HumidMax)
-            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.ValidationFailed, "HumidMin cannot be greater than HumidMax", "humidMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Medicine.HumidRangeInvalid, "HumidMin cannot be greater than HumidMax", "humidMin"));
 
         return Result.Success();
     }

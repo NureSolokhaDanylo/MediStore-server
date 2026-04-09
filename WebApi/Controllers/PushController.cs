@@ -23,6 +23,9 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Authorize]
+        [ApiErrors(401, 403)]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "push.user_mismatch")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> RegisterDevice([FromBody] CreateUserDeviceDto dto)
         {

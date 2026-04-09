@@ -37,21 +37,33 @@ public static class ErrorCodes
     public static class Medicine
     {
         public static readonly ErrorCode NotFound = ErrorCode.Create("medicine.not_found");
-        public static readonly ErrorCode ValidationFailed = ErrorCode.Create("medicine.validation_failed");
+        public static readonly ErrorCode TempMinOutOfRange = ErrorCode.Create("medicine.temp_min_out_of_range");
+        public static readonly ErrorCode TempMaxOutOfRange = ErrorCode.Create("medicine.temp_max_out_of_range");
+        public static readonly ErrorCode TempRangeInvalid = ErrorCode.Create("medicine.temp_range_invalid");
+        public static readonly ErrorCode HumidMinOutOfRange = ErrorCode.Create("medicine.humid_min_out_of_range");
+        public static readonly ErrorCode HumidMaxOutOfRange = ErrorCode.Create("medicine.humid_max_out_of_range");
+        public static readonly ErrorCode HumidRangeInvalid = ErrorCode.Create("medicine.humid_range_invalid");
         public static readonly ErrorCode InvalidSearchPaging = ErrorCode.Create("medicine.invalid_search_paging");
     }
 
     public static class Zone
     {
         public static readonly ErrorCode NotFound = ErrorCode.Create("zone.not_found");
-        public static readonly ErrorCode ValidationFailed = ErrorCode.Create("zone.validation_failed");
+        public static readonly ErrorCode TempMinOutOfRange = ErrorCode.Create("zone.temp_min_out_of_range");
+        public static readonly ErrorCode TempMaxOutOfRange = ErrorCode.Create("zone.temp_max_out_of_range");
+        public static readonly ErrorCode TempRangeInvalid = ErrorCode.Create("zone.temp_range_invalid");
+        public static readonly ErrorCode HumidMinOutOfRange = ErrorCode.Create("zone.humid_min_out_of_range");
+        public static readonly ErrorCode HumidMaxOutOfRange = ErrorCode.Create("zone.humid_max_out_of_range");
+        public static readonly ErrorCode HumidRangeInvalid = ErrorCode.Create("zone.humid_range_invalid");
         public static readonly ErrorCode InvalidSearchPaging = ErrorCode.Create("zone.invalid_search_paging");
     }
 
     public static class Batch
     {
         public static readonly ErrorCode NotFound = ErrorCode.Create("batch.not_found");
-        public static readonly ErrorCode ValidationFailed = ErrorCode.Create("batch.validation_failed");
+        public static readonly ErrorCode QuantityMustBePositive = ErrorCode.Create("batch.quantity_must_be_positive");
+        public static readonly ErrorCode DateAddedInFuture = ErrorCode.Create("batch.date_added_in_future");
+        public static readonly ErrorCode ExpireDateBeforeDateAdded = ErrorCode.Create("batch.expire_date_before_date_added");
         public static readonly ErrorCode MedicineNotFound = ErrorCode.Create("batch.medicine_not_found");
         public static readonly ErrorCode ZoneNotFound = ErrorCode.Create("batch.zone_not_found");
         public static readonly ErrorCode InvalidSearchPaging = ErrorCode.Create("batch.invalid_search_paging");
@@ -96,7 +108,9 @@ public static class ErrorCodes
     public static class AppSettings
     {
         public static readonly ErrorCode NotFound = ErrorCode.Create("app_settings.not_found");
-        public static readonly ErrorCode ValidationFailed = ErrorCode.Create("app_settings.validation_failed");
+        public static readonly ErrorCode TempAlertDeviationOutOfRange = ErrorCode.Create("app_settings.temp_alert_deviation_out_of_range");
+        public static readonly ErrorCode HumidityAlertDeviationOutOfRange = ErrorCode.Create("app_settings.humidity_alert_deviation_out_of_range");
+        public static readonly ErrorCode ReadingsRetentionDaysOutOfRange = ErrorCode.Create("app_settings.readings_retention_days_out_of_range");
     }
 
     public static class Push

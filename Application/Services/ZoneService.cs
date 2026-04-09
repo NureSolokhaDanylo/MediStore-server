@@ -34,22 +34,22 @@ public class ZoneService : IZoneService
     private Result Validate(Zone z)
     {
         if (z.TempMin < -50 || z.TempMin > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Zone.ValidationFailed, "TempMin must be between -50 and 100", "tempMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Zone.TempMinOutOfRange, "TempMin must be between -50 and 100", "tempMin"));
 
         if (z.TempMax < -50 || z.TempMax > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Zone.ValidationFailed, "TempMax must be between -50 and 100", "tempMax"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Zone.TempMaxOutOfRange, "TempMax must be between -50 and 100", "tempMax"));
 
         if (z.TempMin > z.TempMax)
-            return Result.Failure(Errors.Validation(ErrorCodes.Zone.ValidationFailed, "TempMin cannot be greater than TempMax", "tempMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Zone.TempRangeInvalid, "TempMin cannot be greater than TempMax", "tempMin"));
 
         if (z.HumidMin < 0 || z.HumidMin > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Zone.ValidationFailed, "HumidMin must be between 0 and 100", "humidMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Zone.HumidMinOutOfRange, "HumidMin must be between 0 and 100", "humidMin"));
 
         if (z.HumidMax < 0 || z.HumidMax > 100)
-            return Result.Failure(Errors.Validation(ErrorCodes.Zone.ValidationFailed, "HumidMax must be between 0 and 100", "humidMax"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Zone.HumidMaxOutOfRange, "HumidMax must be between 0 and 100", "humidMax"));
 
         if (z.HumidMin > z.HumidMax)
-            return Result.Failure(Errors.Validation(ErrorCodes.Zone.ValidationFailed, "HumidMin cannot be greater than HumidMax", "humidMin"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Zone.HumidRangeInvalid, "HumidMin cannot be greater than HumidMax", "humidMin"));
 
         return Result.Success();
     }

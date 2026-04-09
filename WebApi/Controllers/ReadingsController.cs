@@ -24,6 +24,9 @@ public class ReadingsController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(401, 403)]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ReadingDto>>> GetAll()
     {
@@ -36,6 +39,10 @@ public class ReadingsController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(401, 403, 404)]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrorCodes(404, "common.not_found")]
     [ProducesResponseType(typeof(ReadingDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ReadingDto>> Get(int id)
     {
@@ -50,6 +57,8 @@ public class ReadingsController : MyController
 
     [HttpPost]
     [RequireSensorApiKey]
+    [ApiErrors(401)]
+    [ApiErrorCodes(401, "sensor_api_key.empty_key", "sensor_api_key.invalid_key", "sensor_api_key.not_bound_to_sensor")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> CreateForSensor([FromBody] ReadingCreateDto dto)
     {
@@ -63,6 +72,10 @@ public class ReadingsController : MyController
 
     [HttpGet("sensor/{sensorId}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(400, 401, 403)]
+    [ApiErrorCodes(400, "reading.invalid_time_range")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetForSensor([FromRoute] int sensorId, [FromQuery] DateTime from, [FromQuery] DateTime to)
     {
@@ -75,6 +88,10 @@ public class ReadingsController : MyController
 
     [HttpGet("sensor/{sensorId}/last")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(400, 401, 403)]
+    [ApiErrorCodes(400, "reading.invalid_count")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLastForSensor([FromRoute] int sensorId, [FromQuery] int count)
     {
@@ -87,6 +104,10 @@ public class ReadingsController : MyController
 
     [HttpGet("zone/{zoneId}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(400, 401, 403)]
+    [ApiErrorCodes(400, "reading.invalid_time_range")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetForZone([FromRoute] int zoneId, [FromQuery] DateTime from, [FromQuery] DateTime to)
     {
@@ -99,6 +120,10 @@ public class ReadingsController : MyController
 
     [HttpGet("zone/{zoneId}/last")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(400, 401, 403)]
+    [ApiErrorCodes(400, "reading.invalid_count")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(IEnumerable<ReadingDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLastForZone([FromRoute] int zoneId, [FromQuery] int count)
     {

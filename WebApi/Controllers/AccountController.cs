@@ -28,6 +28,8 @@ namespace WebApi.Controllers
 
         // NOTE: API response contract changed from an anonymous object to LoginResponseDto.
         [HttpPost("login")]
+        [ApiErrors(401)]
+        [ApiErrorCodes(401, "auth.invalid_credentials")]
         [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
@@ -42,6 +44,8 @@ namespace WebApi.Controllers
         // NOTE: API response contract changed from an anonymous object to CurrentUserDto.
         [HttpGet("me")]
         [Authorize]
+        [ApiErrors(401)]
+        [ApiErrorCodes(401, "auth.unauthorized")]
         [ProducesResponseType(typeof(CurrentUserDto), StatusCodes.Status200OK)]
         public IActionResult Me()
         {
@@ -58,6 +62,11 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [ApiErrors(400, 401, 403, 404)]
+        [ApiErrorCodes(400, "account.roles_do_not_exist", "account.create_failed")]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrorCodes(404, "account.requester_not_found")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
         {
@@ -68,6 +77,11 @@ namespace WebApi.Controllers
 
         [HttpPost("change-password")]
         [Authorize]
+        [ApiErrors(400, 401, 403, 404)]
+        [ApiErrorCodes(400, "auth.current_password_required", "auth.current_password_incorrect", "account.change_password_failed")]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrorCodes(404, "account.requester_not_found", "account.target_user_not_found")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
@@ -78,6 +92,12 @@ namespace WebApi.Controllers
 
         [HttpPost("roles")]
         [Authorize(Roles = "Admin")]
+        [ApiErrors(400, 401, 403, 404, 409)]
+        [ApiErrorCodes(400, "account.roles_do_not_exist")]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrorCodes(404, "account.requester_not_found", "account.target_user_not_found")]
+        [ApiErrorCodes(409, "account.cannot_change_admin_roles")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> ChangeRoles([FromBody] ChangeRolesDto dto)
         {
@@ -88,6 +108,12 @@ namespace WebApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
+        [ApiErrors(400, 401, 403, 404, 409)]
+        [ApiErrorCodes(400, "account.delete_failed")]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrorCodes(404, "account.requester_not_found", "account.target_user_not_found")]
+        [ApiErrorCodes(409, "account.cannot_delete_self")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(string id)
         {
@@ -98,6 +124,10 @@ namespace WebApi.Controllers
 
         [HttpGet("users")]
         [Authorize(Roles = "Admin")]
+        [ApiErrors(400, 401, 403)]
+        [ApiErrorCodes(400, "account.invalid_paging")]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
         [ProducesResponseType(typeof(PagedResultDto<UserDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResultDto<UserDto>>> GetUsers(
             [FromQuery] int skip = 0,

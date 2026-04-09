@@ -22,6 +22,10 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Operator")]
+        [ApiErrors(401, 403, 404)]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrorCodes(404, "app_settings.not_found")]
         [ProducesResponseType(typeof(AppSettings), StatusCodes.Status200OK)]
         public async Task<IActionResult> Get()
         {
@@ -32,6 +36,11 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Authorize(Roles = "Admin")]
+        [ApiErrors(400, 401, 403, 404)]
+        [ApiErrorCodes(400, "app_settings.temp_alert_deviation_out_of_range", "app_settings.humidity_alert_deviation_out_of_range", "app_settings.readings_retention_days_out_of_range")]
+        [ApiErrorCodes(401, "auth.unauthorized")]
+        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrorCodes(404, "app_settings.not_found")]
         [ProducesResponseType(typeof(AppSettings), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update([FromBody] AppSettingsDto dto)
         {

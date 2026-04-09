@@ -23,6 +23,9 @@ public class BatchesController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(401, 403)]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(IEnumerable<BatchDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BatchDto>>> GetAll()
     {
@@ -35,6 +38,10 @@ public class BatchesController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(401, 403, 404)]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrorCodes(404, "batch.not_found")]
     [ProducesResponseType(typeof(BatchDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BatchDto>> Get(int id)
     {
@@ -49,6 +56,11 @@ public class BatchesController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Operator")]
+    [ApiErrors(400, 401, 403, 404)]
+    [ApiErrorCodes(400, "batch.quantity_must_be_positive", "batch.date_added_in_future", "batch.expire_date_before_date_added")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrorCodes(404, "batch.medicine_not_found", "batch.zone_not_found")]
     [ProducesResponseType(typeof(BatchDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] BatchCreateDto dto)
     {
@@ -61,6 +73,11 @@ public class BatchesController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Operator")]
+    [ApiErrors(400, 401, 403, 404)]
+    [ApiErrorCodes(400, "batch.quantity_must_be_positive", "batch.date_added_in_future", "batch.expire_date_before_date_added")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrorCodes(404, "batch.not_found", "batch.medicine_not_found", "batch.zone_not_found")]
     [ProducesResponseType(typeof(BatchDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BatchDto>> Update([FromBody] BatchDto dto)
     {
@@ -72,6 +89,11 @@ public class BatchesController : MyController
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Operator")]
+    [ApiErrors(400, 401, 403, 404)]
+    [ApiErrorCodes(400, "common.validation_error", "batch.quantity_must_be_positive", "batch.date_added_in_future", "batch.expire_date_before_date_added")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrorCodes(404, "batch.not_found", "batch.medicine_not_found", "batch.zone_not_found")]
     [ProducesResponseType(typeof(BatchDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BatchDto>> Update(int id, [FromBody] BatchDto dto)
     {
@@ -84,6 +106,10 @@ public class BatchesController : MyController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Operator")]
+    [ApiErrors(401, 403, 404)]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrorCodes(404, "batch.not_found")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {
@@ -95,6 +121,10 @@ public class BatchesController : MyController
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
+    [ApiErrors(400, 401, 403)]
+    [ApiErrorCodes(400, "batch.invalid_search_paging")]
+    [ApiErrorCodes(401, "auth.unauthorized")]
+    [ApiErrorCodes(403, "auth.forbidden")]
     [ProducesResponseType(typeof(PagedSearchResultDto<BatchSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedSearchResultDto<BatchSearchResultDto>>> Search(
         [FromQuery] string q,

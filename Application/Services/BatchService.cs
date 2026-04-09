@@ -34,14 +34,14 @@ public class BatchService : IBatchService
     private Result Validate(Batch b)
     {
         if (b.Quantity <= 0)
-            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ValidationFailed, "Quantity must be greater than 0", "quantity"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Batch.QuantityMustBePositive, "Quantity must be greater than 0", "quantity"));
 
         var now = DateTime.UtcNow;
         if (b.DateAdded.ToUniversalTime() > now.AddMinutes(1))
-            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ValidationFailed, "DateAdded cannot be in the future", "dateAdded"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Batch.DateAddedInFuture, "DateAdded cannot be in the future", "dateAdded"));
 
         if (b.ExpireDate.ToUniversalTime() < b.DateAdded.ToUniversalTime())
-            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ValidationFailed, "ExpireDate must be after DateAdded", "expireDate"));
+            return Result.Failure(Errors.Validation(ErrorCodes.Batch.ExpireDateBeforeDateAdded, "ExpireDate must be after DateAdded", "expireDate"));
 
         return Result.Success();
     }

@@ -41,12 +41,12 @@ public class AppSettingsService : IAppSettingsService
         if (existing is null) return Result<AppSettings>.Failure(Errors.NotFound(ErrorCodes.AppSettings.NotFound, "Not found"));
 
         if (entity.TempAlertDeviation < 0 || entity.TempAlertDeviation > 100)
-            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ValidationFailed, "TempAlertDeviation out of range", "tempAlertDeviation"));
+            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.TempAlertDeviationOutOfRange, "TempAlertDeviation out of range", "tempAlertDeviation"));
         if (entity.HumidityAlertDeviation < 0 || entity.HumidityAlertDeviation > 100)
-            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ValidationFailed, "HumidityAlertDeviation out of range", "humidityAlertDeviation"));
+            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.HumidityAlertDeviationOutOfRange, "HumidityAlertDeviation out of range", "humidityAlertDeviation"));
 
         if (entity.ReadingsRetentionDays < 1 || entity.ReadingsRetentionDays > 365 * 5)
-            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ValidationFailed, "ReadingsRetentionDays out of allowed range (1..1825)", "readingsRetentionDays"));
+            return Result<AppSettings>.Failure(Errors.Validation(ErrorCodes.AppSettings.ReadingsRetentionDaysOutOfRange, "ReadingsRetentionDays out of allowed range (1..1825)", "readingsRetentionDays"));
 
         existing.AlertEnabled = entity.AlertEnabled;
         existing.TempAlertDeviation = entity.TempAlertDeviation;
