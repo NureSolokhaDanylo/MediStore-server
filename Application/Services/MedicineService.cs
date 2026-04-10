@@ -110,6 +110,28 @@ public class MedicineService : IMedicineService
         if (!access.IsSucceed)
             return access;
 
+        var entity = await _uow.Medicines.GetAsync(id);
+        if (entity is null)
+            return Result.Failure(Errors.NotFound(ErrorCodes.Medicine.NotFound, "Not found", "medicineId", id));
+
+        var batches = await _uow.Batches.GetAllAsync();
+        var linkedBatchIds = batches
+            .Where(batch => batch.MedicineId == id)
+            .Select(batch => batch.Id)
+            .ToArray();
+
+        if (linkedBatchIds.Length > 0)
+        {
+            return Result.Failure(Errors.Conflict(
+                ErrorCodes.Medicine.HasBatches,
+                "Medicine cannot be deleted because it has linked batches",
+                new Dictionary<string, object?>
+                {
+                    ["medicineId"] = id,
+                    ["batchIds"] = linkedBatchIds
+                }));
+        }
+
         return await _deleteService.Delete(id);
     }
 

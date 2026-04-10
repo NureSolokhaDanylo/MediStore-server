@@ -44,6 +44,7 @@ public static class ErrorCodes
         public static readonly ErrorCode HumidMaxOutOfRange = ErrorCode.Create("medicine.humid_max_out_of_range");
         public static readonly ErrorCode HumidRangeInvalid = ErrorCode.Create("medicine.humid_range_invalid");
         public static readonly ErrorCode InvalidSearchPaging = ErrorCode.Create("medicine.invalid_search_paging");
+        public static readonly ErrorCode HasBatches = ErrorCode.Create("medicine.has_batches");
     }
 
     public static class Zone
@@ -56,6 +57,7 @@ public static class ErrorCodes
         public static readonly ErrorCode HumidMaxOutOfRange = ErrorCode.Create("zone.humid_max_out_of_range");
         public static readonly ErrorCode HumidRangeInvalid = ErrorCode.Create("zone.humid_range_invalid");
         public static readonly ErrorCode InvalidSearchPaging = ErrorCode.Create("zone.invalid_search_paging");
+        public static readonly ErrorCode HasBatches = ErrorCode.Create("zone.has_batches");
     }
 
     public static class Batch

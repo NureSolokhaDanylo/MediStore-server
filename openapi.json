@@ -2233,6 +2233,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict. Possible internal codes: medicine.has_batches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3903,6 +3913,16 @@
           },
           "404": {
             "description": "Not Found. Possible internal codes: zone.not_found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict. Possible internal codes: zone.has_batches",
             "content": {
               "application/json": {
                 "schema": {

@@ -105,10 +105,11 @@ public class MedicinesController : MyController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(401, 403, 404)]
+    [ApiErrors(401, 403, 404, 409)]
     [ApiErrorCodes(401, "auth.unauthorized")]
     [ApiErrorCodes(403, "auth.forbidden")]
     [ApiErrorCodes(404, "medicine.not_found")]
+    [ApiErrorCodes(409, "medicine.has_batches")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {

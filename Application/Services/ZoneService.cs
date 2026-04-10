@@ -108,6 +108,28 @@ public class ZoneService : IZoneService
         if (!access.IsSucceed)
             return access;
 
+        var existing = await _uow.Zones.GetAsync(id);
+        if (existing is null)
+            return Result.Failure(Errors.NotFound(ErrorCodes.Zone.NotFound, "Not found", "zoneId", id));
+
+        var batches = await _uow.Batches.GetAllAsync();
+        var linkedBatchIds = batches
+            .Where(batch => batch.ZoneId == id)
+            .Select(batch => batch.Id)
+            .ToArray();
+
+        if (linkedBatchIds.Length > 0)
+        {
+            return Result.Failure(Errors.Conflict(
+                ErrorCodes.Zone.HasBatches,
+                "Zone cannot be deleted because it has linked batches",
+                new Dictionary<string, object?>
+                {
+                    ["zoneId"] = id,
+                    ["batchIds"] = linkedBatchIds
+                }));
+        }
+
         return await _deleteService.Delete(id);
     }
 
