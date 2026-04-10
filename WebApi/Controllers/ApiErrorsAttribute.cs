@@ -4,4 +4,5 @@ namespace WebApi.Controllers;
 public sealed class ApiErrorsAttribute(params int[] statusCodes) : Attribute
 {
     public IReadOnlyList<int> StatusCodes { get; } = statusCodes;
+    public string[] Codes { get; set; } = [];
 }

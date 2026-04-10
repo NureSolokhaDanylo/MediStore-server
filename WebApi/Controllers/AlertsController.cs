@@ -21,9 +21,7 @@ public class AlertsController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(401, 403, Codes = new[] { "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(IEnumerable<AlertDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AlertDto>>> GetAll()
     {
@@ -36,10 +34,7 @@ public class AlertsController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "common.not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "common.not_found" })]
     [ProducesResponseType(typeof(AlertDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<AlertDto>> Get(int id)
     {
@@ -54,10 +49,7 @@ public class AlertsController : MyController
 
     [HttpGet("filtered")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403, 500)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(500, "alert.retrieval_failed")]
+    [ApiErrors(401, 403, 500, Codes = new[] { "auth.unauthorized", "auth.forbidden", "alert.retrieval_failed" })]
     [ProducesResponseType(typeof(PagedResultDto<AlertDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<AlertDto>>> GetFiltered([FromQuery] AlertFilterDto filter)
     {

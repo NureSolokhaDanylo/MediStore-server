@@ -23,10 +23,7 @@ namespace WebApi.Controllers
         // GET /api/v1/reports/alerts?from=2025-12-01T00:00:00Z&to=2025-12-02T00:00:00Z
         [HttpGet("alerts")]
         [Authorize(Roles = "Admin,Observer")]
-        [ApiErrors(400, 401, 403)]
-        [ApiErrorCodes(400, "report.invalid_time_range")]
-        [ApiErrorCodes(401, "auth.unauthorized")]
-        [ApiErrorCodes(403, "auth.forbidden")]
+        [ApiErrors(400, 401, 403, Codes = new[] { "report.invalid_time_range", "auth.unauthorized", "auth.forbidden" })]
         [Produces("application/pdf")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> AlertsReport([FromQuery] DateTime from, [FromQuery] DateTime to)

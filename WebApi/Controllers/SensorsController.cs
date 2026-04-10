@@ -26,10 +26,7 @@ public class SensorsController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403, 500)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(500, "sensor.retrieval_failed")]
+    [ApiErrors(401, 403, 500, Codes = new[] { "auth.unauthorized", "auth.forbidden", "sensor.retrieval_failed" })]
     [ProducesResponseType(typeof(IEnumerable<SensorDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors([FromQuery] int? zoneId)
     {
@@ -51,11 +48,7 @@ public class SensorsController : MyController
 
     [HttpGet("paged")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(400, 401, 403, 500)]
-    [ApiErrorCodes(400, "sensor.invalid_paging")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(500, "sensor.retrieval_failed")]
+    [ApiErrors(400, 401, 403, 500, Codes = new[] { "sensor.invalid_paging", "auth.unauthorized", "auth.forbidden", "sensor.retrieval_failed" })]
     [ProducesResponseType(typeof(PagedResultDto<SensorDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<SensorDto>>> GetSensorsPaged(
         [FromQuery] int skip = 0,
@@ -83,10 +76,7 @@ public class SensorsController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "sensor.not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "sensor.not_found" })]
     [ProducesResponseType(typeof(SensorDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SensorDto>> Get(int id)
     {
@@ -101,10 +91,7 @@ public class SensorsController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "sensor.zone_not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "sensor.zone_not_found" })]
     [ProducesResponseType(typeof(SensorDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] SensorCreateDto dto)
     {
@@ -117,10 +104,7 @@ public class SensorsController : MyController
 
     [HttpDelete]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "sensor.not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "sensor.not_found" })]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete([FromQuery] int id)
     {
@@ -131,10 +115,7 @@ public class SensorsController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "sensor.not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "sensor.not_found" })]
     [ProducesResponseType(typeof(SensorDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAllowedFields([FromBody] SensorUpdateDto dto)
     {
@@ -147,10 +128,7 @@ public class SensorsController : MyController
     // NOTE: API response contract changed from an anonymous object to SensorApiKeyResponseDto.
     [HttpPost("{id:int}/apikey")]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "sensor_api_key.sensor_not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "sensor_api_key.sensor_not_found" })]
     [ProducesResponseType(typeof(SensorApiKeyResponseDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateApiKey(int id)
     {

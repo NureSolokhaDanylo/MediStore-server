@@ -58,7 +58,7 @@ public static class AuthOpenApiTransformers
         ApplyDeclaredErrorResponses(operation, metadata, context.Document);
         NormalizeOperationResponses(operation, metadata);
         NormalizeOperationSchemas(operation);
-        ApplyAuthorizationDescription(operation, metadata);
+        ApplyOperationDescription(operation, metadata);
 
         if (metadata.OfType<IAllowAnonymous>().Any())
         {
@@ -137,19 +137,11 @@ public static class AuthOpenApiTransformers
             return;
         }
 
-        var codesByStatus = metadata
-            .OfType<ApiErrorCodesAttribute>()
-            .GroupBy(x => x.StatusCode)
-            .ToDictionary(
-                g => g.Key,
-                g => g.SelectMany(x => x.Codes).Distinct(StringComparer.Ordinal).ToArray());
-
         operation.Responses ??= new OpenApiResponses();
 
         foreach (var statusCode in declaredErrors)
         {
             var statusKey = statusCode.ToString();
-            var errorCodes = codesByStatus.GetValueOrDefault(statusCode, []);
 
             if (!operation.Responses.TryGetValue(statusKey, out var response))
             {
@@ -158,7 +150,7 @@ public static class AuthOpenApiTransformers
             }
 
             response = EnsureResponseHasContent(operation, statusKey, response);
-            response.Description = BuildErrorDescription(statusCode, errorCodes);
+            response.Description = BuildErrorDescription(statusCode);
             response.Content.Clear();
             response.Content["application/json"] = new OpenApiMediaType
             {
@@ -167,23 +159,36 @@ public static class AuthOpenApiTransformers
         }
     }
 
-    private static void ApplyAuthorizationDescription(OpenApiOperation operation, IList<object> metadata)
+    private static void ApplyOperationDescription(OpenApiOperation operation, IList<object> metadata)
     {
-        var roles = metadata
-            .OfType<IAuthorizeData>()
-            .SelectMany(static auth => SplitRoles(auth.Roles))
+        var descriptionParts = new List<string>();
+        var authorizationDescription = BuildAuthorizationDescription(metadata);
+        if (!string.IsNullOrWhiteSpace(authorizationDescription))
+        {
+            descriptionParts.Add(authorizationDescription);
+        }
+
+        var errorCodes = metadata
+            .OfType<ApiErrorsAttribute>()
+            .SelectMany(static errors => errors.Codes)
+            .Where(static code => !string.IsNullOrWhiteSpace(code))
             .Distinct(StringComparer.Ordinal)
             .ToArray();
 
-        if (roles.Length == 0)
+        if (errorCodes.Length > 0)
+        {
+            descriptionParts.Add($"Possible internal codes: {string.Join(", ", errorCodes)}");
+        }
+
+        if (descriptionParts.Count == 0)
         {
             return;
         }
 
-        var rolesLine = $"Required roles: {string.Join(", ", roles)}";
+        var metadataDescription = string.Join($"{Environment.NewLine}{Environment.NewLine}", descriptionParts);
         operation.Description = string.IsNullOrWhiteSpace(operation.Description)
-            ? rolesLine
-            : $"{operation.Description.Trim()}{Environment.NewLine}{Environment.NewLine}{rolesLine}";
+            ? metadataDescription
+            : $"{operation.Description.Trim()}{Environment.NewLine}{Environment.NewLine}{metadataDescription}";
     }
 
     private static void NormalizeOperationResponses(OpenApiOperation operation, IList<object> metadata)
@@ -491,9 +496,37 @@ public static class AuthOpenApiTransformers
         };
     }
 
-    private static string BuildErrorDescription(int statusCode, IReadOnlyCollection<string> codes)
+    private static string? BuildAuthorizationDescription(IList<object> metadata)
     {
-        var description = statusCode switch
+        if (metadata.OfType<IAllowAnonymous>().Any())
+        {
+            return null;
+        }
+
+        if (metadata.OfType<RequireSensorApiKeyAttribute>().Any())
+        {
+            return "Authorization: sensor API key";
+        }
+
+        var authorizeData = metadata.OfType<IAuthorizeData>().ToArray();
+        if (authorizeData.Length == 0)
+        {
+            return null;
+        }
+
+        var roles = authorizeData
+            .SelectMany(static auth => SplitRoles(auth.Roles))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        return roles.Length == 0
+            ? "Authorization: authenticated user"
+            : $"Required roles: {string.Join(", ", roles)}";
+    }
+
+    private static string BuildErrorDescription(int statusCode)
+    {
+        return statusCode switch
         {
             StatusCodes.Status400BadRequest => "Bad Request",
             StatusCodes.Status401Unauthorized => "Unauthorized",
@@ -503,13 +536,6 @@ public static class AuthOpenApiTransformers
             StatusCodes.Status500InternalServerError => "Internal Server Error",
             _ => "Error"
         };
-
-        if (codes.Count == 0)
-        {
-            return description;
-        }
-
-        return $"{description}. Possible internal codes: {string.Join(", ", codes)}";
     }
 
     private static IEnumerable<string> SplitRoles(string? roles)

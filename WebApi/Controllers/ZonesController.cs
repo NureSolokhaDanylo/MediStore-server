@@ -25,9 +25,7 @@ public class ZonesController : MyController
 
     [HttpGet]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(401, 403, Codes = new[] { "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(IEnumerable<ZoneDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZoneDto>>> GetAll()
     {
@@ -40,10 +38,7 @@ public class ZonesController : MyController
 
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "zone.not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "zone.not_found" })]
     [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZoneDto>> Get(int id)
     {
@@ -58,10 +53,7 @@ public class ZonesController : MyController
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(400, 401, 403)]
-    [ApiErrorCodes(400, "zone.temp_min_out_of_range", "zone.temp_max_out_of_range", "zone.temp_range_invalid", "zone.humid_min_out_of_range", "zone.humid_max_out_of_range", "zone.humid_range_invalid")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(400, 401, 403, Codes = new[] { "zone.temp_min_out_of_range", "zone.temp_max_out_of_range", "zone.temp_range_invalid", "zone.humid_min_out_of_range", "zone.humid_max_out_of_range", "zone.humid_range_invalid", "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] ZoneCreateDto dto)
     {
@@ -74,11 +66,7 @@ public class ZonesController : MyController
 
     [HttpPut]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(400, 401, 403, 404)]
-    [ApiErrorCodes(400, "zone.temp_min_out_of_range", "zone.temp_max_out_of_range", "zone.temp_range_invalid", "zone.humid_min_out_of_range", "zone.humid_max_out_of_range", "zone.humid_range_invalid")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "zone.not_found")]
+    [ApiErrors(400, 401, 403, 404, Codes = new[] { "zone.temp_min_out_of_range", "zone.temp_max_out_of_range", "zone.temp_range_invalid", "zone.humid_min_out_of_range", "zone.humid_max_out_of_range", "zone.humid_range_invalid", "auth.unauthorized", "auth.forbidden", "zone.not_found" })]
     [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZoneDto>> Update([FromBody] ZoneDto dto)
     {
@@ -90,11 +78,7 @@ public class ZonesController : MyController
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(400, 401, 403, 404)]
-    [ApiErrorCodes(400, "common.validation_error", "zone.temp_min_out_of_range", "zone.temp_max_out_of_range", "zone.temp_range_invalid", "zone.humid_min_out_of_range", "zone.humid_max_out_of_range", "zone.humid_range_invalid")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "zone.not_found")]
+    [ApiErrors(400, 401, 403, 404, Codes = new[] { "common.validation_error", "zone.temp_min_out_of_range", "zone.temp_max_out_of_range", "zone.temp_range_invalid", "zone.humid_min_out_of_range", "zone.humid_max_out_of_range", "zone.humid_range_invalid", "auth.unauthorized", "auth.forbidden", "zone.not_found" })]
     [ProducesResponseType(typeof(ZoneDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZoneDto>> Update(int id, [FromBody] ZoneDto dto)
     {
@@ -107,11 +91,7 @@ public class ZonesController : MyController
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
-    [ApiErrors(401, 403, 404, 409)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "zone.not_found")]
-    [ApiErrorCodes(409, "zone.has_batches")]
+    [ApiErrors(401, 403, 404, 409, Codes = new[] { "auth.unauthorized", "auth.forbidden", "zone.not_found", "zone.has_batches" })]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {
@@ -123,10 +103,7 @@ public class ZonesController : MyController
 
     [HttpGet("search")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(400, 401, 403)]
-    [ApiErrorCodes(400, "zone.invalid_search_paging")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(400, 401, 403, Codes = new[] { "zone.invalid_search_paging", "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(PagedSearchResultDto<ZoneSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedSearchResultDto<ZoneSearchResultDto>>> Search(
         [FromQuery] string q,
@@ -153,11 +130,7 @@ public class ZonesController : MyController
 
     [HttpGet("{id:int}/sensors")]
     [Authorize(Roles = "Admin,Operator,Observer")]
-    [ApiErrors(401, 403, 404, 500)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "zone.not_found")]
-    [ApiErrorCodes(500, "sensor.retrieval_failed")]
+    [ApiErrors(401, 403, 404, 500, Codes = new[] { "auth.unauthorized", "auth.forbidden", "zone.not_found", "sensor.retrieval_failed" })]
     [ProducesResponseType(typeof(IEnumerable<SensorDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<SensorDto>>> GetSensors(int id)
     {

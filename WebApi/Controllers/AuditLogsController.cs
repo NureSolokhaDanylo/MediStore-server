@@ -21,10 +21,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("{id:int}")]
-    [ApiErrors(401, 403, 404)]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
-    [ApiErrorCodes(404, "common.not_found")]
+    [ApiErrors(401, 403, 404, Codes = new[] { "auth.unauthorized", "auth.forbidden", "common.not_found" })]
     [ProducesResponseType(typeof(AuditLogDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(int id)
     {
@@ -35,10 +32,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("type/{entityType}")]
-    [ApiErrors(400, 401, 403)]
-    [ApiErrorCodes(400, "audit_log.invalid_entity_type")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(400, 401, 403, Codes = new[] { "audit_log.invalid_entity_type", "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(IEnumerable<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByTypeRange([FromRoute] string entityType, [FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
@@ -52,10 +46,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("type/{entityType}/paged")]
-    [ApiErrors(400, 401, 403)]
-    [ApiErrorCodes(400, "audit_log.invalid_entity_type", "audit_log.invalid_paging")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(400, 401, 403, Codes = new[] { "audit_log.invalid_entity_type", "audit_log.invalid_paging", "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(PagedResultDto<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<AuditLogDto>>> GetByTypePaged(
         [FromRoute] string entityType,
@@ -82,10 +73,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("paged")]
-    [ApiErrors(400, 401, 403)]
-    [ApiErrorCodes(400, "audit_log.invalid_paging")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(400, 401, 403, Codes = new[] { "audit_log.invalid_paging", "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(PagedResultDto<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<AuditLogDto>>> GetPaged(
         [FromQuery] string? q = null,
@@ -123,10 +111,7 @@ public class AuditLogsController : MyController
     }
 
     [HttpGet("type/{entityType}/last")]
-    [ApiErrors(400, 401, 403)]
-    [ApiErrorCodes(400, "audit_log.invalid_entity_type", "audit_log.invalid_count")]
-    [ApiErrorCodes(401, "auth.unauthorized")]
-    [ApiErrorCodes(403, "auth.forbidden")]
+    [ApiErrors(400, 401, 403, Codes = new[] { "audit_log.invalid_entity_type", "audit_log.invalid_count", "auth.unauthorized", "auth.forbidden" })]
     [ProducesResponseType(typeof(IEnumerable<AuditLogDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByTypeLast([FromRoute] string entityType, [FromQuery] int count)
     {

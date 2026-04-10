@@ -1,0 +1,4 @@
+interface:
+  display_name: "MediStore Update API"
+  short_description: "Update API and refresh OpenAPI"
+  default_prompt: "Use $medistore-update-api to update the MediStore API, restart docker, and fetch a fresh OpenAPI snapshot."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MediStore Generate SDK"
+  short_description: "Generate and inspect TS/Kotlin SDKs"
+  default_prompt: "Use $medistore-generate-sdk to generate temporary TS and Kotlin SDKs for MediStore and inspect their output quality."
